@@ -55,9 +55,11 @@ func NewMinesweeperGrid(d minesweeper.Difficulty) *MinesweeperGrid {
 }
 
 func (g *MinesweeperGrid) GetCanvasObject() fyne.CanvasObject {
-	mineCount := newBorder(g.MineCount.Label)
-	timer := newBorder(g.Timer.Label)
-	head := newBorder(container.NewHBox(layout.NewSpacer(), mineCount, g.Reset, timer, layout.NewSpacer()))
+	mineCount := container.NewHBox(layout.NewSpacer(), container.NewCenter(newBorder(g.MineCount.Label)))
+	reset := container.NewCenter(g.Reset)
+	timer := container.NewHBox(container.NewCenter(newBorder(g.Timer.Label)), layout.NewSpacer())
+
+	head := newBorder(container.NewGridWithColumns(3, mineCount, reset, timer))
 
 	rows := make([]fyne.CanvasObject, len(g.Tiles))
 
