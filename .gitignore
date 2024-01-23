@@ -1,0 +1,7 @@
+# Generated go-test coverage reports
+coverprofiles/
+
+# Generated artifacts
+/bin
+/dist
+/fyne-cross

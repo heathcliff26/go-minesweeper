@@ -1,0 +1,70 @@
+---
+name: "Generate go test cover report"
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["main"]
+    paths:
+      - "*.go"
+      - "**/*.go"
+
+jobs:
+  generate-reports:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate Token
+        uses: actions/create-github-app-token@c4fa18d55c5d49e6a2793e351ea4938322c61072 # v1.6.4
+        id: app-token
+        with:
+          app-id: "${{ secrets.BOT_APP_ID }}"
+          private-key: "${{ secrets.BOT_APP_PRIVATE_KEY }}"
+
+      - name: Checkout main branch
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          token: "${{ steps.app-token.outputs.token }}"
+          ref: "main"
+          path: "main"
+
+      - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
+        with:
+          go-version: 'stable'
+          cache-dependency-path: go.sum
+
+      - name: Install package dependencies
+        run:
+          sudo apt-get install -y gcc libgl1-mesa-dev xorg-dev
+
+      - name: Generate reports
+        run: |
+          ${GITHUB_WORKSPACE}/main/hack/coverprofile.sh
+
+      - name: Checkout gh-pages
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          token: "${{ steps.app-token.outputs.token }}"
+          ref: "gh-pages"
+          path: "gh-pages"
+
+      - name: Copy files to gh-pages
+        run: |
+          set -e
+          cp ${GITHUB_WORKSPACE}/main/coverprofiles/* ${GITHUB_WORKSPACE}/gh-pages/
+
+      - name: Commit changes
+        uses: stefanzweifel/git-auto-commit-action@8756aa072ef5b4a080af5dc8fef36c5d586e521d # v5.0.0
+        with:
+          commit_message: |
+            Updated go coverprofiles
+
+            Commit: ${{ github.sha }}
+          commit_options: "--signoff"
+          repository: "./gh-pages"
+          commit_user_name: "bot-ahsoka[bot]"
+          commit_user_email: "<bot-ahsoka[bot]@users.noreply.github.com>"
+          commit_author: "bot-ahsoka[bot] <bot-ahsoka[bot]@users.noreply.github.com>"
+          skip_dirty_check: false
+          skip_fetch: true
+          skip_checkout: true
+
