@@ -23,6 +23,7 @@ type App struct {
 	difficulties []*fyne.MenuItem
 }
 
+// Create a new App
 func New() *App {
 	app := fApp.New()
 	version := getVersion(app)
@@ -46,11 +47,17 @@ func New() *App {
 	return a
 }
 
+// Simply calls app.Run()
 func (a *App) Run() {
 	a.app.Run()
 }
 
+// Create the main menu bar
 func (a *App) makeMenu() *fyne.MainMenu {
+	// A quit item will be added by fyne automatically to this menu
+	appMenu := fyne.NewMenu("App", fyne.NewMenuItemSeparator())
+	appMenu.Items = appMenu.Items[1:]
+
 	difficulties := minesweeper.Difficulties()
 	diffItems := make([]*fyne.MenuItem, 0, len(difficulties))
 	for _, d := range difficulties {
@@ -78,9 +85,10 @@ func (a *App) makeMenu() *fyne.MainMenu {
 	})
 	helpMenu := fyne.NewMenu("Help", about)
 
-	return fyne.NewMainMenu(diffMenu, helpMenu)
+	return fyne.NewMainMenu(appMenu, diffMenu, helpMenu)
 }
 
+// Update the content of the app and resize the window to make it fit
 func (a *App) setContent() {
 	a.main.SetContent(a.grid.GetCanvasObject())
 	a.main.Resize(a.main.Content().MinSize())
