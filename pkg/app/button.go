@@ -25,7 +25,7 @@ func NewButton(text string, color color.Color, action func()) *Button {
 }
 
 func (b *Button) CreateRenderer() fyne.WidgetRenderer {
-	return widget.NewSimpleRenderer(newBorder(b.Label))
+	return widget.NewSimpleRenderer(b.Label)
 }
 
 func (b *Button) Tapped(_ *fyne.PointEvent) {
