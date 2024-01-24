@@ -1,5 +1,6 @@
 package utils
 
+// Create a new, empty 2 dimensional array of the given type and dimensions.
 func Make2D[T any](x, y int) [][]T {
 	if x < 1 || y < 1 {
 		return [][]T{}
