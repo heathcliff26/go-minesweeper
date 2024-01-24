@@ -86,35 +86,35 @@ const (
 
 // Represent a difficulty setting for the Game
 type Difficulty struct {
-        Name  string
-        Size  GridSize
-        Mines int
-}
-
-type GridSize struct {
+        Name     string
         Row, Col int
+        Mines    int
 }
 
 // Pre-defined difficulties
 var difficulties []Difficulty = []Difficulty{
         {
                 Name:  "Classic",
-                Size:  GridSize{8, 8},
+                Row:   8,
+                Col:   8,
                 Mines: 9,
         },
         {
                 Name:  "Beginner",
-                Size:  GridSize{9, 9},
+                Row:   9,
+                Col:   9,
                 Mines: 10,
         },
         {
                 Name:  "Intermediate",
-                Size:  GridSize{16, 16},
+                Row:   16,
+                Col:   16,
                 Mines: 40,
         },
         {
                 Name:  "Expert",
-                Size:  GridSize{16, 30},
+                Row:   16,
+                Col:   30,
                 Mines: 99,
         },
 }
@@ -172,7 +172,7 @@ type Game struct {
 // Create a new game with mines seeded randomly in the map, with the exception of the given position.
 func NewGameWithSafePos(d Difficulty, p Pos) *Game <span class="cov8" title="1">{
         g := &amp;Game{
-                Field:      utils.Make2D[Field](d.Size.Row, d.Size.Col),
+                Field:      utils.Make2D[Field](d.Row, d.Col),
                 Difficulty: d,
                 GameOver:   false,
                 GameWon:    false,
@@ -183,15 +183,15 @@ func NewGameWithSafePos(d Difficulty, p Pos) *Game <span class="cov8" title="1">
                 g.Field[mine.X][mine.Y].Content = Mine
         }</span>
 
-        <span class="cov8" title="1">for x := 0; x &lt; d.Size.Row; x++ </span><span class="cov8" title="1">{
-                for y := 0; y &lt; d.Size.Col; y++ </span><span class="cov8" title="1">{
+        <span class="cov8" title="1">for x := 0; x &lt; d.Row; x++ </span><span class="cov8" title="1">{
+                for y := 0; y &lt; d.Col; y++ </span><span class="cov8" title="1">{
                         if g.Field[x][y].Content == Mine </span><span class="cov8" title="1">{
                                 continue</span>
                         }
                         <span class="cov8" title="1">c := 0
                         for m := -1; m &lt; 2; m++ </span><span class="cov8" title="1">{
                                 for n := -1; n &lt; 2; n++ </span><span class="cov8" title="1">{
-                                        if x+m &lt; 0 || x+m &gt;= d.Size.Row || y+n &lt; 0 || y+n &gt;= d.Size.Row </span><span class="cov8" title="1">{
+                                        if x+m &lt; 0 || x+m &gt;= d.Row || y+n &lt; 0 || y+n &gt;= d.Row </span><span class="cov8" title="1">{
                                                 continue</span>
                                         }
                                         <span class="cov8" title="1">if g.Field[x+m][y+n].Content == Mine </span><span class="cov8" title="1">{
@@ -256,23 +256,23 @@ func (g *Game) RevealField(p Pos) <span class="cov0" title="0">{
 
 // Check if the given position is out of bounds
 func (g *Game) outOfBounds(p Pos) bool <span class="cov8" title="1">{
-        s := g.Difficulty.Size
-        return p.X &lt; 0 || p.X &gt; s.Row-1 || p.Y &lt; 0 || p.Y &gt; s.Col-1
+        d := g.Difficulty
+        return p.X &lt; 0 || p.X &gt; d.Row-1 || p.Y &lt; 0 || p.Y &gt; d.Col-1
 }</span>
 
 // Returns the current status of the game. Only contains the knowledge a player should have.
 func (g *Game) Status() *Status <span class="cov0" title="0">{
-        size := g.Difficulty.Size
+        d := g.Difficulty
         s := &amp;Status{
-                Field:    utils.Make2D[Field](size.Row, size.Row),
+                Field:    utils.Make2D[Field](d.Row, d.Row),
                 GameOver: g.GameOver,
         }
 
         wasWon := g.GameWon
         isWon := true
 
-        for x := 0; x &lt; size.Row; x++ </span><span class="cov0" title="0">{
-                for y := 0; y &lt; size.Col; y++ </span><span class="cov0" title="0">{
+        for x := 0; x &lt; d.Row; x++ </span><span class="cov0" title="0">{
+                for y := 0; y &lt; d.Col; y++ </span><span class="cov0" title="0">{
                         s.Field[x][y].Checked = g.Field[x][y].Checked
                         if g.Field[x][y].Checked || g.GameOver || wasWon </span><span class="cov0" title="0">{
                                 s.Field[x][y].Content = g.Field[x][y].Content
@@ -288,7 +288,7 @@ func (g *Game) Status() *Status <span class="cov0" title="0">{
         <span class="cov0" title="0">g.GameWon, s.GameWon = isWon, isWon
 
         if g.GameWon != wasWon </span><span class="cov0" title="0">{
-                for x := 0; x &lt; size.Row; x++ </span><span class="cov0" title="0">{
+                for x := 0; x &lt; d.Row; x++ </span><span class="cov0" title="0">{
                         copy(s.Field[x], g.Field[x])
                 }</span>
         }
@@ -322,9 +322,9 @@ func CreateMines(d Difficulty, p Pos) []Pos <span class="cov8" title="1">{
 
         mines = append(mines, p)
         for i := 0; i &lt; d.Mines; i++ </span><span class="cov8" title="1">{
-                p = RandomPos(d.Size.Row, d.Size.Col)
+                p = RandomPos(d.Row, d.Col)
                 for slices.Contains(mines, p) </span><span class="cov8" title="1">{
-                        p = RandomPos(d.Size.Row, d.Size.Col)
+                        p = RandomPos(d.Row, d.Col)
                 }</span>
                 <span class="cov8" title="1">mines = append(mines, p)</span>
         }
