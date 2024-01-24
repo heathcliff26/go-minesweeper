@@ -6,6 +6,8 @@ import (
 	"github.com/heathcliff26/go-minesweeper/pkg/utils"
 )
 
+// Represents the content of a field.
+// Can be a mine, unknown or the number of mines in the neighboring fields
 type FieldContent int
 
 const (
@@ -13,6 +15,7 @@ const (
 	Unknown FieldContent = -2
 )
 
+// Represents a single field in a minefield
 type Field struct {
 	Checked bool
 	Content FieldContent
@@ -29,6 +32,7 @@ type Status struct {
 	GameWon  bool
 }
 
+// Struct for holding the game
 type Game struct {
 	Field      [][]Field
 	Difficulty Difficulty
@@ -36,6 +40,7 @@ type Game struct {
 	GameWon    bool
 }
 
+// Create a new game with mines seeded randomly in the map, with the exception of the given position.
 func NewGameWithSafePos(d Difficulty, p Pos) *Game {
 	g := &Game{
 		Field:      utils.Make2D[Field](d.Size.Row, d.Size.Col),
@@ -72,6 +77,8 @@ func NewGameWithSafePos(d Difficulty, p Pos) *Game {
 	return g
 }
 
+// Check a given field and recursevly reveal all neighboring fields that should be revield.
+// Returns the resulting new status of the game
 func (g *Game) CheckField(p Pos) *Status {
 	if g.GameOver || g.GameWon {
 		return g.Status()
@@ -89,6 +96,8 @@ func (g *Game) CheckField(p Pos) *Status {
 	return g.Status()
 }
 
+// Recursive function to reveal all neighbouring fields that can be safely reveald.
+// Stops when a field has not exactly zero neighbouring mines
 func (g *Game) RevealField(p Pos) {
 	log.Printf("Reveal tile (%d, %d), content: %d\n", p.X, p.Y, g.Field[p.X][p.Y].Content)
 
@@ -116,11 +125,13 @@ func (g *Game) RevealField(p Pos) {
 	}
 }
 
+// Check if the given position is out of bounds
 func (g *Game) outOfBounds(p Pos) bool {
 	s := g.Difficulty.Size
 	return p.X < 0 || p.X > s.Row-1 || p.Y < 0 || p.Y > s.Col-1
 }
 
+// Returns the current status of the game. Only contains the knowledge a player should have.
 func (g *Game) Status() *Status {
 	size := g.Difficulty.Size
 	s := &Status{

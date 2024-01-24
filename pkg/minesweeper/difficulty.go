@@ -7,6 +7,7 @@ const (
 	DifficultyExpert       = iota
 )
 
+// Represent a difficulty setting for the Game
 type Difficulty struct {
 	Name  string
 	Size  GridSize
@@ -17,6 +18,7 @@ type GridSize struct {
 	Row, Col int
 }
 
+// Pre-defined difficulties
 var difficulties []Difficulty = []Difficulty{
 	{
 		Name:  "Classic",
@@ -40,6 +42,7 @@ var difficulties []Difficulty = []Difficulty{
 	},
 }
 
+// Exposes pre-defined difficulties in a way that does not allow the original array to be modified
 func Difficulties() []Difficulty {
 	list := make([]Difficulty, len(difficulties))
 	copy(list, difficulties)
