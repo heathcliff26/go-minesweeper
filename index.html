@@ -84,6 +84,7 @@ const (
         DifficultyExpert       = iota
 )
 
+// Represent a difficulty setting for the Game
 type Difficulty struct {
         Name  string
         Size  GridSize
@@ -94,6 +95,7 @@ type GridSize struct {
         Row, Col int
 }
 
+// Pre-defined difficulties
 var difficulties []Difficulty = []Difficulty{
         {
                 Name:  "Classic",
@@ -117,6 +119,7 @@ var difficulties []Difficulty = []Difficulty{
         },
 }
 
+// Exposes pre-defined difficulties in a way that does not allow the original array to be modified
 func Difficulties() []Difficulty <span class="cov8" title="1">{
         list := make([]Difficulty, len(difficulties))
         copy(list, difficulties)
@@ -132,6 +135,8 @@ import (
         "github.com/heathcliff26/go-minesweeper/pkg/utils"
 )
 
+// Represents the content of a field.
+// Can be a mine, unknown or the number of mines in the neighboring fields
 type FieldContent int
 
 const (
@@ -139,6 +144,7 @@ const (
         Unknown FieldContent = -2
 )
 
+// Represents a single field in a minefield
 type Field struct {
         Checked bool
         Content FieldContent
@@ -155,6 +161,7 @@ type Status struct {
         GameWon  bool
 }
 
+// Struct for holding the game
 type Game struct {
         Field      [][]Field
         Difficulty Difficulty
@@ -162,6 +169,7 @@ type Game struct {
         GameWon    bool
 }
 
+// Create a new game with mines seeded randomly in the map, with the exception of the given position.
 func NewGameWithSafePos(d Difficulty, p Pos) *Game <span class="cov8" title="1">{
         g := &amp;Game{
                 Field:      utils.Make2D[Field](d.Size.Row, d.Size.Col),
@@ -198,6 +206,8 @@ func NewGameWithSafePos(d Difficulty, p Pos) *Game <span class="cov8" title="1">
         <span class="cov8" title="1">return g</span>
 }
 
+// Check a given field and recursevly reveal all neighboring fields that should be revield.
+// Returns the resulting new status of the game
 func (g *Game) CheckField(p Pos) *Status <span class="cov0" title="0">{
         if g.GameOver || g.GameWon </span><span class="cov0" title="0">{
                 return g.Status()
@@ -215,6 +225,8 @@ func (g *Game) CheckField(p Pos) *Status <span class="cov0" title="0">{
         return g.Status()</span>
 }
 
+// Recursive function to reveal all neighbouring fields that can be safely reveald.
+// Stops when a field has not exactly zero neighbouring mines
 func (g *Game) RevealField(p Pos) <span class="cov0" title="0">{
         log.Printf("Reveal tile (%d, %d), content: %d\n", p.X, p.Y, g.Field[p.X][p.Y].Content)
 
@@ -242,11 +254,13 @@ func (g *Game) RevealField(p Pos) <span class="cov0" title="0">{
         }
 }
 
+// Check if the given position is out of bounds
 func (g *Game) outOfBounds(p Pos) bool <span class="cov8" title="1">{
         s := g.Difficulty.Size
         return p.X &lt; 0 || p.X &gt; s.Row-1 || p.Y &lt; 0 || p.Y &gt; s.Col-1
 }</span>
 
+// Returns the current status of the game. Only contains the knowledge a player should have.
 func (g *Game) Status() *Status <span class="cov0" title="0">{
         size := g.Difficulty.Size
         s := &amp;Status{
@@ -291,14 +305,18 @@ import (
         "slices"
 )
 
+// Represent a position in the minefield
 type Pos struct {
         X, Y int
 }
 
+// Returns a string representation of the position
 func (p Pos) String() string <span class="cov0" title="0">{
         return fmt.Sprintf("(%d, %d)", p.X, p.Y)
 }</span>
 
+// Randomly create mines for the given difficulty.
+// Does not create a mine on the given position.
 func CreateMines(d Difficulty, p Pos) []Pos <span class="cov8" title="1">{
         mines := make([]Pos, 0, d.Mines+1)
 
@@ -313,6 +331,7 @@ func CreateMines(d Difficulty, p Pos) []Pos <span class="cov8" title="1">{
         <span class="cov8" title="1">return mines[1:]</span>
 }
 
+// Returns a random position inside the provided limits
 func RandomPos(maxX, maxY int) Pos <span class="cov8" title="1">{
         return Pos{
                 X: rand.Intn(maxX),
@@ -323,6 +342,7 @@ func RandomPos(maxX, maxY int) Pos <span class="cov8" title="1">{
 		
 		<pre class="file" id="file3" style="display: none">package utils
 
+// Create a new, empty 2 dimensional array of the given type and dimensions.
 func Make2D[T any](x, y int) [][]T <span class="cov8" title="1">{
         if x &lt; 1 || y &lt; 1 </span><span class="cov8" title="1">{
                 return [][]T{}
