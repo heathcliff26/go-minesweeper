@@ -6,14 +6,18 @@ import (
 	"slices"
 )
 
+// Represent a position in the minefield
 type Pos struct {
 	X, Y int
 }
 
+// Returns a string representation of the position
 func (p Pos) String() string {
 	return fmt.Sprintf("(%d, %d)", p.X, p.Y)
 }
 
+// Randomly create mines for the given difficulty.
+// Does not create a mine on the given position.
 func CreateMines(d Difficulty, p Pos) []Pos {
 	mines := make([]Pos, 0, d.Mines+1)
 
@@ -28,6 +32,7 @@ func CreateMines(d Difficulty, p Pos) []Pos {
 	return mines[1:]
 }
 
+// Returns a random position inside the provided limits
 func RandomPos(maxX, maxY int) Pos {
 	return Pos{
 		X: rand.Intn(maxX),
