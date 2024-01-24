@@ -135,7 +135,7 @@ func (g *Game) outOfBounds(p Pos) bool {
 func (g *Game) Status() *Status {
 	d := g.Difficulty
 	s := &Status{
-		Field:    utils.Make2D[Field](d.Row, d.Row),
+		Field:    utils.Make2D[Field](d.Row, d.Col),
 		GameOver: g.GameOver,
 	}
 
