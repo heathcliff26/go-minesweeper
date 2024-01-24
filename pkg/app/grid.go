@@ -24,23 +24,25 @@ const (
 	ResetTextSize     float32 = 40
 )
 
+// Graphical display for a minesweeper game
 type MinesweeperGrid struct {
 	Tiles      [][]*Tile
 	Difficulty minesweeper.Difficulty
 	Game       *minesweeper.Game
 
 	Timer     *Timer
-	MineCount *MineCount
+	MineCount *Counter
 	Reset     *Button
 }
 
+// Create a new grid suitable for the give difficulty
 func NewMinesweeperGrid(d minesweeper.Difficulty) *MinesweeperGrid {
 	tiles := utils.Make2D[*Tile](d.Size.Row, d.Size.Col)
 	grid := &MinesweeperGrid{
 		Tiles:      tiles,
 		Difficulty: d,
 		Timer:      NewTimer(),
-		MineCount:  NewMineCount(d.Mines),
+		MineCount:  NewCounter(d.Mines),
 	}
 	grid.Reset = NewButton(ResetDefaultText, color.RGBA{}, grid.NewGame)
 	grid.Reset.Label.TextSize = ResetTextSize
@@ -54,6 +56,7 @@ func NewMinesweeperGrid(d minesweeper.Difficulty) *MinesweeperGrid {
 	return grid
 }
 
+// Get the graphical representation of the grid
 func (g *MinesweeperGrid) GetCanvasObject() fyne.CanvasObject {
 	mineCount := container.NewHBox(layout.NewSpacer(), container.NewCenter(newBorder(g.MineCount.Label)))
 	reset := container.NewCenter(g.Reset)
@@ -74,6 +77,9 @@ func (g *MinesweeperGrid) GetCanvasObject() fyne.CanvasObject {
 	return container.NewVBox(head, body)
 }
 
+// Called by the child tiles to signal they have been tapped.
+// Checks the given tile and then updates the display according to the new state.
+// Starts a new game when no game is currently running.
 func (g *MinesweeperGrid) TappedTile(x, y int) {
 	pos := minesweeper.Pos{X: x, Y: y}
 	if g.Game == nil {
@@ -111,14 +117,17 @@ func (g *MinesweeperGrid) TappedTile(x, y int) {
 	log.Println("Finished Update")
 }
 
+// Return the number of rows in the grid
 func (g *MinesweeperGrid) Row() int {
 	return g.Difficulty.Size.Row
 }
 
+// Return the number of columns in the grid
 func (g *MinesweeperGrid) Col() int {
 	return g.Difficulty.Size.Col
 }
 
+// Start a new game
 func (g *MinesweeperGrid) NewGame() {
 	for x := 0; x < g.Row(); x++ {
 		for y := 0; y < g.Col(); y++ {

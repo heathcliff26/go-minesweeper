@@ -35,6 +35,7 @@ var TileTextColor = []color.Color{
 	color.RGBA{64, 64, 64, alpha},   // 8, grey
 }
 
+// A tile extends the base widget and displays the current state of the backing games field
 type Tile struct {
 	widget.BaseWidget
 
@@ -48,6 +49,7 @@ type Tile struct {
 	Flagged bool
 }
 
+// Create a new Tile with a reference to it's parent grid, as well as knowledge of it's own position in the Grid
 func NewTile(x, y int, grid *MinesweeperGrid) *Tile {
 	t := &Tile{
 		x: x,
@@ -63,6 +65,7 @@ func NewTile(x, y int, grid *MinesweeperGrid) *Tile {
 	return t
 }
 
+// Function to create renderer needed to implement widget
 func (t *Tile) CreateRenderer() fyne.WidgetRenderer {
 	t.ExtendBaseWidget(t)
 
@@ -83,6 +86,7 @@ func (t *Tile) CreateRenderer() fyne.WidgetRenderer {
 	return widget.NewSimpleRenderer(content)
 }
 
+// Left mouse click on tile
 func (t *Tile) Tapped(_ *fyne.PointEvent) {
 	if t.untappable() || t.Flagged {
 		return
@@ -90,6 +94,7 @@ func (t *Tile) Tapped(_ *fyne.PointEvent) {
 	t.grid.TappedTile(t.x, t.y)
 }
 
+// Right mouse click on tile
 func (t *Tile) TappedSecondary(_ *fyne.PointEvent) {
 	if t.untappable() {
 		return
@@ -104,6 +109,7 @@ func (t *Tile) TappedSecondary(_ *fyne.PointEvent) {
 	t.UpdateContent()
 }
 
+// Update the tile render depending on the current state of it's backing Field
 func (t *Tile) UpdateContent() {
 	t.icon.Hidden = true
 	t.label.Hidden = true
@@ -136,6 +142,7 @@ func (t *Tile) UpdateContent() {
 	}
 }
 
+// Reset tile to default state, used for starting new game
 func (t *Tile) Reset() {
 	t.Flagged = false
 	t.Field.Checked = false
@@ -143,6 +150,7 @@ func (t *Tile) Reset() {
 	t.UpdateContent()
 }
 
+// Check if the tile should be clickable
 func (t *Tile) untappable() bool {
 	if t.Field.Checked {
 		return true

@@ -13,6 +13,7 @@ import (
 	"fyne.io/fyne/v2/container"
 )
 
+// Struct for containing the current version of the app
 type Version struct {
 	Name, Version, Commit, Go string
 }
@@ -80,6 +81,7 @@ func newBorder(content ...fyne.CanvasObject) fyne.CanvasObject {
 	return container.NewPadded(border)
 }
 
+// Create a new label used in the grid, with preset color, text size and text style
 func newGridLabel(text string) *canvas.Text {
 	label := canvas.NewText(text, GridLabelColor)
 	label.TextSize = GridLabelSize

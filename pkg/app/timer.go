@@ -8,6 +8,7 @@ import (
 	"fyne.io/fyne/v2/canvas"
 )
 
+// Timer to display an upwards countdown in a fyne app.
 type Timer struct {
 	Label   *canvas.Text
 	Seconds int
@@ -15,6 +16,7 @@ type Timer struct {
 	running bool
 }
 
+// Create new timer
 func NewTimer() *Timer {
 	return &Timer{
 		Label:   newGridLabel("0000"),
@@ -23,6 +25,7 @@ func NewTimer() *Timer {
 	}
 }
 
+// Start the timer, runs concurrently
 func (t *Timer) Start() {
 	ticker := time.NewTicker(time.Second)
 	t.running = true
@@ -42,6 +45,7 @@ func (t *Timer) Start() {
 	}()
 }
 
+// Stop the timer
 func (t *Timer) Stop() {
 	if t.running {
 		t.stop <- true
@@ -49,12 +53,14 @@ func (t *Timer) Stop() {
 	}
 }
 
+// Reset the timer back to zero
 func (t *Timer) Reset() {
 	t.Stop()
 	t.Seconds = 0
 	t.refresh()
 }
 
+// Refresh the timer from it's current values
 func (t *Timer) refresh() {
 	t.Label.Text = fmt.Sprintf("%04d", t.Seconds)
 	t.Label.Refresh()
