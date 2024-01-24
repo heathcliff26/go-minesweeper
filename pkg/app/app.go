@@ -15,6 +15,8 @@ var TEXT_COLOR = color.White
 
 var DEFAULT_DIFFICULTY = minesweeper.Difficulties()[minesweeper.DifficultyIntermediate]
 
+// Struct representing the current app.
+// There should only ever be a single instance during runtime.
 type App struct {
 	app          fyne.App
 	main         fyne.Window
