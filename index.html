@@ -264,7 +264,7 @@ func (g *Game) outOfBounds(p Pos) bool <span class="cov8" title="1">{
 func (g *Game) Status() *Status <span class="cov0" title="0">{
         d := g.Difficulty
         s := &amp;Status{
-                Field:    utils.Make2D[Field](d.Row, d.Row),
+                Field:    utils.Make2D[Field](d.Row, d.Col),
                 GameOver: g.GameOver,
         }
 
