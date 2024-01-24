@@ -84,16 +84,17 @@ func (t *Tile) CreateRenderer() fyne.WidgetRenderer {
 }
 
 func (t *Tile) Tapped(_ *fyne.PointEvent) {
-	if t.Field.Checked || t.Flagged {
+	if t.untappable() || t.Flagged {
 		return
 	}
 	t.grid.TappedTile(t.x, t.y)
 }
 
 func (t *Tile) TappedSecondary(_ *fyne.PointEvent) {
-	if t.Field.Checked {
+	if t.untappable() {
 		return
 	}
+
 	if t.Flagged {
 		t.grid.MineCount.Inc()
 	} else {
@@ -140,4 +141,14 @@ func (t *Tile) Reset() {
 	t.Field.Checked = false
 	t.Field.Content = minesweeper.Unknown
 	t.UpdateContent()
+}
+
+func (t *Tile) untappable() bool {
+	if t.Field.Checked {
+		return true
+	}
+	if t.grid.Game != nil {
+		return t.grid.Game.GameOver || t.grid.Game.GameWon
+	}
+	return false
 }
