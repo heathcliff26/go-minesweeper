@@ -9,35 +9,35 @@ const (
 
 // Represent a difficulty setting for the Game
 type Difficulty struct {
-	Name  string
-	Size  GridSize
-	Mines int
-}
-
-type GridSize struct {
+	Name     string
 	Row, Col int
+	Mines    int
 }
 
 // Pre-defined difficulties
 var difficulties []Difficulty = []Difficulty{
 	{
 		Name:  "Classic",
-		Size:  GridSize{8, 8},
+		Row:   8,
+		Col:   8,
 		Mines: 9,
 	},
 	{
 		Name:  "Beginner",
-		Size:  GridSize{9, 9},
+		Row:   9,
+		Col:   9,
 		Mines: 10,
 	},
 	{
 		Name:  "Intermediate",
-		Size:  GridSize{16, 16},
+		Row:   16,
+		Col:   16,
 		Mines: 40,
 	},
 	{
 		Name:  "Expert",
-		Size:  GridSize{16, 30},
+		Row:   16,
+		Col:   30,
 		Mines: 99,
 	},
 }

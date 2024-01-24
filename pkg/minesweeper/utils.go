@@ -23,9 +23,9 @@ func CreateMines(d Difficulty, p Pos) []Pos {
 
 	mines = append(mines, p)
 	for i := 0; i < d.Mines; i++ {
-		p = RandomPos(d.Size.Row, d.Size.Col)
+		p = RandomPos(d.Row, d.Col)
 		for slices.Contains(mines, p) {
-			p = RandomPos(d.Size.Row, d.Size.Col)
+			p = RandomPos(d.Row, d.Col)
 		}
 		mines = append(mines, p)
 	}

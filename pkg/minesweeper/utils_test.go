@@ -11,13 +11,14 @@ func TestCreateMines(t *testing.T) {
 	customDifficulty := Difficulty{
 		Name:  "Custom",
 		Mines: 1000,
-		Size:  GridSize{1000, 1000},
+		Row:   1000,
+		Col:   1000,
 	}
 	tMatrix = append(tMatrix, customDifficulty)
 
 	for _, d := range tMatrix {
 		t.Run(d.Name, func(t *testing.T) {
-			p := RandomPos(d.Size.Row, d.Size.Col)
+			p := RandomPos(d.Row, d.Col)
 			mines := CreateMines(d, p)
 
 			assert := assert.New(t)
