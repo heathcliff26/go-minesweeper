@@ -37,7 +37,7 @@ type MinesweeperGrid struct {
 
 // Create a new grid suitable for the give difficulty
 func NewMinesweeperGrid(d minesweeper.Difficulty) *MinesweeperGrid {
-	tiles := utils.Make2D[*Tile](d.Size.Row, d.Size.Col)
+	tiles := utils.Make2D[*Tile](d.Row, d.Col)
 	grid := &MinesweeperGrid{
 		Tiles:      tiles,
 		Difficulty: d,
@@ -119,12 +119,12 @@ func (g *MinesweeperGrid) TappedTile(x, y int) {
 
 // Return the number of rows in the grid
 func (g *MinesweeperGrid) Row() int {
-	return g.Difficulty.Size.Row
+	return g.Difficulty.Row
 }
 
 // Return the number of columns in the grid
 func (g *MinesweeperGrid) Col() int {
-	return g.Difficulty.Size.Col
+	return g.Difficulty.Col
 }
 
 // Start a new game
