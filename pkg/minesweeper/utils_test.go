@@ -6,6 +6,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestPositionToString(t *testing.T) {
+	s := Pos{1, 1}.String()
+
+	assert.Equal(t, "(1, 1)", s)
+}
+
 func TestCreateMines(t *testing.T) {
 	tMatrix := Difficulties()
 	customDifficulty := Difficulty{
