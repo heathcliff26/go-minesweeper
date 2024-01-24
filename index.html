@@ -57,9 +57,9 @@
 				
 				<option value="file0">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/difficulty.go (100.0%)</option>
 				
-				<option value="file1">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/game.go (32.8%)</option>
+				<option value="file1">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/game.go (98.3%)</option>
 				
-				<option value="file2">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/utils.go (90.0%)</option>
+				<option value="file2">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/utils.go (100.0%)</option>
 				
 				<option value="file3">github.com/heathcliff26/go-minesweeper/pkg/utils/utils.go (100.0%)</option>
 				
@@ -208,46 +208,46 @@ func NewGameWithSafePos(d Difficulty, p Pos) *Game <span class="cov8" title="1">
 
 // Check a given field and recursevly reveal all neighboring fields that should be revield.
 // Returns the resulting new status of the game
-func (g *Game) CheckField(p Pos) *Status <span class="cov0" title="0">{
+func (g *Game) CheckField(p Pos) *Status <span class="cov8" title="1">{
         if g.GameOver || g.GameWon </span><span class="cov0" title="0">{
                 return g.Status()
         }</span>
 
-        <span class="cov0" title="0">g.Field[p.X][p.Y].Checked = true
+        <span class="cov8" title="1">g.Field[p.X][p.Y].Checked = true
 
-        if g.Field[p.X][p.Y].Content == Mine </span><span class="cov0" title="0">{
+        if g.Field[p.X][p.Y].Content == Mine </span><span class="cov8" title="1">{
                 g.GameOver = true
                 return g.Status()
         }</span>
 
-        <span class="cov0" title="0">g.RevealField(p)
+        <span class="cov8" title="1">g.RevealField(p)
 
         return g.Status()</span>
 }
 
 // Recursive function to reveal all neighbouring fields that can be safely reveald.
 // Stops when a field has not exactly zero neighbouring mines
-func (g *Game) RevealField(p Pos) <span class="cov0" title="0">{
+func (g *Game) RevealField(p Pos) <span class="cov8" title="1">{
         log.Printf("Reveal tile (%d, %d), content: %d\n", p.X, p.Y, g.Field[p.X][p.Y].Content)
 
         g.Field[p.X][p.Y].Checked = true
 
-        if g.Field[p.X][p.Y].Content != 0 </span><span class="cov0" title="0">{
+        if g.Field[p.X][p.Y].Content != 0 </span><span class="cov8" title="1">{
                 return
         }</span>
 
-        <span class="cov0" title="0">log.Printf("Revealing neigbhours of (%d, %d)\n", p.X, p.Y)
+        <span class="cov8" title="1">log.Printf("Revealing neigbhours of (%d, %d)\n", p.X, p.Y)
 
-        for m := -1; m &lt; 2; m++ </span><span class="cov0" title="0">{
-                for n := -1; n &lt; 2; n++ </span><span class="cov0" title="0">{
-                        if m == 0 &amp;&amp; n == 0 </span><span class="cov0" title="0">{
+        for m := -1; m &lt; 2; m++ </span><span class="cov8" title="1">{
+                for n := -1; n &lt; 2; n++ </span><span class="cov8" title="1">{
+                        if m == 0 &amp;&amp; n == 0 </span><span class="cov8" title="1">{
                                 continue</span>
                         }
-                        <span class="cov0" title="0">i := Pos{p.X + m, p.Y + n}
-                        if g.outOfBounds(i) </span><span class="cov0" title="0">{
+                        <span class="cov8" title="1">i := Pos{p.X + m, p.Y + n}
+                        if g.outOfBounds(i) </span><span class="cov8" title="1">{
                                 continue</span>
                         }
-                        <span class="cov0" title="0">if !g.Field[i.X][i.Y].Checked </span><span class="cov0" title="0">{
+                        <span class="cov8" title="1">if !g.Field[i.X][i.Y].Checked </span><span class="cov8" title="1">{
                                 g.RevealField(i)
                         }</span>
                 }
@@ -261,7 +261,7 @@ func (g *Game) outOfBounds(p Pos) bool <span class="cov8" title="1">{
 }</span>
 
 // Returns the current status of the game. Only contains the knowledge a player should have.
-func (g *Game) Status() *Status <span class="cov0" title="0">{
+func (g *Game) Status() *Status <span class="cov8" title="1">{
         d := g.Difficulty
         s := &amp;Status{
                 Field:    utils.Make2D[Field](d.Row, d.Col),
@@ -271,29 +271,29 @@ func (g *Game) Status() *Status <span class="cov0" title="0">{
         wasWon := g.GameWon
         isWon := true
 
-        for x := 0; x &lt; d.Row; x++ </span><span class="cov0" title="0">{
-                for y := 0; y &lt; d.Col; y++ </span><span class="cov0" title="0">{
+        for x := 0; x &lt; d.Row; x++ </span><span class="cov8" title="1">{
+                for y := 0; y &lt; d.Col; y++ </span><span class="cov8" title="1">{
                         s.Field[x][y].Checked = g.Field[x][y].Checked
-                        if g.Field[x][y].Checked || g.GameOver || wasWon </span><span class="cov0" title="0">{
+                        if g.Field[x][y].Checked || g.GameOver || wasWon </span><span class="cov8" title="1">{
                                 s.Field[x][y].Content = g.Field[x][y].Content
-                        }</span> else<span class="cov0" title="0"> {
+                        }</span> else<span class="cov8" title="1"> {
                                 s.Field[x][y].Content = Unknown
                         }</span>
-                        <span class="cov0" title="0">if !g.Field[x][y].Checked &amp;&amp; g.Field[x][y].Content != Mine </span><span class="cov0" title="0">{
+                        <span class="cov8" title="1">if !g.Field[x][y].Checked &amp;&amp; g.Field[x][y].Content != Mine </span><span class="cov8" title="1">{
                                 isWon = false
                         }</span>
                 }
         }
 
-        <span class="cov0" title="0">g.GameWon, s.GameWon = isWon, isWon
+        <span class="cov8" title="1">g.GameWon, s.GameWon = isWon, isWon
 
-        if g.GameWon != wasWon </span><span class="cov0" title="0">{
-                for x := 0; x &lt; d.Row; x++ </span><span class="cov0" title="0">{
+        if g.GameWon != wasWon </span><span class="cov8" title="1">{
+                for x := 0; x &lt; d.Row; x++ </span><span class="cov8" title="1">{
                         copy(s.Field[x], g.Field[x])
                 }</span>
         }
 
-        <span class="cov0" title="0">return s</span>
+        <span class="cov8" title="1">return s</span>
 }
 </pre>
 		
@@ -311,7 +311,7 @@ type Pos struct {
 }
 
 // Returns a string representation of the position
-func (p Pos) String() string <span class="cov0" title="0">{
+func (p Pos) String() string <span class="cov8" title="1">{
         return fmt.Sprintf("(%d, %d)", p.X, p.Y)
 }</span>
 
