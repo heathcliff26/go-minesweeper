@@ -32,10 +32,6 @@ jobs:
           go-version: 'stable'
           cache-dependency-path: go.sum
 
-      - name: Install package dependencies
-        run:
-          sudo apt-get install -y gcc libgl1-mesa-dev xorg-dev
-
       - name: Generate reports
         run: |
           ${GITHUB_WORKSPACE}/main/hack/coverprofile.sh
