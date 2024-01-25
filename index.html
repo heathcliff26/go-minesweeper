@@ -57,7 +57,7 @@
 				
 				<option value="file0">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/difficulty.go (100.0%)</option>
 				
-				<option value="file1">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/game.go (98.3%)</option>
+				<option value="file1">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/game.go (100.0%)</option>
 				
 				<option value="file2">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/utils.go (100.0%)</option>
 				
@@ -209,7 +209,7 @@ func NewGameWithSafePos(d Difficulty, p Pos) *Game <span class="cov8" title="1">
 // Check a given field and recursevly reveal all neighboring fields that should be revield.
 // Returns the resulting new status of the game
 func (g *Game) CheckField(p Pos) *Status <span class="cov8" title="1">{
-        if g.GameOver || g.GameWon </span><span class="cov0" title="0">{
+        if g.GameOver || g.GameWon </span><span class="cov8" title="1">{
                 return g.Status()
         }</span>
 
@@ -266,6 +266,7 @@ func (g *Game) Status() *Status <span class="cov8" title="1">{
         s := &amp;Status{
                 Field:    utils.Make2D[Field](d.Row, d.Col),
                 GameOver: g.GameOver,
+                GameWon:  g.GameWon,
         }
 
         wasWon := g.GameWon
@@ -274,7 +275,7 @@ func (g *Game) Status() *Status <span class="cov8" title="1">{
         for x := 0; x &lt; d.Row; x++ </span><span class="cov8" title="1">{
                 for y := 0; y &lt; d.Col; y++ </span><span class="cov8" title="1">{
                         s.Field[x][y].Checked = g.Field[x][y].Checked
-                        if g.Field[x][y].Checked || g.GameOver || wasWon </span><span class="cov8" title="1">{
+                        if g.Field[x][y].Checked || g.GameOver || g.GameWon </span><span class="cov8" title="1">{
                                 s.Field[x][y].Content = g.Field[x][y].Content
                         }</span> else<span class="cov8" title="1"> {
                                 s.Field[x][y].Content = Unknown
@@ -285,9 +286,8 @@ func (g *Game) Status() *Status <span class="cov8" title="1">{
                 }
         }
 
-        <span class="cov8" title="1">g.GameWon, s.GameWon = isWon, isWon
-
-        if g.GameWon != wasWon </span><span class="cov8" title="1">{
+        <span class="cov8" title="1">if !wasWon &amp;&amp; isWon </span><span class="cov8" title="1">{
+                g.GameWon, s.GameWon = isWon, isWon
                 for x := 0; x &lt; d.Row; x++ </span><span class="cov8" title="1">{
                         copy(s.Field[x], g.Field[x])
                 }</span>
