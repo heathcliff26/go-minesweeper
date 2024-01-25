@@ -137,6 +137,7 @@ func (g *Game) Status() *Status {
 	s := &Status{
 		Field:    utils.Make2D[Field](d.Row, d.Col),
 		GameOver: g.GameOver,
+		GameWon:  g.GameWon,
 	}
 
 	wasWon := g.GameWon
@@ -145,7 +146,7 @@ func (g *Game) Status() *Status {
 	for x := 0; x < d.Row; x++ {
 		for y := 0; y < d.Col; y++ {
 			s.Field[x][y].Checked = g.Field[x][y].Checked
-			if g.Field[x][y].Checked || g.GameOver || wasWon {
+			if g.Field[x][y].Checked || g.GameOver || g.GameWon {
 				s.Field[x][y].Content = g.Field[x][y].Content
 			} else {
 				s.Field[x][y].Content = Unknown
@@ -156,9 +157,8 @@ func (g *Game) Status() *Status {
 		}
 	}
 
-	g.GameWon, s.GameWon = isWon, isWon
-
-	if g.GameWon != wasWon {
+	if !wasWon && isWon {
+		g.GameWon, s.GameWon = isWon, isWon
 		for x := 0; x < d.Row; x++ {
 			copy(s.Field[x], g.Field[x])
 		}

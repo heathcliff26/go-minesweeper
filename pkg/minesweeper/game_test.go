@@ -117,6 +117,29 @@ func TestCheckField(t *testing.T) {
 			}
 		})
 	}
+
+	tMatrix2 := []struct {
+		Name      string
+		Win, Loss bool
+	}{
+		{"GameOver", false, true},
+		{"GameWon", true, false},
+	}
+
+	for _, tCase := range tMatrix2 {
+		t.Run(tCase.Name, func(t *testing.T) {
+			d := difficulties[DifficultyIntermediate]
+			g := NewGameWithSafePos(d, Pos{0, 0})
+
+			g.GameWon = tCase.Win
+			g.GameOver = tCase.Loss
+
+			s1 := g.Status()
+			s2 := g.CheckField(Pos{0, 0})
+
+			assert.Equal(t, s1, s2, "Status should not change for a finished game")
+		})
+	}
 }
 
 func TestOutOfBounds(t *testing.T) {
@@ -184,4 +207,28 @@ func TestStatus(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestDetectVictory(t *testing.T) {
+	d := difficulties[DifficultyExpert]
+	g := NewGameWithSafePos(d, Pos{0, 0})
+
+	assert := assert.New(t)
+
+	assert.False(g.GameWon)
+	assert.False(g.GameOver)
+
+	for x := 0; x < d.Row; x++ {
+		for y := 0; y < d.Col; y++ {
+			g.Field[x][y].Checked = g.Field[x][y].Content != Mine
+		}
+	}
+
+	s := g.Status()
+
+	assert.True(g.GameWon)
+	assert.True(s.GameWon)
+
+	assert.False(g.GameOver)
+	assert.False(s.GameOver)
 }
