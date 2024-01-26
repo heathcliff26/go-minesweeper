@@ -18,7 +18,7 @@ type Version struct {
 	Name, Version, Commit, Go string
 }
 
-// Extract the git commit
+// Extract the version information from app
 func getVersion(app fyne.App) Version {
 	var commit string
 	buildinfo, _ := debug.ReadBuildInfo()

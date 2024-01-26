@@ -15,6 +15,9 @@ var TEXT_COLOR = color.White
 
 var DEFAULT_DIFFICULTY = minesweeper.Difficulties()[minesweeper.DifficultyIntermediate]
 
+// Used to change the new app function for testing
+var newApp = fApp.New
+
 // Struct representing the current app.
 // There should only ever be a single instance during runtime.
 type App struct {
@@ -27,7 +30,7 @@ type App struct {
 
 // Create a new App
 func New() *App {
-	app := fApp.New()
+	app := newApp()
 	version := getVersion(app)
 	main := app.NewWindow(version.Name)
 
@@ -38,6 +41,7 @@ func New() *App {
 		grid:    NewMinesweeperGrid(DEFAULT_DIFFICULTY),
 	}
 
+	a.main.SetTitle(version.Name)
 	a.makeMenu()
 	a.main.SetMainMenu(a.makeMenu())
 
