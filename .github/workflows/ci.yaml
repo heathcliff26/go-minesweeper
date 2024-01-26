@@ -29,8 +29,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
+      - name: Debug
+        run: id
+
       - name: Run golangci-lint
-        run: hack/linter.sh
+        uses: docker://ghcr.io/heathcliff26/go-fyne-ci:test
+        with:
+          args: /bin/bash -c "id && golangci-lint run -v --timeout 300s"
 
   unit-tests:
     runs-on: ubuntu-latest
