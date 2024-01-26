@@ -20,4 +20,5 @@
   "dependencyDashboardTitle": "Renovate Dashboard 🤖",
   "suppressNotifications": ["prIgnoreNotification"],
   "postUpdateOptions": ["gomodTidy"],
+  "automergeType": "pr",
 }
