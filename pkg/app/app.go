@@ -7,6 +7,7 @@ import (
 
 	"fyne.io/fyne/v2"
 	fApp "fyne.io/fyne/v2/app"
+	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
 	"github.com/heathcliff26/go-minesweeper/pkg/minesweeper"
 )
@@ -96,6 +97,9 @@ func (a *App) makeMenu() *fyne.MainMenu {
 
 // Update the content of the app and resize the window to make it fit
 func (a *App) setContent() {
-	a.main.SetContent(a.grid.GetCanvasObject())
-	a.main.Resize(a.main.Content().MinSize())
+	content := container.NewPadded(a.grid.GetCanvasObject())
+	content.Resize(content.MinSize())
+
+	a.main.SetContent(content)
+	a.main.Resize(content.MinSize())
 }
