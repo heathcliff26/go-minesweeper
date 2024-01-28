@@ -46,6 +46,14 @@ func TestApp(t *testing.T) {
 
 		for i, d := range diffs {
 			assert.Equal(d.Name, a.difficulties[i].Label, "Menu item label should match difficulty name")
+
+			a.difficulties[i].Action()
+
+			assert.Equal(d, a.grid.Difficulty, "Should have created grid with given difficulty")
+
+			for n, item := range a.difficulties {
+				assert.Equal((i == n), item.Checked, "Only the selected difficulty should be checked")
+			}
 		}
 	})
 }

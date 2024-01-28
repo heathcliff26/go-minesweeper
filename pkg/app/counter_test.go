@@ -44,4 +44,12 @@ func TestCounter(t *testing.T) {
 		assert.Equal(strconv.Itoa(count), c.Label.Text)
 		assert.Equal(count, c.Count)
 	})
+	t.Run("Refresh", func(t *testing.T) {
+		c.SetCount(-1)
+
+		assert := assert.New(t)
+
+		assert.Equal("0", c.Label.Text, "Should not display negative numbers")
+		assert.Equal(-1, c.Count)
+	})
 }
