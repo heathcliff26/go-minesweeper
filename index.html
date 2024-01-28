@@ -55,7 +55,7 @@
 			<div id="nav">
 				<select id="files">
 				
-				<option value="file0">github.com/heathcliff26/go-minesweeper/pkg/app/app.go (89.2%)</option>
+				<option value="file0">github.com/heathcliff26/go-minesweeper/pkg/app/app.go (89.7%)</option>
 				
 				<option value="file1">github.com/heathcliff26/go-minesweeper/pkg/app/button.go (100.0%)</option>
 				
@@ -98,6 +98,7 @@ import (
 
         "fyne.io/fyne/v2"
         fApp "fyne.io/fyne/v2/app"
+        "fyne.io/fyne/v2/container"
         "fyne.io/fyne/v2/dialog"
         "github.com/heathcliff26/go-minesweeper/pkg/minesweeper"
 )
@@ -187,8 +188,11 @@ func (a *App) makeMenu() *fyne.MainMenu <span class="cov8" title="1">{
 
 // Update the content of the app and resize the window to make it fit
 func (a *App) setContent() <span class="cov8" title="1">{
-        a.main.SetContent(a.grid.GetCanvasObject())
-        a.main.Resize(a.main.Content().MinSize())
+        content := container.NewPadded(a.grid.GetCanvasObject())
+        content.Resize(content.MinSize())
+
+        a.main.SetContent(content)
+        a.main.Resize(content.MinSize())
 }</span>
 </pre>
 		
