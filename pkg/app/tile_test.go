@@ -163,10 +163,14 @@ func TestTileUpdateContent(t *testing.T) {
 
 		assert := assert.New(t)
 
-		tile.Field.Content = minesweeper.FieldContent(0)
-		tile.UpdateContent()
+		for i := 0; i < 10; i++ {
+			tile.Field.Content = minesweeper.FieldContent(i)
+			tile.UpdateContent()
 
-		assert.True(tile.label.Hidden)
+			assert.True(tile.label.Hidden)
+		}
+
+		tile.Field.Checked = true
 
 		for i := 1; i < 9; i++ {
 			tile.Field.Content = minesweeper.FieldContent(i)
@@ -176,6 +180,11 @@ func TestTileUpdateContent(t *testing.T) {
 			assert.Equal(strconv.Itoa(i), tile.label.Text)
 			assert.Equal(TileTextColor[i], tile.label.Color)
 		}
+
+		tile.Field.Content = minesweeper.FieldContent(0)
+		tile.UpdateContent()
+
+		assert.True(tile.label.Hidden)
 
 		tile.Field.Content = minesweeper.FieldContent(9)
 		tile.UpdateContent()

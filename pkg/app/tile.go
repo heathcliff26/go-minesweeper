@@ -135,7 +135,7 @@ func (t *Tile) UpdateContent() {
 			t.background.FillColor = TileExplodedColor
 		}
 	}
-	if t.Field.Content > 0 && t.Field.Content < 9 {
+	if t.Field.Checked && t.Field.Content > 0 && t.Field.Content < 9 {
 		t.label.Text = strconv.Itoa(int(t.Field.Content))
 		t.label.Color = TileTextColor[t.Field.Content]
 		t.label.Hidden = false
