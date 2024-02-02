@@ -58,18 +58,8 @@ func NewGameWithSafePos(d Difficulty, p Pos) *Game {
 		if g.Field[x][y].Content == Mine {
 			return
 		}
-		c := 0
-		for m := -1; m < 2; m++ {
-			for n := -1; n < 2; n++ {
-				if x+m < 0 || x+m >= d.Row || y+n < 0 || y+n >= d.Col {
-					continue
-				}
-				if g.Field[x+m][y+n].Content == Mine {
-					c++
-				}
-			}
-		}
-		g.Field[x][y].Content = FieldContent(c)
+
+		g.Field[x][y].Content = FieldContent(g.countNearbyMines(Pos{x, y}))
 	})
 
 	return g
@@ -171,4 +161,20 @@ func (g *Game) walkField(f func(x, y int)) {
 			f(x, y)
 		}
 	}
+}
+
+// Count the the number of mines in the neighboring fields
+func (g *Game) countNearbyMines(p Pos) int {
+	c := 0
+	for m := -1; m < 2; m++ {
+		for n := -1; n < 2; n++ {
+			if g.outOfBounds(Pos{p.X + m, p.Y + n}) {
+				continue
+			}
+			if g.Field[p.X+m][p.Y+n].Content == Mine {
+				c++
+			}
+		}
+	}
+	return c
 }
