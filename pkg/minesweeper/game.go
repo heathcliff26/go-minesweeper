@@ -54,25 +54,23 @@ func NewGameWithSafePos(d Difficulty, p Pos) *Game {
 		g.Field[mine.X][mine.Y].Content = Mine
 	}
 
-	for x := 0; x < d.Row; x++ {
-		for y := 0; y < d.Col; y++ {
-			if g.Field[x][y].Content == Mine {
-				continue
-			}
-			c := 0
-			for m := -1; m < 2; m++ {
-				for n := -1; n < 2; n++ {
-					if x+m < 0 || x+m >= d.Row || y+n < 0 || y+n >= d.Col {
-						continue
-					}
-					if g.Field[x+m][y+n].Content == Mine {
-						c++
-					}
+	g.walkField(func(x, y int) {
+		if g.Field[x][y].Content == Mine {
+			return
+		}
+		c := 0
+		for m := -1; m < 2; m++ {
+			for n := -1; n < 2; n++ {
+				if x+m < 0 || x+m >= d.Row || y+n < 0 || y+n >= d.Col {
+					continue
+				}
+				if g.Field[x+m][y+n].Content == Mine {
+					c++
 				}
 			}
-			g.Field[x][y].Content = FieldContent(c)
 		}
-	}
+		g.Field[x][y].Content = FieldContent(c)
+	})
 
 	return g
 }
@@ -143,19 +141,17 @@ func (g *Game) Status() *Status {
 	wasWon := g.GameWon
 	isWon := true
 
-	for x := 0; x < d.Row; x++ {
-		for y := 0; y < d.Col; y++ {
-			s.Field[x][y].Checked = g.Field[x][y].Checked
-			if g.Field[x][y].Checked || g.GameOver || g.GameWon {
-				s.Field[x][y].Content = g.Field[x][y].Content
-			} else {
-				s.Field[x][y].Content = Unknown
-			}
-			if !g.Field[x][y].Checked && g.Field[x][y].Content != Mine {
-				isWon = false
-			}
+	g.walkField(func(x, y int) {
+		s.Field[x][y].Checked = g.Field[x][y].Checked
+		if g.Field[x][y].Checked || g.GameOver || g.GameWon {
+			s.Field[x][y].Content = g.Field[x][y].Content
+		} else {
+			s.Field[x][y].Content = Unknown
 		}
-	}
+		if !g.Field[x][y].Checked && g.Field[x][y].Content != Mine {
+			isWon = false
+		}
+	})
 
 	if !wasWon && isWon {
 		g.GameWon, s.GameWon = isWon, isWon
@@ -165,4 +161,14 @@ func (g *Game) Status() *Status {
 	}
 
 	return s
+}
+
+// Walk through all fields of the game and call the given function
+func (g *Game) walkField(f func(x, y int)) {
+	d := g.Difficulty
+	for x := 0; x < d.Row; x++ {
+		for y := 0; y < d.Col; y++ {
+			f(x, y)
+		}
+	}
 }
