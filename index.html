@@ -873,25 +873,23 @@ func NewGameWithSafePos(d Difficulty, p Pos) *Game <span class="cov8" title="1">
                 g.Field[mine.X][mine.Y].Content = Mine
         }</span>
 
-        <span class="cov8" title="1">for x := 0; x &lt; d.Row; x++ </span><span class="cov8" title="1">{
-                for y := 0; y &lt; d.Col; y++ </span><span class="cov8" title="1">{
-                        if g.Field[x][y].Content == Mine </span><span class="cov8" title="1">{
-                                continue</span>
-                        }
-                        <span class="cov8" title="1">c := 0
-                        for m := -1; m &lt; 2; m++ </span><span class="cov8" title="1">{
-                                for n := -1; n &lt; 2; n++ </span><span class="cov8" title="1">{
-                                        if x+m &lt; 0 || x+m &gt;= d.Row || y+n &lt; 0 || y+n &gt;= d.Col </span><span class="cov8" title="1">{
-                                                continue</span>
-                                        }
-                                        <span class="cov8" title="1">if g.Field[x+m][y+n].Content == Mine </span><span class="cov8" title="1">{
-                                                c++
-                                        }</span>
+        <span class="cov8" title="1">g.walkField(func(x, y int) </span><span class="cov8" title="1">{
+                if g.Field[x][y].Content == Mine </span><span class="cov8" title="1">{
+                        return
+                }</span>
+                <span class="cov8" title="1">c := 0
+                for m := -1; m &lt; 2; m++ </span><span class="cov8" title="1">{
+                        for n := -1; n &lt; 2; n++ </span><span class="cov8" title="1">{
+                                if x+m &lt; 0 || x+m &gt;= d.Row || y+n &lt; 0 || y+n &gt;= d.Col </span><span class="cov8" title="1">{
+                                        continue</span>
                                 }
+                                <span class="cov8" title="1">if g.Field[x+m][y+n].Content == Mine </span><span class="cov8" title="1">{
+                                        c++
+                                }</span>
                         }
-                        <span class="cov8" title="1">g.Field[x][y].Content = FieldContent(c)</span>
                 }
-        }
+                <span class="cov8" title="1">g.Field[x][y].Content = FieldContent(c)</span>
+        })
 
         <span class="cov8" title="1">return g</span>
 }
@@ -962,19 +960,17 @@ func (g *Game) Status() *Status <span class="cov8" title="1">{
         wasWon := g.GameWon
         isWon := true
 
-        for x := 0; x &lt; d.Row; x++ </span><span class="cov8" title="1">{
-                for y := 0; y &lt; d.Col; y++ </span><span class="cov8" title="1">{
-                        s.Field[x][y].Checked = g.Field[x][y].Checked
-                        if g.Field[x][y].Checked || g.GameOver || g.GameWon </span><span class="cov8" title="1">{
-                                s.Field[x][y].Content = g.Field[x][y].Content
-                        }</span> else<span class="cov8" title="1"> {
-                                s.Field[x][y].Content = Unknown
-                        }</span>
-                        <span class="cov8" title="1">if !g.Field[x][y].Checked &amp;&amp; g.Field[x][y].Content != Mine </span><span class="cov8" title="1">{
-                                isWon = false
-                        }</span>
-                }
-        }
+        g.walkField(func(x, y int) </span><span class="cov8" title="1">{
+                s.Field[x][y].Checked = g.Field[x][y].Checked
+                if g.Field[x][y].Checked || g.GameOver || g.GameWon </span><span class="cov8" title="1">{
+                        s.Field[x][y].Content = g.Field[x][y].Content
+                }</span> else<span class="cov8" title="1"> {
+                        s.Field[x][y].Content = Unknown
+                }</span>
+                <span class="cov8" title="1">if !g.Field[x][y].Checked &amp;&amp; g.Field[x][y].Content != Mine </span><span class="cov8" title="1">{
+                        isWon = false
+                }</span>
+        })
 
         <span class="cov8" title="1">if !wasWon &amp;&amp; isWon </span><span class="cov8" title="1">{
                 g.GameWon, s.GameWon = isWon, isWon
@@ -984,6 +980,16 @@ func (g *Game) Status() *Status <span class="cov8" title="1">{
         }
 
         <span class="cov8" title="1">return s</span>
+}
+
+// Walk through all fields of the game and call the given function
+func (g *Game) walkField(f func(x, y int)) <span class="cov8" title="1">{
+        d := g.Difficulty
+        for x := 0; x &lt; d.Row; x++ </span><span class="cov8" title="1">{
+                for y := 0; y &lt; d.Col; y++ </span><span class="cov8" title="1">{
+                        f(x, y)
+                }</span>
+        }
 }
 </pre>
 		
