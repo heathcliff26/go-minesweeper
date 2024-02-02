@@ -43,24 +43,54 @@ func TestCheckField(t *testing.T) {
 		{0, 0, 0, 0, 0, 1, 2, 2},
 		{0, 0, 0, 0, 0, 1, Mine, Mine},
 	}
+	minefield2 := [][]FieldContent{
+		{Mine, 2, Mine, 1, 0, 0, 0, 0, 1, Mine},
+		{1, 2, 1, 2, 1, 2, 1, 1, 2, 2},
+		{2, 2, 1, 1, Mine, 2, Mine, 1, 1, Mine},
+		{Mine, Mine, 1, 1, 1, 2, 1, 1, 1, 1},
+		{Mine, 3, 1, 0, 0, 0, 0, 0, 0, 0},
+		{1, 1, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 1, 2, 2, 1, 0},
+		{0, 0, 0, 0, 0, 1, Mine, Mine, 1, 0},
+	}
+	minefield3 := [][]FieldContent{
+		{Mine, 2, Mine, 1, 0, 0, 0, 0},
+		{1, 2, 1, 2, 1, 2, 1, 1},
+		{2, 2, 1, 1, Mine, 2, Mine, 1},
+		{Mine, Mine, 1, 1, 1, 2, 1, 1},
+		{Mine, 3, 1, 0, 0, 0, 0, 0},
+		{1, 1, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 1, 2, 2},
+		{0, 0, 0, 0, 0, 2, Mine, Mine},
+		{0, 0, 0, 0, 0, 2, Mine, Mine},
+		{0, 0, 0, 0, 0, 1, 3, Mine},
+	}
 	tMatrix := []struct {
-		Name     string
-		Pos      Pos
-		GameOver bool
-		Result   [][]bool
+		Name       string
+		Pos        Pos
+		GameOver   bool
+		Difficulty Difficulty
+		Minefield  [][]FieldContent
+		Result     [][]bool
 	}{
 		{
-			Name:     "Mine",
-			Pos:      Pos{0, 0},
-			GameOver: true,
+			Name:       "Mine",
+			Pos:        Pos{0, 0},
+			GameOver:   true,
+			Difficulty: difficulties[DifficultyClassic],
+			Minefield:  minefield,
 		},
 		{
-			Name: "Number",
-			Pos:  Pos{0, 1},
+			Name:       "Number",
+			Pos:        Pos{0, 1},
+			Difficulty: difficulties[DifficultyClassic],
+			Minefield:  minefield,
 		},
 		{
-			Name: "RevealMultipleFields1",
-			Pos:  Pos{0, 6},
+			Name:       "RevealMultipleFields1",
+			Pos:        Pos{0, 6},
+			Minefield:  minefield,
+			Difficulty: difficulties[DifficultyClassic],
 			Result: [][]bool{
 				{false, false, false, true, true, true, true, true},
 				{false, false, false, true, true, true, true, true},
@@ -73,8 +103,10 @@ func TestCheckField(t *testing.T) {
 			},
 		},
 		{
-			Name: "RevealMultipleFields2",
-			Pos:  Pos{7, 3},
+			Name:       "RevealMultipleFields2",
+			Pos:        Pos{7, 3},
+			Minefield:  minefield,
+			Difficulty: difficulties[DifficultyClassic],
 			Result: [][]bool{
 				{false, false, false, false, false, false, false, false},
 				{false, false, false, false, false, false, false, false},
@@ -86,22 +118,66 @@ func TestCheckField(t *testing.T) {
 				{true, true, true, true, true, true, false, false},
 			},
 		},
+		{
+			Name:      "MoreColThanRow",
+			Pos:       Pos{4, 9},
+			Minefield: minefield2,
+			Difficulty: Difficulty{
+				Name:  "MoreColThanRow",
+				Row:   8,
+				Col:   10,
+				Mines: 11,
+			},
+			Result: [][]bool{
+				{false, false, false, false, false, false, false, false, false, false},
+				{false, false, false, false, false, false, false, false, false, false},
+				{false, false, false, false, false, false, false, false, false, false},
+				{false, false, true, true, true, true, true, true, true, true},
+				{false, true, true, true, true, true, true, true, true, true},
+				{true, true, true, true, true, true, true, true, true, true},
+				{true, true, true, true, true, true, true, true, true, true},
+				{true, true, true, true, true, true, false, false, true, true},
+			},
+		},
+		{
+			Name:      "MoreRowThanCol",
+			Pos:       Pos{7, 3},
+			Minefield: minefield3,
+			Difficulty: Difficulty{
+				Name:  "MoreRowThanCol",
+				Row:   10,
+				Col:   8,
+				Mines: 12,
+			},
+			Result: [][]bool{
+				{false, false, false, false, false, false, false, false},
+				{false, false, false, false, false, false, false, false},
+				{false, false, false, false, false, false, false, false},
+				{false, false, true, true, true, true, true, true},
+				{false, true, true, true, true, true, true, true},
+				{true, true, true, true, true, true, true, true},
+				{true, true, true, true, true, true, true, true},
+				{true, true, true, true, true, true, false, false},
+				{true, true, true, true, true, true, false, false},
+				{true, true, true, true, true, true, false, false},
+			},
+		},
 	}
-	d := difficulties[DifficultyClassic]
 
-	tMatrix[0].Result = utils.Make2D[bool](d.Row, d.Col)
+	tMatrix[0].Result = utils.Make2D[bool](tMatrix[0].Difficulty.Row, tMatrix[0].Difficulty.Col)
 	tMatrix[0].Result[0][0] = true
 
-	tMatrix[1].Result = utils.Make2D[bool](d.Row, d.Col)
+	tMatrix[1].Result = utils.Make2D[bool](tMatrix[1].Difficulty.Row, tMatrix[1].Difficulty.Col)
 	tMatrix[1].Result[0][1] = true
 
 	for _, tCase := range tMatrix {
 		t.Run(tCase.Name, func(t *testing.T) {
+			d := tCase.Difficulty
 			g := NewGameWithSafePos(d, tCase.Pos)
 
 			for x := 0; x < d.Row; x++ {
 				for y := 0; y < d.Col; y++ {
-					g.Field[x][y].Content = minefield[x][y]
+					g.Field[x][y].Content = tCase.Minefield[x][y]
 				}
 			}
 			g.CheckField(tCase.Pos)
