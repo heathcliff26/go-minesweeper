@@ -34,6 +34,8 @@ func TestNewGameWithSafePos(t *testing.T) {
 			g.walkField(func(x, y int) {
 				if g.Field[x][y].Content == Mine {
 					mines++
+				} else {
+					assert.Equalf(g.countNearbyMines(Pos{x, y}), int(g.Field[x][y].Content), "(%d, %d) should have the given number of neighboring mines", x, y)
 				}
 			})
 			assert.Equal(d.Mines, mines, "Should have the given number of mines")
