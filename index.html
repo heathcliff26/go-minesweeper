@@ -881,7 +881,7 @@ func NewGameWithSafePos(d Difficulty, p Pos) *Game <span class="cov8" title="1">
                         <span class="cov8" title="1">c := 0
                         for m := -1; m &lt; 2; m++ </span><span class="cov8" title="1">{
                                 for n := -1; n &lt; 2; n++ </span><span class="cov8" title="1">{
-                                        if x+m &lt; 0 || x+m &gt;= d.Row || y+n &lt; 0 || y+n &gt;= d.Row </span><span class="cov8" title="1">{
+                                        if x+m &lt; 0 || x+m &gt;= d.Row || y+n &lt; 0 || y+n &gt;= d.Col </span><span class="cov8" title="1">{
                                                 continue</span>
                                         }
                                         <span class="cov8" title="1">if g.Field[x+m][y+n].Content == Mine </span><span class="cov8" title="1">{
