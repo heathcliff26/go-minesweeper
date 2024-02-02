@@ -31,13 +31,11 @@ func TestNewGameWithSafePos(t *testing.T) {
 			assert.NotEqual(Mine, g.Field[p.X][p.Y].Content, "Safe position should not be a mine")
 
 			mines := 0
-			for x := 0; x < d.Row; x++ {
-				for y := 0; y < d.Col; y++ {
-					if g.Field[x][y].Content == Mine {
-						mines++
-					}
+			g.walkField(func(x, y int) {
+				if g.Field[x][y].Content == Mine {
+					mines++
 				}
-			}
+			})
 			assert.Equal(d.Mines, mines, "Should have the given number of mines")
 		})
 	}
@@ -186,22 +184,18 @@ func TestCheckField(t *testing.T) {
 			d := tCase.Difficulty
 			g := NewGameWithSafePos(d, tCase.Pos)
 
-			for x := 0; x < d.Row; x++ {
-				for y := 0; y < d.Col; y++ {
-					g.Field[x][y].Content = tCase.Minefield[x][y]
-				}
-			}
+			g.walkField(func(x, y int) {
+				g.Field[x][y].Content = tCase.Minefield[x][y]
+			})
 			g.CheckField(tCase.Pos)
 
 			assert := assert.New(t)
 
 			assert.Equal(tCase.GameOver, g.GameOver)
 
-			for x := 0; x < d.Row; x++ {
-				for y := 0; y < d.Col; y++ {
-					assert.Equalf(tCase.Result[x][y], g.Field[x][y].Checked, "(%d, %d) Content: %d", x, y, g.Field[x][y].Content)
-				}
-			}
+			g.walkField(func(x, y int) {
+				assert.Equalf(tCase.Result[x][y], g.Field[x][y].Checked, "(%d, %d) Content: %d", x, y, g.Field[x][y].Content)
+			})
 		})
 	}
 
@@ -235,23 +229,21 @@ func TestOutOfBounds(t *testing.T) {
 
 	assert := assert.New(t)
 
-	for x := 0; x < d.Row; x++ {
-		for y := 0; y < d.Col; y++ {
-			p := Pos{x, y}
-			assert.Falsef(g.outOfBounds(p), "%v should be within the field", p)
+	g.walkField(func(x, y int) {
+		p := Pos{x, y}
+		assert.Falsef(g.outOfBounds(p), "%v should be within the field", p)
 
-			p.X = -1
-			assert.Truef(g.outOfBounds(p), "%v should be out of bounds", p)
-			p.X = d.Row
-			assert.Truef(g.outOfBounds(p), "%v should be out of bounds", p)
-			p.X = x
+		p.X = -1
+		assert.Truef(g.outOfBounds(p), "%v should be out of bounds", p)
+		p.X = d.Row
+		assert.Truef(g.outOfBounds(p), "%v should be out of bounds", p)
+		p.X = x
 
-			p.Y = -1
-			assert.Truef(g.outOfBounds(p), "%v should be out of bounds", p)
-			p.Y = d.Col
-			assert.Truef(g.outOfBounds(p), "%v should be out of bounds", p)
-		}
-	}
+		p.Y = -1
+		assert.Truef(g.outOfBounds(p), "%v should be out of bounds", p)
+		p.Y = d.Col
+		assert.Truef(g.outOfBounds(p), "%v should be out of bounds", p)
+	})
 }
 
 func TestStatus(t *testing.T) {
@@ -278,20 +270,18 @@ func TestStatus(t *testing.T) {
 
 			assert := assert.New(t)
 
-			for x := 0; x < d.Row; x++ {
-				for y := 0; y < d.Col; y++ {
-					if tCase.Loss || tCase.Win {
-						if !assert.Equal(g.Field[x][y], s.Field[x][y], "Fields should match") {
-							t.FailNow()
-						}
-						continue
-					}
-
-					if !assert.Equal(Unknown, s.Field[x][y].Content, "Field should be unknown") {
+			g.walkField(func(x, y int) {
+				if tCase.Loss || tCase.Win {
+					if !assert.Equal(g.Field[x][y], s.Field[x][y], "Fields should match") {
 						t.FailNow()
 					}
+					return
 				}
-			}
+
+				if !assert.Equal(Unknown, s.Field[x][y].Content, "Field should be unknown") {
+					t.FailNow()
+				}
+			})
 		})
 	}
 }
@@ -305,11 +295,9 @@ func TestDetectVictory(t *testing.T) {
 	assert.False(g.GameWon)
 	assert.False(g.GameOver)
 
-	for x := 0; x < d.Row; x++ {
-		for y := 0; y < d.Col; y++ {
-			g.Field[x][y].Checked = g.Field[x][y].Content != Mine
-		}
-	}
+	g.walkField(func(x, y int) {
+		g.Field[x][y].Checked = g.Field[x][y].Content != Mine
+	})
 
 	s := g.Status()
 
