@@ -62,7 +62,7 @@ func NewGameWithSafePos(d Difficulty, p Pos) *Game {
 			c := 0
 			for m := -1; m < 2; m++ {
 				for n := -1; n < 2; n++ {
-					if x+m < 0 || x+m >= d.Row || y+n < 0 || y+n >= d.Row {
+					if x+m < 0 || x+m >= d.Row || y+n < 0 || y+n >= d.Col {
 						continue
 					}
 					if g.Field[x+m][y+n].Content == Mine {
