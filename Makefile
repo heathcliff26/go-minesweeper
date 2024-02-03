@@ -22,6 +22,9 @@ coverprofile:
 assets:
 	hack/generate-assets.sh
 
+dependencies:
+	hack/update-deps.sh
+
 .PHONY: \
 	default \
 	build \
@@ -29,4 +32,5 @@ assets:
 	lint \
 	coverprofile \
 	assets \
+	dependencies \
 	$(NULL)
