@@ -15,7 +15,7 @@ func TestNewGameWithSafePos(t *testing.T) {
 		Col:   16,
 		Mines: 99,
 	})
-	p := Pos{1, 1}
+	p := NewPos(1, 1)
 
 	for _, d := range tMatrix {
 		t.Run(d.Name, func(t *testing.T) {
@@ -35,7 +35,7 @@ func TestNewGameWithSafePos(t *testing.T) {
 				if g.Field[x][y].Content == Mine {
 					mines++
 				} else {
-					assert.Equalf(g.countNearbyMines(Pos{x, y}), int(g.Field[x][y].Content), "(%d, %d) should have the given number of neighboring mines", x, y)
+					assert.Equalf(g.countNearbyMines(NewPos(x, y)), int(g.Field[x][y].Content), "(%d, %d) should have the given number of neighboring mines", x, y)
 				}
 			})
 			assert.Equal(d.Mines, mines, "Should have the given number of mines")
@@ -86,20 +86,20 @@ func TestCheckField(t *testing.T) {
 	}{
 		{
 			Name:       "Mine",
-			Pos:        Pos{0, 0},
+			Pos:        NewPos(0, 0),
 			GameOver:   true,
 			Difficulty: difficulties[DifficultyClassic],
 			Minefield:  minefield,
 		},
 		{
 			Name:       "Number",
-			Pos:        Pos{0, 1},
+			Pos:        NewPos(0, 1),
 			Difficulty: difficulties[DifficultyClassic],
 			Minefield:  minefield,
 		},
 		{
 			Name:       "RevealMultipleFields1",
-			Pos:        Pos{0, 6},
+			Pos:        NewPos(0, 6),
 			Minefield:  minefield,
 			Difficulty: difficulties[DifficultyClassic],
 			Result: [][]bool{
@@ -115,7 +115,7 @@ func TestCheckField(t *testing.T) {
 		},
 		{
 			Name:       "RevealMultipleFields2",
-			Pos:        Pos{7, 3},
+			Pos:        NewPos(7, 3),
 			Minefield:  minefield,
 			Difficulty: difficulties[DifficultyClassic],
 			Result: [][]bool{
@@ -131,7 +131,7 @@ func TestCheckField(t *testing.T) {
 		},
 		{
 			Name:      "MoreColThanRow",
-			Pos:       Pos{4, 9},
+			Pos:       NewPos(4, 9),
 			Minefield: minefield2,
 			Difficulty: Difficulty{
 				Name:  "MoreColThanRow",
@@ -152,7 +152,7 @@ func TestCheckField(t *testing.T) {
 		},
 		{
 			Name:      "MoreRowThanCol",
-			Pos:       Pos{7, 3},
+			Pos:       NewPos(7, 3),
 			Minefield: minefield3,
 			Difficulty: Difficulty{
 				Name:  "MoreRowThanCol",
@@ -212,13 +212,13 @@ func TestCheckField(t *testing.T) {
 	for _, tCase := range tMatrix2 {
 		t.Run(tCase.Name, func(t *testing.T) {
 			d := difficulties[DifficultyIntermediate]
-			g := NewGameWithSafePos(d, Pos{0, 0})
+			g := NewGameWithSafePos(d, NewPos(0, 0))
 
 			g.GameWon = tCase.Win
 			g.GameOver = tCase.Loss
 
 			s1 := g.Status()
-			s2 := g.CheckField(Pos{0, 0})
+			s2 := g.CheckField(NewPos(0, 0))
 
 			assert.Equal(t, s1, s2, "Status should not change for a finished game")
 		})
@@ -226,25 +226,25 @@ func TestCheckField(t *testing.T) {
 }
 
 func TestOutOfBounds(t *testing.T) {
-	g := NewGameWithSafePos(difficulties[DifficultyExpert], Pos{2, 2})
+	g := NewGameWithSafePos(difficulties[DifficultyExpert], NewPos(2, 2))
 	d := g.Difficulty
 
 	assert := assert.New(t)
 
 	g.walkField(func(x, y int) {
-		p := Pos{x, y}
-		assert.Falsef(g.outOfBounds(p), "%v should be within the field", p)
+		p := NewPos(x, y)
+		assert.Falsef(g.OutOfBounds(p), "%v should be within the field", p)
 
 		p.X = -1
-		assert.Truef(g.outOfBounds(p), "%v should be out of bounds", p)
+		assert.Truef(g.OutOfBounds(p), "%v should be out of bounds", p)
 		p.X = d.Row
-		assert.Truef(g.outOfBounds(p), "%v should be out of bounds", p)
+		assert.Truef(g.OutOfBounds(p), "%v should be out of bounds", p)
 		p.X = x
 
 		p.Y = -1
-		assert.Truef(g.outOfBounds(p), "%v should be out of bounds", p)
+		assert.Truef(g.OutOfBounds(p), "%v should be out of bounds", p)
 		p.Y = d.Col
-		assert.Truef(g.outOfBounds(p), "%v should be out of bounds", p)
+		assert.Truef(g.OutOfBounds(p), "%v should be out of bounds", p)
 	})
 }
 
@@ -261,7 +261,7 @@ func TestStatus(t *testing.T) {
 
 	for _, tCase := range tMatrix {
 		t.Run(tCase.Name, func(t *testing.T) {
-			p := Pos{1, 1}
+			p := NewPos(1, 1)
 			d := difficulties[DifficultyExpert]
 			g := NewGameWithSafePos(d, p)
 
@@ -290,7 +290,7 @@ func TestStatus(t *testing.T) {
 
 func TestDetectVictory(t *testing.T) {
 	d := difficulties[DifficultyExpert]
-	g := NewGameWithSafePos(d, Pos{0, 0})
+	g := NewGameWithSafePos(d, NewPos(0, 0))
 
 	assert := assert.New(t)
 

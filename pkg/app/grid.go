@@ -80,8 +80,7 @@ func (g *MinesweeperGrid) GetCanvasObject() fyne.CanvasObject {
 // Called by the child tiles to signal they have been tapped.
 // Checks the given tile and then updates the display according to the new state.
 // Starts a new game when no game is currently running.
-func (g *MinesweeperGrid) TappedTile(x, y int) {
-	pos := minesweeper.Pos{X: x, Y: y}
+func (g *MinesweeperGrid) TappedTile(pos minesweeper.Pos) {
 	if g.Game == nil {
 		g.Game = minesweeper.NewGameWithSafePos(g.Difficulty, pos)
 		g.Timer.Start()
@@ -90,6 +89,16 @@ func (g *MinesweeperGrid) TappedTile(x, y int) {
 	log.Printf("Checking field (%d, %d)\n", pos.X, pos.Y)
 
 	s := g.Game.CheckField(pos)
+	log.Println("Checked field, updating tiles")
+	g.updateFromStatus(s)
+}
+
+// Update the grid from the given status
+func (g *MinesweeperGrid) updateFromStatus(s *minesweeper.Status) {
+	if s == nil {
+		return
+	}
+
 	if s.GameOver || s.GameWon {
 		switch {
 		case s.GameWon:
@@ -101,8 +110,6 @@ func (g *MinesweeperGrid) TappedTile(x, y int) {
 		}
 		g.Timer.Stop()
 	}
-
-	log.Println("Checked field, updating tiles")
 
 	for x := 0; x < g.Row(); x++ {
 		for y := 0; y < g.Col(); y++ {
@@ -139,4 +146,10 @@ func (g *MinesweeperGrid) NewGame() {
 	g.Timer.Reset()
 	g.Reset.SetText(ResetDefaultText)
 	g.Reset.Refresh()
+}
+
+// Check if the given position is out of bounds.
+// Calls Game.OutOfBounds(Pos)
+func (g *MinesweeperGrid) OutOfBounds(p minesweeper.Pos) bool {
+	return g.Game.OutOfBounds(p)
 }
