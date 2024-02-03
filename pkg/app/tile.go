@@ -43,7 +43,7 @@ type Tile struct {
 	label      *canvas.Text
 	icon       *widget.Icon
 
-	x, y    int
+	Pos     minesweeper.Pos
 	Field   *minesweeper.Field
 	grid    *MinesweeperGrid
 	Flagged bool
@@ -52,8 +52,7 @@ type Tile struct {
 // Create a new Tile with a reference to it's parent grid, as well as knowledge of it's own position in the Grid
 func NewTile(x, y int, grid *MinesweeperGrid) *Tile {
 	t := &Tile{
-		x: x,
-		y: y,
+		Pos: minesweeper.NewPos(x, y),
 		Field: &minesweeper.Field{
 			Checked: false,
 			Content: minesweeper.Unknown,
@@ -91,7 +90,7 @@ func (t *Tile) Tapped(_ *fyne.PointEvent) {
 	if t.untappable() || t.Flagged {
 		return
 	}
-	t.grid.TappedTile(t.x, t.y)
+	t.grid.TappedTile(t.Pos)
 }
 
 // Right mouse click on tile
@@ -107,6 +106,29 @@ func (t *Tile) TappedSecondary(_ *fyne.PointEvent) {
 	}
 	t.Flagged = !t.Flagged
 	t.UpdateContent()
+}
+
+// Double click on tile
+func (t *Tile) DoubleTapped(_ *fyne.PointEvent) {
+	if !t.Field.Checked || t.gameFinished() {
+		return
+	}
+
+	var status *minesweeper.Status
+	for m := -1; m < 2; m++ {
+		for n := -1; n < 2; n++ {
+			p := t.Pos
+			p.X += m
+			p.Y += n
+			if !t.grid.OutOfBounds(p) {
+				if t.grid.Tiles[p.X][p.Y].untappable() || t.grid.Tiles[p.X][p.Y].Flagged {
+					continue
+				}
+				status = t.grid.Game.CheckField(p)
+			}
+		}
+	}
+	t.grid.updateFromStatus(status)
 }
 
 // Update the tile render depending on the current state of it's backing Field
@@ -152,9 +174,11 @@ func (t *Tile) Reset() {
 
 // Check if the tile should be clickable
 func (t *Tile) untappable() bool {
-	if t.Field.Checked {
-		return true
-	}
+	return t.Field.Checked || t.gameFinished()
+}
+
+// Check if game is finished
+func (t *Tile) gameFinished() bool {
 	if t.grid.Game != nil {
 		return t.grid.Game.GameOver || t.grid.Game.GameWon
 	}

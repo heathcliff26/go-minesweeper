@@ -11,6 +11,16 @@ type Pos struct {
 	X, Y int
 }
 
+// Create a new Position from the given coordinates
+func NewPos(x, y int) Pos {
+	return Pos{x, y}
+}
+
+// Returns a random position inside the provided limits
+func RandomPos(maxX, maxY int) Pos {
+	return NewPos(rand.Intn(maxX), rand.Intn(maxY))
+}
+
 // Returns a string representation of the position
 func (p Pos) String() string {
 	return fmt.Sprintf("(%d, %d)", p.X, p.Y)
@@ -30,12 +40,4 @@ func CreateMines(d Difficulty, p Pos) []Pos {
 		mines = append(mines, p)
 	}
 	return mines[1:]
-}
-
-// Returns a random position inside the provided limits
-func RandomPos(maxX, maxY int) Pos {
-	return Pos{
-		X: rand.Intn(maxX),
-		Y: rand.Intn(maxY),
-	}
 }

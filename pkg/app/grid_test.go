@@ -3,6 +3,7 @@ package app
 import (
 	"testing"
 
+	"github.com/heathcliff26/go-minesweeper/pkg/minesweeper"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -28,19 +29,21 @@ func TestTappedTile(t *testing.T) {
 		}
 	}
 
+	p := minesweeper.NewPos(0, 0)
+
 	assert := assert.New(t)
 
-	g.TappedTile(0, 0)
+	g.TappedTile(p)
 	assert.NotNil(g.Game)
 	assert.True(g.Tiles[0][0].Field.Checked)
 
 	g.Game.GameWon = true
-	g.TappedTile(0, 0)
+	g.TappedTile(p)
 	assert.Equal(ResetGameWonText, g.Reset.Label.Text)
 	g.Game.GameWon = false
 
 	g.Game.GameOver = true
-	g.TappedTile(0, 0)
+	g.TappedTile(p)
 	assert.Equal(ResetGameOverText, g.Reset.Label.Text)
 }
 
@@ -52,7 +55,7 @@ func TestNewGame(t *testing.T) {
 		}
 	}
 
-	g.TappedTile(0, 0)
+	g.TappedTile(minesweeper.NewPos(0, 0))
 	g.NewGame()
 
 	assert := assert.New(t)

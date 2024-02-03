@@ -59,7 +59,7 @@ func NewGameWithSafePos(d Difficulty, p Pos) *Game {
 			return
 		}
 
-		g.Field[x][y].Content = FieldContent(g.countNearbyMines(Pos{x, y}))
+		g.Field[x][y].Content = FieldContent(g.countNearbyMines(NewPos(x, y)))
 	})
 
 	return g
@@ -102,8 +102,8 @@ func (g *Game) RevealField(p Pos) {
 			if m == 0 && n == 0 {
 				continue
 			}
-			i := Pos{p.X + m, p.Y + n}
-			if g.outOfBounds(i) {
+			i := NewPos(p.X+m, p.Y+n)
+			if g.OutOfBounds(i) {
 				continue
 			}
 			if !g.Field[i.X][i.Y].Checked {
@@ -114,7 +114,7 @@ func (g *Game) RevealField(p Pos) {
 }
 
 // Check if the given position is out of bounds
-func (g *Game) outOfBounds(p Pos) bool {
+func (g *Game) OutOfBounds(p Pos) bool {
 	d := g.Difficulty
 	return p.X < 0 || p.X > d.Row-1 || p.Y < 0 || p.Y > d.Col-1
 }
@@ -168,7 +168,7 @@ func (g *Game) countNearbyMines(p Pos) int {
 	c := 0
 	for m := -1; m < 2; m++ {
 		for n := -1; n < 2; n++ {
-			if g.outOfBounds(Pos{p.X + m, p.Y + n}) {
+			if g.OutOfBounds(NewPos(p.X+m, p.Y+n)) {
 				continue
 			}
 			if g.Field[p.X+m][p.Y+n].Content == Mine {

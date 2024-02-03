@@ -16,8 +16,7 @@ func TestNewTile(t *testing.T) {
 	t.Run("New", func(t *testing.T) {
 		assert := assert.New(t)
 
-		assert.Equal(1, tile.x)
-		assert.Equal(2, tile.y)
+		assert.Equal(minesweeper.NewPos(1, 2), tile.Pos)
 
 		assert.Equal(g, tile.grid)
 
@@ -96,6 +95,119 @@ func TestTileTappedSecondary(t *testing.T) {
 
 	assert.Equal(count, tile.grid.MineCount.Count, "MineCount should be back to original value")
 	assert.False(tile.Flagged, "Tile should not be flagged")
+}
+
+func TestDoubleTapped(t *testing.T) {
+	g := NewMinesweeperGrid(DEFAULT_DIFFICULTY)
+	for _, row := range g.Tiles {
+		for _, tile := range row {
+			tile.CreateRenderer()
+		}
+	}
+	tile := g.Tiles[0][0]
+
+	g.Game = minesweeper.NewGameWithSafePos(g.Difficulty, tile.Pos)
+
+	tMatrix := []struct {
+		Name    string
+		Flagged bool
+	}{
+		{"Unchecked", false},
+		{"Flagged", true},
+	}
+
+	for _, tCase := range tMatrix {
+		t.Run(tCase.Name, func(t *testing.T) {
+			tile.Flagged = tCase.Flagged
+			t.Cleanup(func() {
+				tile.Flagged = false
+			})
+			tile.DoubleTapped(nil)
+
+			for m := -1; m < 2; m++ {
+				for n := -1; n < 2; n++ {
+					p := tile.Pos
+					p.X += m
+					p.Y += n
+					if g.OutOfBounds(p) {
+						continue
+					}
+
+					assert.Falsef(t, g.Tiles[p.X][p.Y].Field.Checked, p.String())
+				}
+			}
+		})
+	}
+
+	t.Run("Checked", func(t *testing.T) {
+		tile.Tapped(nil)
+
+		found := false
+		// Find fitting tile
+		for x := 0; x < g.Row(); x++ {
+			for y := 0; y < g.Col(); y++ {
+				tile = g.Tiles[x][y]
+				if tile.Field.Content > 0 {
+					t.Log("Selected new tile ", tile.Pos.String())
+					found = true
+					break
+				}
+			}
+			if found {
+				break
+			}
+		}
+
+		finish := false
+		// Flag the first best neighbour
+		for m := -1; m < 2; m++ {
+			for n := -1; n < 2; n++ {
+				p := tile.Pos
+				p.X += m
+				p.Y += n
+				if g.OutOfBounds(p) {
+					continue
+				}
+				if !g.Tiles[p.X][p.Y].Field.Checked {
+					g.Tiles[p.X][p.Y].Flagged = true
+					t.Log("Flagged " + p.String())
+					finish = true
+					break
+				}
+			}
+			if finish {
+				break
+			}
+		}
+		tile.DoubleTapped(nil)
+
+		assert := assert.New(t)
+
+		finish = false
+		for m := -1; m < 2; m++ {
+			for n := -1; n < 2; n++ {
+				p := tile.Pos
+				p.X += m
+				p.Y += n
+				if g.OutOfBounds(p) {
+					continue
+				}
+				if g.Tiles[p.X][p.Y].Flagged {
+					assert.Falsef(g.Tiles[p.X][p.Y].Field.Checked, "%v Flagged field should not be checked", p)
+					continue
+				}
+				if g.Tiles[p.X][p.Y].Field.Content == minesweeper.Mine {
+					t.Logf("Found mine at %v", p)
+					finish = true
+					break
+				}
+				assert.True(g.Tiles[p.X][p.Y].Field.Checked, "%v Normal neighbours should be checked", p)
+			}
+			if finish {
+				break
+			}
+		}
+	})
 }
 
 func TestTileUpdateContent(t *testing.T) {
