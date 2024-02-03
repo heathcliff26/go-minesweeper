@@ -61,7 +61,7 @@
 				
 				<option value="file2">github.com/heathcliff26/go-minesweeper/pkg/app/counter.go (100.0%)</option>
 				
-				<option value="file3">github.com/heathcliff26/go-minesweeper/pkg/app/grid.go (100.0%)</option>
+				<option value="file3">github.com/heathcliff26/go-minesweeper/pkg/app/grid.go (98.2%)</option>
 				
 				<option value="file4">github.com/heathcliff26/go-minesweeper/pkg/app/tile.go (100.0%)</option>
 				
@@ -378,8 +378,7 @@ func (g *MinesweeperGrid) GetCanvasObject() fyne.CanvasObject <span class="cov8"
 // Called by the child tiles to signal they have been tapped.
 // Checks the given tile and then updates the display according to the new state.
 // Starts a new game when no game is currently running.
-func (g *MinesweeperGrid) TappedTile(x, y int) <span class="cov8" title="1">{
-        pos := minesweeper.Pos{X: x, Y: y}
+func (g *MinesweeperGrid) TappedTile(pos minesweeper.Pos) <span class="cov8" title="1">{
         if g.Game == nil </span><span class="cov8" title="1">{
                 g.Game = minesweeper.NewGameWithSafePos(g.Difficulty, pos)
                 g.Timer.Start()
@@ -388,7 +387,17 @@ func (g *MinesweeperGrid) TappedTile(x, y int) <span class="cov8" title="1">{
         <span class="cov8" title="1">log.Printf("Checking field (%d, %d)\n", pos.X, pos.Y)
 
         s := g.Game.CheckField(pos)
-        if s.GameOver || s.GameWon </span><span class="cov8" title="1">{
+        log.Println("Checked field, updating tiles")
+        g.updateFromStatus(s)</span>
+}
+
+// Update the grid from the given status
+func (g *MinesweeperGrid) updateFromStatus(s *minesweeper.Status) <span class="cov8" title="1">{
+        if s == nil </span><span class="cov0" title="0">{
+                return
+        }</span>
+
+        <span class="cov8" title="1">if s.GameOver || s.GameWon </span><span class="cov8" title="1">{
                 switch </span>{
                 case s.GameWon:<span class="cov8" title="1">
                         log.Println("Win")
@@ -400,9 +409,7 @@ func (g *MinesweeperGrid) TappedTile(x, y int) <span class="cov8" title="1">{
                 <span class="cov8" title="1">g.Timer.Stop()</span>
         }
 
-        <span class="cov8" title="1">log.Println("Checked field, updating tiles")
-
-        for x := 0; x &lt; g.Row(); x++ </span><span class="cov8" title="1">{
+        <span class="cov8" title="1">for x := 0; x &lt; g.Row(); x++ </span><span class="cov8" title="1">{
                 for y := 0; y &lt; g.Col(); y++ </span><span class="cov8" title="1">{
                         t := g.Tiles[x][y]
                         if s.Field[x][y].Content == minesweeper.Unknown </span><span class="cov8" title="1">{
@@ -438,6 +445,12 @@ func (g *MinesweeperGrid) NewGame() <span class="cov8" title="1">{
         g.Reset.SetText(ResetDefaultText)
         g.Reset.Refresh()</span>
 }
+
+// Check if the given position is out of bounds.
+// Calls Game.OutOfBounds(Pos)
+func (g *MinesweeperGrid) OutOfBounds(p minesweeper.Pos) bool <span class="cov8" title="1">{
+        return g.Game.OutOfBounds(p)
+}</span>
 </pre>
 		
 		<pre class="file" id="file4" style="display: none">package app
@@ -485,7 +498,7 @@ type Tile struct {
         label      *canvas.Text
         icon       *widget.Icon
 
-        x, y    int
+        Pos     minesweeper.Pos
         Field   *minesweeper.Field
         grid    *MinesweeperGrid
         Flagged bool
@@ -494,8 +507,7 @@ type Tile struct {
 // Create a new Tile with a reference to it's parent grid, as well as knowledge of it's own position in the Grid
 func NewTile(x, y int, grid *MinesweeperGrid) *Tile <span class="cov8" title="1">{
         t := &amp;Tile{
-                x: x,
-                y: y,
+                Pos: minesweeper.NewPos(x, y),
                 Field: &amp;minesweeper.Field{
                         Checked: false,
                         Content: minesweeper.Unknown,
@@ -533,7 +545,7 @@ func (t *Tile) Tapped(_ *fyne.PointEvent) <span class="cov8" title="1">{
         if t.untappable() || t.Flagged </span><span class="cov8" title="1">{
                 return
         }</span>
-        <span class="cov8" title="1">t.grid.TappedTile(t.x, t.y)</span>
+        <span class="cov8" title="1">t.grid.TappedTile(t.Pos)</span>
 }
 
 // Right mouse click on tile
@@ -549,6 +561,29 @@ func (t *Tile) TappedSecondary(_ *fyne.PointEvent) <span class="cov8" title="1">
         }</span>
         <span class="cov8" title="1">t.Flagged = !t.Flagged
         t.UpdateContent()</span>
+}
+
+// Double click on tile
+func (t *Tile) DoubleTapped(_ *fyne.PointEvent) <span class="cov8" title="1">{
+        if !t.Field.Checked || t.gameFinished() </span><span class="cov8" title="1">{
+                return
+        }</span>
+
+        <span class="cov8" title="1">var status *minesweeper.Status
+        for m := -1; m &lt; 2; m++ </span><span class="cov8" title="1">{
+                for n := -1; n &lt; 2; n++ </span><span class="cov8" title="1">{
+                        p := t.Pos
+                        p.X += m
+                        p.Y += n
+                        if !t.grid.OutOfBounds(p) </span><span class="cov8" title="1">{
+                                if t.grid.Tiles[p.X][p.Y].untappable() || t.grid.Tiles[p.X][p.Y].Flagged </span><span class="cov8" title="1">{
+                                        continue</span>
+                                }
+                                <span class="cov8" title="1">status = t.grid.Game.CheckField(p)</span>
+                        }
+                }
+        }
+        <span class="cov8" title="1">t.grid.updateFromStatus(status)</span>
 }
 
 // Update the tile render depending on the current state of it's backing Field
@@ -594,10 +629,12 @@ func (t *Tile) Reset() <span class="cov8" title="1">{
 
 // Check if the tile should be clickable
 func (t *Tile) untappable() bool <span class="cov8" title="1">{
-        if t.Field.Checked </span><span class="cov8" title="1">{
-                return true
-        }</span>
-        <span class="cov8" title="1">if t.grid.Game != nil </span><span class="cov8" title="1">{
+        return t.Field.Checked || t.gameFinished()
+}</span>
+
+// Check if game is finished
+func (t *Tile) gameFinished() bool <span class="cov8" title="1">{
+        if t.grid.Game != nil </span><span class="cov8" title="1">{
                 return t.grid.Game.GameOver || t.grid.Game.GameWon
         }</span>
         <span class="cov8" title="1">return false</span>
@@ -878,7 +915,7 @@ func NewGameWithSafePos(d Difficulty, p Pos) *Game <span class="cov8" title="1">
                         return
                 }</span>
 
-                <span class="cov8" title="1">g.Field[x][y].Content = FieldContent(g.countNearbyMines(Pos{x, y}))</span>
+                <span class="cov8" title="1">g.Field[x][y].Content = FieldContent(g.countNearbyMines(NewPos(x, y)))</span>
         })
 
         <span class="cov8" title="1">return g</span>
@@ -921,8 +958,8 @@ func (g *Game) RevealField(p Pos) <span class="cov8" title="1">{
                         if m == 0 &amp;&amp; n == 0 </span><span class="cov8" title="1">{
                                 continue</span>
                         }
-                        <span class="cov8" title="1">i := Pos{p.X + m, p.Y + n}
-                        if g.outOfBounds(i) </span><span class="cov8" title="1">{
+                        <span class="cov8" title="1">i := NewPos(p.X+m, p.Y+n)
+                        if g.OutOfBounds(i) </span><span class="cov8" title="1">{
                                 continue</span>
                         }
                         <span class="cov8" title="1">if !g.Field[i.X][i.Y].Checked </span><span class="cov8" title="1">{
@@ -933,7 +970,7 @@ func (g *Game) RevealField(p Pos) <span class="cov8" title="1">{
 }
 
 // Check if the given position is out of bounds
-func (g *Game) outOfBounds(p Pos) bool <span class="cov8" title="1">{
+func (g *Game) OutOfBounds(p Pos) bool <span class="cov8" title="1">{
         d := g.Difficulty
         return p.X &lt; 0 || p.X &gt; d.Row-1 || p.Y &lt; 0 || p.Y &gt; d.Col-1
 }</span>
@@ -987,7 +1024,7 @@ func (g *Game) countNearbyMines(p Pos) int <span class="cov8" title="1">{
         c := 0
         for m := -1; m &lt; 2; m++ </span><span class="cov8" title="1">{
                 for n := -1; n &lt; 2; n++ </span><span class="cov8" title="1">{
-                        if g.outOfBounds(Pos{p.X + m, p.Y + n}) </span><span class="cov8" title="1">{
+                        if g.OutOfBounds(NewPos(p.X+m, p.Y+n)) </span><span class="cov8" title="1">{
                                 continue</span>
                         }
                         <span class="cov8" title="1">if g.Field[p.X+m][p.Y+n].Content == Mine </span><span class="cov8" title="1">{
@@ -1012,6 +1049,16 @@ type Pos struct {
         X, Y int
 }
 
+// Create a new Position from the given coordinates
+func NewPos(x, y int) Pos <span class="cov8" title="1">{
+        return Pos{x, y}
+}</span>
+
+// Returns a random position inside the provided limits
+func RandomPos(maxX, maxY int) Pos <span class="cov8" title="1">{
+        return NewPos(rand.Intn(maxX), rand.Intn(maxY))
+}</span>
+
 // Returns a string representation of the position
 func (p Pos) String() string <span class="cov8" title="1">{
         return fmt.Sprintf("(%d, %d)", p.X, p.Y)
@@ -1032,14 +1079,6 @@ func CreateMines(d Difficulty, p Pos) []Pos <span class="cov8" title="1">{
         }
         <span class="cov8" title="1">return mines[1:]</span>
 }
-
-// Returns a random position inside the provided limits
-func RandomPos(maxX, maxY int) Pos <span class="cov8" title="1">{
-        return Pos{
-                X: rand.Intn(maxX),
-                Y: rand.Intn(maxY),
-        }
-}</span>
 </pre>
 		
 		<pre class="file" id="file10" style="display: none">package utils
