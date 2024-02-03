@@ -326,7 +326,7 @@ const (
 type MinesweeperGrid struct {
         Tiles      [][]*Tile
         Difficulty minesweeper.Difficulty
-        Game       *minesweeper.Game
+        Game       minesweeper.Game
 
         Timer     *Timer
         MineCount *Counter
@@ -635,7 +635,7 @@ func (t *Tile) untappable() bool <span class="cov8" title="1">{
 // Check if game is finished
 func (t *Tile) gameFinished() bool <span class="cov8" title="1">{
         if t.grid.Game != nil </span><span class="cov8" title="1">{
-                return t.grid.Game.GameOver || t.grid.Game.GameWon
+                return t.grid.Game.Lost() || t.grid.Game.Won()
         }</span>
         <span class="cov8" title="1">return false</span>
 }
@@ -888,17 +888,36 @@ type Status struct {
         GameWon  bool
 }
 
-// Struct for holding the game
-type Game struct {
+// Interface for playing the game
+type Game interface {
+        // Check a given field and recursevly reveal all neighboring fields that should be revield.
+        // Returns the resulting new status of the game
+        CheckField(p Pos) *Status
+        // Recursive function to reveal all neighbouring fields that can be safely reveald.
+        // Stops when a field has not exactly zero neighbouring mines
+        RevealField(p Pos)
+        // Check if the given position is out of bounds
+        OutOfBounds(p Pos) bool
+        // Returns the current status of the game. Only contains the knowledge a player should have.
+        Status() *Status
+        // Check if Game Over
+        Lost() bool
+        // Check if the game is won
+        Won() bool
+}
+
+type LocalGame struct {
         Field      [][]Field
         Difficulty Difficulty
-        GameOver   bool
-        GameWon    bool
+
+        // Keep these 2 exported for testing in other packages
+        GameOver bool
+        GameWon  bool
 }
 
 // Create a new game with mines seeded randomly in the map, with the exception of the given position.
-func NewGameWithSafePos(d Difficulty, p Pos) *Game <span class="cov8" title="1">{
-        g := &amp;Game{
+func NewGameWithSafePos(d Difficulty, p Pos) *LocalGame <span class="cov8" title="1">{
+        g := &amp;LocalGame{
                 Field:      utils.Make2D[Field](d.Row, d.Col),
                 Difficulty: d,
                 GameOver:   false,
@@ -923,8 +942,8 @@ func NewGameWithSafePos(d Difficulty, p Pos) *Game <span class="cov8" title="1">
 
 // Check a given field and recursevly reveal all neighboring fields that should be revield.
 // Returns the resulting new status of the game
-func (g *Game) CheckField(p Pos) *Status <span class="cov8" title="1">{
-        if g.GameOver || g.GameWon </span><span class="cov8" title="1">{
+func (g *LocalGame) CheckField(p Pos) *Status <span class="cov8" title="1">{
+        if g.Lost() || g.Won() </span><span class="cov8" title="1">{
                 return g.Status()
         }</span>
 
@@ -942,7 +961,7 @@ func (g *Game) CheckField(p Pos) *Status <span class="cov8" title="1">{
 
 // Recursive function to reveal all neighbouring fields that can be safely reveald.
 // Stops when a field has not exactly zero neighbouring mines
-func (g *Game) RevealField(p Pos) <span class="cov8" title="1">{
+func (g *LocalGame) RevealField(p Pos) <span class="cov8" title="1">{
         log.Printf("Reveal tile (%d, %d), content: %d\n", p.X, p.Y, g.Field[p.X][p.Y].Content)
 
         g.Field[p.X][p.Y].Checked = true
@@ -970,26 +989,26 @@ func (g *Game) RevealField(p Pos) <span class="cov8" title="1">{
 }
 
 // Check if the given position is out of bounds
-func (g *Game) OutOfBounds(p Pos) bool <span class="cov8" title="1">{
+func (g *LocalGame) OutOfBounds(p Pos) bool <span class="cov8" title="1">{
         d := g.Difficulty
         return p.X &lt; 0 || p.X &gt; d.Row-1 || p.Y &lt; 0 || p.Y &gt; d.Col-1
 }</span>
 
 // Returns the current status of the game. Only contains the knowledge a player should have.
-func (g *Game) Status() *Status <span class="cov8" title="1">{
+func (g *LocalGame) Status() *Status <span class="cov8" title="1">{
         d := g.Difficulty
         s := &amp;Status{
                 Field:    utils.Make2D[Field](d.Row, d.Col),
-                GameOver: g.GameOver,
-                GameWon:  g.GameWon,
+                GameOver: g.Lost(),
+                GameWon:  g.Won(),
         }
 
-        wasWon := g.GameWon
+        wasWon := g.Won()
         isWon := true
 
         g.walkField(func(x, y int) </span><span class="cov8" title="1">{
                 s.Field[x][y].Checked = g.Field[x][y].Checked
-                if g.Field[x][y].Checked || g.GameOver || g.GameWon </span><span class="cov8" title="1">{
+                if g.Field[x][y].Checked || g.Lost() || g.Won() </span><span class="cov8" title="1">{
                         s.Field[x][y].Content = g.Field[x][y].Content
                 }</span> else<span class="cov8" title="1"> {
                         s.Field[x][y].Content = Unknown
@@ -1009,8 +1028,18 @@ func (g *Game) Status() *Status <span class="cov8" title="1">{
         <span class="cov8" title="1">return s</span>
 }
 
+// Check if Game Over
+func (g *LocalGame) Lost() bool <span class="cov8" title="1">{
+        return g.GameOver
+}</span>
+
+// Check if the game is won
+func (g *LocalGame) Won() bool <span class="cov8" title="1">{
+        return g.GameWon
+}</span>
+
 // Walk through all fields of the game and call the given function
-func (g *Game) walkField(f func(x, y int)) <span class="cov8" title="1">{
+func (g *LocalGame) walkField(f func(x, y int)) <span class="cov8" title="1">{
         d := g.Difficulty
         for x := 0; x &lt; d.Row; x++ </span><span class="cov8" title="1">{
                 for y := 0; y &lt; d.Col; y++ </span><span class="cov8" title="1">{
@@ -1020,7 +1049,7 @@ func (g *Game) walkField(f func(x, y int)) <span class="cov8" title="1">{
 }
 
 // Count the the number of mines in the neighboring fields
-func (g *Game) countNearbyMines(p Pos) int <span class="cov8" title="1">{
+func (g *LocalGame) countNearbyMines(p Pos) int <span class="cov8" title="1">{
         c := 0
         for m := -1; m &lt; 2; m++ </span><span class="cov8" title="1">{
                 for n := -1; n &lt; 2; n++ </span><span class="cov8" title="1">{
