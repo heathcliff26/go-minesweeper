@@ -28,7 +28,7 @@ const (
 type MinesweeperGrid struct {
 	Tiles      [][]*Tile
 	Difficulty minesweeper.Difficulty
-	Game       *minesweeper.Game
+	Game       minesweeper.Game
 
 	Timer     *Timer
 	MineCount *Counter

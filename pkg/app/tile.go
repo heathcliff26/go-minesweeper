@@ -180,7 +180,7 @@ func (t *Tile) untappable() bool {
 // Check if game is finished
 func (t *Tile) gameFinished() bool {
 	if t.grid.Game != nil {
-		return t.grid.Game.GameOver || t.grid.Game.GameWon
+		return t.grid.Game.Lost() || t.grid.Game.Won()
 	}
 	return false
 }

@@ -37,12 +37,14 @@ func TestTappedTile(t *testing.T) {
 	assert.NotNil(g.Game)
 	assert.True(g.Tiles[0][0].Field.Checked)
 
-	g.Game.GameWon = true
+	game := g.Game.(*minesweeper.LocalGame)
+
+	game.GameWon = true
 	g.TappedTile(p)
 	assert.Equal(ResetGameWonText, g.Reset.Label.Text)
-	g.Game.GameWon = false
+	game.GameWon = false
 
-	g.Game.GameOver = true
+	game.GameOver = true
 	g.TappedTile(p)
 	assert.Equal(ResetGameOverText, g.Reset.Label.Text)
 }
