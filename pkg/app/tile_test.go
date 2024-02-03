@@ -355,11 +355,13 @@ func TestTileUntappable(t *testing.T) {
 	tile.Field.Checked = false
 	assert.False(tile.untappable())
 
-	tile.grid.Game.GameOver = true
-	assert.True(tile.untappable())
-	tile.grid.Game.GameOver = false
+	game := tile.grid.Game.(*minesweeper.LocalGame)
 
-	tile.grid.Game.GameWon = true
+	game.GameOver = true
 	assert.True(tile.untappable())
-	tile.grid.Game.GameWon = false
+	game.GameOver = false
+
+	game.GameWon = true
+	assert.True(tile.untappable())
+	game.GameWon = false
 }
