@@ -7,6 +7,13 @@ const (
 	DifficultyExpert       = iota
 )
 
+const (
+	DifficultyRowColMin         = 8
+	DifficultyRowColMax         = 99
+	DifficultyMineMin           = 9
+	DifficultyMineMaxPercentage = 0.8
+)
+
 // Represent a difficulty setting for the Game
 type Difficulty struct {
 	Name     string
@@ -47,4 +54,19 @@ func Difficulties() []Difficulty {
 	list := make([]Difficulty, len(difficulties))
 	copy(list, difficulties)
 	return list
+}
+
+func NewCustomDifficulty(mines, row, col int) (Difficulty, error) {
+	if row < DifficultyRowColMin || row > DifficultyRowColMax || col < DifficultyRowColMin || col > DifficultyRowColMax {
+		return Difficulty{}, NewErrDifficultyDimension(row, col)
+	}
+	if mines < DifficultyMineMin || float64(mines) > float64(row*col)*DifficultyMineMaxPercentage {
+		return Difficulty{}, NewErrDifficultyMineCount(mines)
+	}
+	return Difficulty{
+		Name:  "Custom",
+		Row:   row,
+		Col:   col,
+		Mines: mines,
+	}, nil
 }
