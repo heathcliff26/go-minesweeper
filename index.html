@@ -55,13 +55,13 @@
 			<div id="nav">
 				<select id="files">
 				
-				<option value="file0">github.com/heathcliff26/go-minesweeper/pkg/app/app.go (59.7%)</option>
+				<option value="file0">github.com/heathcliff26/go-minesweeper/pkg/app/app.go (60.3%)</option>
 				
 				<option value="file1">github.com/heathcliff26/go-minesweeper/pkg/app/button.go (100.0%)</option>
 				
 				<option value="file2">github.com/heathcliff26/go-minesweeper/pkg/app/counter.go (100.0%)</option>
 				
-				<option value="file3">github.com/heathcliff26/go-minesweeper/pkg/app/grid.go (98.2%)</option>
+				<option value="file3">github.com/heathcliff26/go-minesweeper/pkg/app/grid.go (98.3%)</option>
 				
 				<option value="file4">github.com/heathcliff26/go-minesweeper/pkg/app/tile.go (100.0%)</option>
 				
@@ -157,9 +157,9 @@ func (a *App) Run() <span class="cov0" title="0">{
 
 // Create the main menu bar
 func (a *App) makeMenu() *fyne.MainMenu <span class="cov8" title="1">{
-        // A quit item will be added by fyne automatically to this menu
-        appMenu := fyne.NewMenu("App", fyne.NewMenuItemSeparator())
-        appMenu.Items = appMenu.Items[1:]
+        newGameOption := fyne.NewMenuItem("New", a.grid.NewGame)
+        replayOption := fyne.NewMenuItem("Replay", a.grid.Replay)
+        gameMenu := fyne.NewMenu("Game", newGameOption, replayOption)
 
         difficulties := minesweeper.Difficulties()
         diffItems := make([]*fyne.MenuItem, 0, len(difficulties)+2)
@@ -190,7 +190,7 @@ func (a *App) makeMenu() *fyne.MainMenu <span class="cov8" title="1">{
         }</span>)
         <span class="cov8" title="1">helpMenu := fyne.NewMenu("Help", about)
 
-        return fyne.NewMainMenu(appMenu, diffMenu, helpMenu)</span>
+        return fyne.NewMainMenu(gameMenu, diffMenu, helpMenu)</span>
 }
 
 // Update the content of the app and resize the window to make it fit
@@ -367,9 +367,9 @@ type MinesweeperGrid struct {
         Difficulty minesweeper.Difficulty
         Game       minesweeper.Game
 
-        Timer     *Timer
-        MineCount *Counter
-        Reset     *Button
+        Timer       *Timer
+        MineCount   *Counter
+        ResetButton *Button
 }
 
 // Create a new grid suitable for the give difficulty
@@ -381,8 +381,8 @@ func NewMinesweeperGrid(d minesweeper.Difficulty) *MinesweeperGrid <span class="
                 Timer:      NewTimer(),
                 MineCount:  NewCounter(d.Mines),
         }
-        grid.Reset = NewButton(ResetDefaultText, color.RGBA{}, grid.NewGame)
-        grid.Reset.Label.TextSize = ResetTextSize
+        grid.ResetButton = NewButton(ResetDefaultText, color.RGBA{}, grid.NewGame)
+        grid.ResetButton.Label.TextSize = ResetTextSize
 
         for x := 0; x &lt; grid.Row(); x++ </span><span class="cov8" title="1">{
                 for y := 0; y &lt; grid.Col(); y++ </span><span class="cov8" title="1">{
@@ -396,7 +396,7 @@ func NewMinesweeperGrid(d minesweeper.Difficulty) *MinesweeperGrid <span class="
 // Get the graphical representation of the grid
 func (g *MinesweeperGrid) GetCanvasObject() fyne.CanvasObject <span class="cov8" title="1">{
         mineCount := container.NewHBox(layout.NewSpacer(), container.NewCenter(newBorder(g.MineCount.Label)))
-        reset := container.NewCenter(g.Reset)
+        reset := container.NewCenter(g.ResetButton)
         timer := container.NewHBox(container.NewCenter(newBorder(g.Timer.Label)), layout.NewSpacer())
 
         head := newBorder(container.NewGridWithColumns(3, mineCount, reset, timer))
@@ -420,6 +420,8 @@ func (g *MinesweeperGrid) GetCanvasObject() fyne.CanvasObject <span class="cov8"
 func (g *MinesweeperGrid) TappedTile(pos minesweeper.Pos) <span class="cov8" title="1">{
         if g.Game == nil </span><span class="cov8" title="1">{
                 g.Game = minesweeper.NewGameWithSafePos(g.Difficulty, pos)
+        }</span>
+        <span class="cov8" title="1">if !g.Timer.Running() </span><span class="cov8" title="1">{
                 g.Timer.Start()
         }</span>
 
@@ -440,10 +442,10 @@ func (g *MinesweeperGrid) updateFromStatus(s *minesweeper.Status) <span class="c
                 switch </span>{
                 case s.GameWon:<span class="cov8" title="1">
                         log.Println("Win")
-                        g.Reset.SetText(ResetGameWonText)</span>
+                        g.ResetButton.SetText(ResetGameWonText)</span>
                 case s.GameOver:<span class="cov8" title="1">
                         log.Println("Game Over")
-                        g.Reset.SetText(ResetGameOverText)</span>
+                        g.ResetButton.SetText(ResetGameOverText)</span>
                 }
                 <span class="cov8" title="1">g.Timer.Stop()</span>
         }
@@ -473,16 +475,29 @@ func (g *MinesweeperGrid) Col() int <span class="cov8" title="1">{
 
 // Start a new game
 func (g *MinesweeperGrid) NewGame() <span class="cov8" title="1">{
+        g.Game = nil
+        g.Reset()
+}</span>
+
+// Replay the current game
+func (g *MinesweeperGrid) Replay() <span class="cov8" title="1">{
+        if g.Game != nil </span><span class="cov8" title="1">{
+                g.Game.Replay()
+        }</span>
+        <span class="cov8" title="1">g.Reset()</span>
+}
+
+// Reset Grid
+func (g *MinesweeperGrid) Reset() <span class="cov8" title="1">{
         for x := 0; x &lt; g.Row(); x++ </span><span class="cov8" title="1">{
                 for y := 0; y &lt; g.Col(); y++ </span><span class="cov8" title="1">{
                         g.Tiles[x][y].Reset()
                 }</span>
         }
-        <span class="cov8" title="1">g.Game = nil
-        g.MineCount.SetCount(g.Difficulty.Mines)
+        <span class="cov8" title="1">g.MineCount.SetCount(g.Difficulty.Mines)
         g.Timer.Reset()
-        g.Reset.SetText(ResetDefaultText)
-        g.Reset.Refresh()</span>
+        g.ResetButton.SetText(ResetDefaultText)
+        g.ResetButton.Refresh()</span>
 }
 
 // Check if the given position is out of bounds.
@@ -729,7 +744,7 @@ func (t *Timer) Start() <span class="cov8" title="1">{
 
 // Stop the timer
 func (t *Timer) Stop() <span class="cov8" title="1">{
-        if t.running </span><span class="cov8" title="1">{
+        if t.Running() </span><span class="cov8" title="1">{
                 t.stop &lt;- true
                 t.running = false
         }</span>
@@ -740,6 +755,11 @@ func (t *Timer) Reset() <span class="cov8" title="1">{
         t.Stop()
         t.Seconds = 0
         t.refresh()
+}</span>
+
+// Check if the timer is running
+func (t *Timer) Running() bool <span class="cov8" title="1">{
+        return t.running
 }</span>
 
 // Refresh the timer from it's current values
@@ -995,6 +1015,10 @@ type Game interface {
         Lost() bool
         // Check if the game is won
         Won() bool
+        // Reset the current game to be played again
+        Replay()
+        // Check if the game is a replay
+        IsReplay() bool
 }
 
 type LocalGame struct {
@@ -1004,6 +1028,8 @@ type LocalGame struct {
         // Keep these 2 exported for testing in other packages
         GameOver bool
         GameWon  bool
+
+        replay bool
 }
 
 // Create a new game with mines seeded randomly in the map, with the exception of the given position.
@@ -1127,6 +1153,22 @@ func (g *LocalGame) Lost() bool <span class="cov8" title="1">{
 // Check if the game is won
 func (g *LocalGame) Won() bool <span class="cov8" title="1">{
         return g.GameWon
+}</span>
+
+// Reset the current game to be played again
+func (g *LocalGame) Replay() <span class="cov8" title="1">{
+        g.replay = true
+        g.GameOver = false
+        g.GameWon = false
+
+        g.walkField(func(x, y int) </span><span class="cov8" title="1">{
+                g.Field[x][y].Checked = false
+        }</span>)
+}
+
+// Check if the game is a replay
+func (g *LocalGame) IsReplay() bool <span class="cov8" title="1">{
+        return g.replay
 }</span>
 
 // Walk through all fields of the game and call the given function
