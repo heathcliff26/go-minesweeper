@@ -64,8 +64,13 @@ func (a *App) Run() {
 
 // Create the main menu bar
 func (a *App) makeMenu() *fyne.MainMenu {
-	newGameOption := fyne.NewMenuItem("New", a.grid.NewGame)
-	replayOption := fyne.NewMenuItem("Replay", a.grid.Replay)
+	// Can't assign grid functions directly, as the instance of grid may change
+	newGameOption := fyne.NewMenuItem("New", func() {
+		a.grid.NewGame()
+	})
+	replayOption := fyne.NewMenuItem("Replay", func() {
+		a.grid.Replay()
+	})
 	gameMenu := fyne.NewMenu("Game", newGameOption, replayOption)
 
 	difficulties := minesweeper.Difficulties()
