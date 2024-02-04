@@ -138,12 +138,14 @@ func (g *MinesweeperGrid) Col() int {
 
 // Start a new game
 func (g *MinesweeperGrid) NewGame() {
+	log.Println("Preparing for new game")
 	g.Game = nil
 	g.Reset()
 }
 
 // Replay the current game
 func (g *MinesweeperGrid) Replay() {
+	log.Println("Preparing for replay of current game")
 	if g.Game != nil {
 		g.Game.Replay()
 	}
@@ -161,6 +163,7 @@ func (g *MinesweeperGrid) Reset() {
 	g.Timer.Reset()
 	g.ResetButton.SetText(ResetDefaultText)
 	g.ResetButton.Refresh()
+	log.Println("Reset grid")
 }
 
 // Check if the given position is out of bounds.
