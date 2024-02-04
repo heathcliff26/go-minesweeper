@@ -55,7 +55,7 @@
 			<div id="nav">
 				<select id="files">
 				
-				<option value="file0">github.com/heathcliff26/go-minesweeper/pkg/app/app.go (89.7%)</option>
+				<option value="file0">github.com/heathcliff26/go-minesweeper/pkg/app/app.go (59.7%)</option>
 				
 				<option value="file1">github.com/heathcliff26/go-minesweeper/pkg/app/button.go (100.0%)</option>
 				
@@ -71,11 +71,13 @@
 				
 				<option value="file7">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/difficulty.go (100.0%)</option>
 				
-				<option value="file8">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/game.go (100.0%)</option>
+				<option value="file8">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/errors.go (50.0%)</option>
 				
-				<option value="file9">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/utils.go (100.0%)</option>
+				<option value="file9">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/game.go (100.0%)</option>
 				
-				<option value="file10">github.com/heathcliff26/go-minesweeper/pkg/utils/utils.go (100.0%)</option>
+				<option value="file10">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/utils.go (100.0%)</option>
+				
+				<option value="file11">github.com/heathcliff26/go-minesweeper/pkg/utils/utils.go (100.0%)</option>
 				
 				</select>
 			</div>
@@ -98,8 +100,11 @@ import (
 
         "fyne.io/fyne/v2"
         fApp "fyne.io/fyne/v2/app"
+        "fyne.io/fyne/v2/canvas"
         "fyne.io/fyne/v2/container"
+        "fyne.io/fyne/v2/data/binding"
         "fyne.io/fyne/v2/dialog"
+        "fyne.io/fyne/v2/widget"
         "github.com/heathcliff26/go-minesweeper/pkg/minesweeper"
 )
 
@@ -157,7 +162,7 @@ func (a *App) makeMenu() *fyne.MainMenu <span class="cov8" title="1">{
         appMenu.Items = appMenu.Items[1:]
 
         difficulties := minesweeper.Difficulties()
-        diffItems := make([]*fyne.MenuItem, 0, len(difficulties))
+        diffItems := make([]*fyne.MenuItem, 0, len(difficulties)+2)
         for _, d := range difficulties </span><span class="cov8" title="1">{
                 diff := d
                 item := fyne.NewMenuItem(d.Name, nil)
@@ -174,7 +179,9 @@ func (a *App) makeMenu() *fyne.MainMenu <span class="cov8" title="1">{
                 <span class="cov8" title="1">item.Checked = (d == DEFAULT_DIFFICULTY)
                 diffItems = append(diffItems, item)</span>
         }
-        <span class="cov8" title="1">a.difficulties = diffItems
+        <span class="cov8" title="1">diffItems = append(diffItems, fyne.NewMenuItemSeparator())
+        diffItems = append(diffItems, fyne.NewMenuItem("Custom", a.customDifficultyDialog))
+        a.difficulties = diffItems
         diffMenu := fyne.NewMenu("Difficulties", diffItems...)
 
         about := fyne.NewMenuItem("About", func() </span><span class="cov0" title="0">{
@@ -194,6 +201,38 @@ func (a *App) setContent() <span class="cov8" title="1">{
         a.main.SetContent(content)
         a.main.Resize(content.MinSize())
 }</span>
+
+// Show a dialog for setting a custom difficulty
+func (a *App) customDifficultyDialog() <span class="cov0" title="0">{
+        mines := minesweeper.DifficultyMineMin
+        row, col := minesweeper.DifficultyRowColMin, minesweeper.DifficultyRowColMin
+
+        mineLabel := canvas.NewText("Mines", TEXT_COLOR)
+        mineEntry := widget.NewEntryWithData(binding.IntToString(binding.BindInt(&amp;mines)))
+        rowLabel := canvas.NewText("Rows", TEXT_COLOR)
+        rowEntry := widget.NewEntryWithData(binding.IntToString(binding.BindInt(&amp;row)))
+        colLabel := canvas.NewText("Columns", TEXT_COLOR)
+        colEntry := widget.NewEntryWithData(binding.IntToString(binding.BindInt(&amp;col)))
+
+        content := container.NewGridWithColumns(2, mineLabel, mineEntry, rowLabel, rowEntry, colLabel, colEntry)
+        diffDialog := dialog.NewCustomConfirm("Custom Difficulty", "ok", "cancel", content, func(ok bool) </span><span class="cov0" title="0">{
+                if !ok </span><span class="cov0" title="0">{
+                        return
+                }</span>
+                <span class="cov0" title="0">d, err := minesweeper.NewCustomDifficulty(mines, row, col)
+                if err != nil </span><span class="cov0" title="0">{
+                        dialog.ShowError(err, a.main)
+                        return
+                }</span>
+
+                <span class="cov0" title="0">for _, i := range a.difficulties </span><span class="cov0" title="0">{
+                        i.Checked = (i.Label == "Custom")
+                }</span>
+                <span class="cov0" title="0">a.grid = NewMinesweeperGrid(d)
+                a.setContent()</span>
+        }, a.main)
+        <span class="cov0" title="0">diffDialog.Show()</span>
+}
 </pre>
 		
 		<pre class="file" id="file1" style="display: none">package app
@@ -811,6 +850,13 @@ const (
         DifficultyExpert       = iota
 )
 
+const (
+        DifficultyRowColMin         = 8
+        DifficultyRowColMax         = 99
+        DifficultyMineMin           = 9
+        DifficultyMineMaxPercentage = 0.8
+)
+
 // Represent a difficulty setting for the Game
 type Difficulty struct {
         Name     string
@@ -852,9 +898,54 @@ func Difficulties() []Difficulty <span class="cov8" title="1">{
         copy(list, difficulties)
         return list
 }</span>
+
+func NewCustomDifficulty(mines, row, col int) (Difficulty, error) <span class="cov8" title="1">{
+        if row &lt; DifficultyRowColMin || row &gt; DifficultyRowColMax || col &lt; DifficultyRowColMin || col &gt; DifficultyRowColMax </span><span class="cov8" title="1">{
+                return Difficulty{}, NewErrDifficultyDimension(row, col)
+        }</span>
+        <span class="cov8" title="1">if mines &lt; DifficultyMineMin || float64(mines) &gt; float64(row*col)*DifficultyMineMaxPercentage </span><span class="cov8" title="1">{
+                return Difficulty{}, NewErrDifficultyMineCount(mines)
+        }</span>
+        <span class="cov8" title="1">return Difficulty{
+                Name:  "Custom",
+                Row:   row,
+                Col:   col,
+                Mines: mines,
+        }, nil</span>
+}
 </pre>
 		
 		<pre class="file" id="file8" style="display: none">package minesweeper
+
+import "fmt"
+
+type ErrDifficultyDimension struct {
+        row int
+        col int
+}
+
+func NewErrDifficultyDimension(row, col int) error <span class="cov8" title="1">{
+        return &amp;ErrDifficultyDimension{row, col}
+}</span>
+
+func (e *ErrDifficultyDimension) Error() string <span class="cov0" title="0">{
+        return fmt.Sprintf("Rows and Columns need to be between %d and %d, got %dx%d", DifficultyRowColMin, DifficultyRowColMax, e.row, e.col)
+}</span>
+
+type ErrDifficultyMineCount struct {
+        mines int
+}
+
+func NewErrDifficultyMineCount(mines int) error <span class="cov8" title="1">{
+        return &amp;ErrDifficultyMineCount{mines}
+}</span>
+
+func (e *ErrDifficultyMineCount) Error() string <span class="cov0" title="0">{
+        return fmt.Sprintf("The number of mines need to be between %d and %.1f %% of the total number of cells, got %d", DifficultyMineMin, DifficultyMineMaxPercentage*100, e.mines)
+}</span>
+</pre>
+		
+		<pre class="file" id="file9" style="display: none">package minesweeper
 
 import (
         "log"
@@ -1065,7 +1156,7 @@ func (g *LocalGame) countNearbyMines(p Pos) int <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file9" style="display: none">package minesweeper
+		<pre class="file" id="file10" style="display: none">package minesweeper
 
 import (
         "fmt"
@@ -1110,7 +1201,7 @@ func CreateMines(d Difficulty, p Pos) []Pos <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file10" style="display: none">package utils
+		<pre class="file" id="file11" style="display: none">package utils
 
 // Create a new, empty 2 dimensional array of the given type and dimensions.
 func Make2D[T any](x, y int) [][]T <span class="cov8" title="1">{
