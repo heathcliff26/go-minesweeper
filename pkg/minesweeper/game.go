@@ -48,6 +48,10 @@ type Game interface {
 	Lost() bool
 	// Check if the game is won
 	Won() bool
+	// Reset the current game to be played again
+	Replay()
+	// Check if the game is a replay
+	IsReplay() bool
 }
 
 type LocalGame struct {
@@ -57,6 +61,8 @@ type LocalGame struct {
 	// Keep these 2 exported for testing in other packages
 	GameOver bool
 	GameWon  bool
+
+	replay bool
 }
 
 // Create a new game with mines seeded randomly in the map, with the exception of the given position.
@@ -180,6 +186,22 @@ func (g *LocalGame) Lost() bool {
 // Check if the game is won
 func (g *LocalGame) Won() bool {
 	return g.GameWon
+}
+
+// Reset the current game to be played again
+func (g *LocalGame) Replay() {
+	g.replay = true
+	g.GameOver = false
+	g.GameWon = false
+
+	g.walkField(func(x, y int) {
+		g.Field[x][y].Checked = false
+	})
+}
+
+// Check if the game is a replay
+func (g *LocalGame) IsReplay() bool {
+	return g.replay
 }
 
 // Walk through all fields of the game and call the given function

@@ -64,9 +64,9 @@ func (a *App) Run() {
 
 // Create the main menu bar
 func (a *App) makeMenu() *fyne.MainMenu {
-	// A quit item will be added by fyne automatically to this menu
-	appMenu := fyne.NewMenu("App", fyne.NewMenuItemSeparator())
-	appMenu.Items = appMenu.Items[1:]
+	newGameOption := fyne.NewMenuItem("New", a.grid.NewGame)
+	replayOption := fyne.NewMenuItem("Replay", a.grid.Replay)
+	gameMenu := fyne.NewMenu("Game", newGameOption, replayOption)
 
 	difficulties := minesweeper.Difficulties()
 	diffItems := make([]*fyne.MenuItem, 0, len(difficulties)+2)
@@ -97,7 +97,7 @@ func (a *App) makeMenu() *fyne.MainMenu {
 	})
 	helpMenu := fyne.NewMenu("Help", about)
 
-	return fyne.NewMainMenu(appMenu, diffMenu, helpMenu)
+	return fyne.NewMainMenu(gameMenu, diffMenu, helpMenu)
 }
 
 // Update the content of the app and resize the window to make it fit

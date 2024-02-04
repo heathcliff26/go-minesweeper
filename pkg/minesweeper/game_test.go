@@ -309,3 +309,21 @@ func TestDetectVictory(t *testing.T) {
 	assert.False(g.GameOver)
 	assert.False(s.GameOver)
 }
+
+func TestReplay(t *testing.T) {
+	p := NewPos(1, 1)
+	g := NewGameWithSafePos(difficulties[DifficultyBeginner], p)
+
+	g.CheckField(p)
+	g.Replay()
+
+	assert := assert.New(t)
+
+	assert.True(g.IsReplay(), "Game should be a replay")
+	assert.False(g.GameOver, "Should not be Game Over")
+	assert.False(g.GameWon, "Game should not be won")
+	assert.NotEqual(Mine, g.Field[p.X][p.Y].Content, "Safe position should not be a mine")
+	g.walkField(func(x, y int) {
+		assert.Falsef(g.Field[x][y].Checked, "(%d, %d) should not be checked", x, y)
+	})
+}
