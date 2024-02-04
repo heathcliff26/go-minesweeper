@@ -56,4 +56,29 @@ func TestApp(t *testing.T) {
 			}
 		}
 	})
+	t.Run("GameMenu", func(t *testing.T) {
+		for _, opt := range a.gameMenu {
+			t.Run(opt.Label, func(t *testing.T) {
+				assert := assert.New(t)
+
+				a.grid.TappedTile(minesweeper.NewPos(0, 0))
+				if !assert.True(a.grid.Timer.Running(), "Assert that a game is running") {
+					t.FailNow()
+				}
+
+				opt.Action()
+				assert.False(a.grid.Timer.Running(), "Game should not be running")
+
+				a.grid = NewMinesweeperGrid(DEFAULT_DIFFICULTY)
+				a.setContent()
+				a.grid.TappedTile(minesweeper.NewPos(0, 0))
+				if !assert.True(a.grid.Timer.Running(), "Assert that a game is running") {
+					t.FailNow()
+				}
+
+				opt.Action()
+				assert.False(a.grid.Timer.Running(), "Game should not be running")
+			})
+		}
+	})
 }

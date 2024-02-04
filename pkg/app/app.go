@@ -30,6 +30,7 @@ type App struct {
 	Version      Version
 	grid         *MinesweeperGrid
 	difficulties []*fyne.MenuItem
+	gameMenu     []*fyne.MenuItem
 }
 
 // Create a new App
@@ -71,7 +72,8 @@ func (a *App) makeMenu() *fyne.MainMenu {
 	replayOption := fyne.NewMenuItem("Replay", func() {
 		a.grid.Replay()
 	})
-	gameMenu := fyne.NewMenu("Game", newGameOption, replayOption)
+	a.gameMenu = []*fyne.MenuItem{newGameOption, replayOption}
+	gameMenu := fyne.NewMenu("Game", a.gameMenu...)
 
 	difficulties := minesweeper.Difficulties()
 	diffItems := make([]*fyne.MenuItem, 0, len(difficulties)+2)
