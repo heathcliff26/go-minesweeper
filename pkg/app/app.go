@@ -7,8 +7,11 @@ import (
 
 	"fyne.io/fyne/v2"
 	fApp "fyne.io/fyne/v2/app"
+	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/data/binding"
 	"fyne.io/fyne/v2/dialog"
+	"fyne.io/fyne/v2/widget"
 	"github.com/heathcliff26/go-minesweeper/pkg/minesweeper"
 )
 
@@ -66,7 +69,7 @@ func (a *App) makeMenu() *fyne.MainMenu {
 	appMenu.Items = appMenu.Items[1:]
 
 	difficulties := minesweeper.Difficulties()
-	diffItems := make([]*fyne.MenuItem, 0, len(difficulties))
+	diffItems := make([]*fyne.MenuItem, 0, len(difficulties)+2)
 	for _, d := range difficulties {
 		diff := d
 		item := fyne.NewMenuItem(d.Name, nil)
@@ -83,6 +86,8 @@ func (a *App) makeMenu() *fyne.MainMenu {
 		item.Checked = (d == DEFAULT_DIFFICULTY)
 		diffItems = append(diffItems, item)
 	}
+	diffItems = append(diffItems, fyne.NewMenuItemSeparator())
+	diffItems = append(diffItems, fyne.NewMenuItem("Custom", a.customDifficultyDialog))
 	a.difficulties = diffItems
 	diffMenu := fyne.NewMenu("Difficulties", diffItems...)
 
@@ -102,4 +107,36 @@ func (a *App) setContent() {
 
 	a.main.SetContent(content)
 	a.main.Resize(content.MinSize())
+}
+
+// Show a dialog for setting a custom difficulty
+func (a *App) customDifficultyDialog() {
+	mines := minesweeper.DifficultyMineMin
+	row, col := minesweeper.DifficultyRowColMin, minesweeper.DifficultyRowColMin
+
+	mineLabel := canvas.NewText("Mines", TEXT_COLOR)
+	mineEntry := widget.NewEntryWithData(binding.IntToString(binding.BindInt(&mines)))
+	rowLabel := canvas.NewText("Rows", TEXT_COLOR)
+	rowEntry := widget.NewEntryWithData(binding.IntToString(binding.BindInt(&row)))
+	colLabel := canvas.NewText("Columns", TEXT_COLOR)
+	colEntry := widget.NewEntryWithData(binding.IntToString(binding.BindInt(&col)))
+
+	content := container.NewGridWithColumns(2, mineLabel, mineEntry, rowLabel, rowEntry, colLabel, colEntry)
+	diffDialog := dialog.NewCustomConfirm("Custom Difficulty", "ok", "cancel", content, func(ok bool) {
+		if !ok {
+			return
+		}
+		d, err := minesweeper.NewCustomDifficulty(mines, row, col)
+		if err != nil {
+			dialog.ShowError(err, a.main)
+			return
+		}
+
+		for _, i := range a.difficulties {
+			i.Checked = (i.Label == "Custom")
+		}
+		a.grid = NewMinesweeperGrid(d)
+		a.setContent()
+	}, a.main)
+	diffDialog.Show()
 }

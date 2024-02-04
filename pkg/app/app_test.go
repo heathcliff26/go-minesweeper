@@ -42,7 +42,7 @@ func TestApp(t *testing.T) {
 		assert.NotEmpty(a.difficulties)
 
 		diffs := minesweeper.Difficulties()
-		assert.Equal(len(diffs), len(a.difficulties), "Should have a menu item for each difficulty")
+		assert.Equal(len(diffs), len(a.difficulties)-2, "Should have a menu item for each difficulty, as well as the custom option (+separator)")
 
 		for i, d := range diffs {
 			assert.Equal(d.Name, a.difficulties[i].Label, "Menu item label should match difficulty name")
