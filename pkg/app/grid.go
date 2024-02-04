@@ -30,9 +30,9 @@ type MinesweeperGrid struct {
 	Difficulty minesweeper.Difficulty
 	Game       minesweeper.Game
 
-	Timer     *Timer
-	MineCount *Counter
-	Reset     *Button
+	Timer       *Timer
+	MineCount   *Counter
+	ResetButton *Button
 }
 
 // Create a new grid suitable for the give difficulty
@@ -44,8 +44,8 @@ func NewMinesweeperGrid(d minesweeper.Difficulty) *MinesweeperGrid {
 		Timer:      NewTimer(),
 		MineCount:  NewCounter(d.Mines),
 	}
-	grid.Reset = NewButton(ResetDefaultText, color.RGBA{}, grid.NewGame)
-	grid.Reset.Label.TextSize = ResetTextSize
+	grid.ResetButton = NewButton(ResetDefaultText, color.RGBA{}, grid.NewGame)
+	grid.ResetButton.Label.TextSize = ResetTextSize
 
 	for x := 0; x < grid.Row(); x++ {
 		for y := 0; y < grid.Col(); y++ {
@@ -59,7 +59,7 @@ func NewMinesweeperGrid(d minesweeper.Difficulty) *MinesweeperGrid {
 // Get the graphical representation of the grid
 func (g *MinesweeperGrid) GetCanvasObject() fyne.CanvasObject {
 	mineCount := container.NewHBox(layout.NewSpacer(), container.NewCenter(newBorder(g.MineCount.Label)))
-	reset := container.NewCenter(g.Reset)
+	reset := container.NewCenter(g.ResetButton)
 	timer := container.NewHBox(container.NewCenter(newBorder(g.Timer.Label)), layout.NewSpacer())
 
 	head := newBorder(container.NewGridWithColumns(3, mineCount, reset, timer))
@@ -83,6 +83,8 @@ func (g *MinesweeperGrid) GetCanvasObject() fyne.CanvasObject {
 func (g *MinesweeperGrid) TappedTile(pos minesweeper.Pos) {
 	if g.Game == nil {
 		g.Game = minesweeper.NewGameWithSafePos(g.Difficulty, pos)
+	}
+	if !g.Timer.Running() {
 		g.Timer.Start()
 	}
 
@@ -103,10 +105,10 @@ func (g *MinesweeperGrid) updateFromStatus(s *minesweeper.Status) {
 		switch {
 		case s.GameWon:
 			log.Println("Win")
-			g.Reset.SetText(ResetGameWonText)
+			g.ResetButton.SetText(ResetGameWonText)
 		case s.GameOver:
 			log.Println("Game Over")
-			g.Reset.SetText(ResetGameOverText)
+			g.ResetButton.SetText(ResetGameOverText)
 		}
 		g.Timer.Stop()
 	}
@@ -136,16 +138,29 @@ func (g *MinesweeperGrid) Col() int {
 
 // Start a new game
 func (g *MinesweeperGrid) NewGame() {
+	g.Game = nil
+	g.Reset()
+}
+
+// Replay the current game
+func (g *MinesweeperGrid) Replay() {
+	if g.Game != nil {
+		g.Game.Replay()
+	}
+	g.Reset()
+}
+
+// Reset Grid
+func (g *MinesweeperGrid) Reset() {
 	for x := 0; x < g.Row(); x++ {
 		for y := 0; y < g.Col(); y++ {
 			g.Tiles[x][y].Reset()
 		}
 	}
-	g.Game = nil
 	g.MineCount.SetCount(g.Difficulty.Mines)
 	g.Timer.Reset()
-	g.Reset.SetText(ResetDefaultText)
-	g.Reset.Refresh()
+	g.ResetButton.SetText(ResetDefaultText)
+	g.ResetButton.Refresh()
 }
 
 // Check if the given position is out of bounds.

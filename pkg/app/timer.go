@@ -47,7 +47,7 @@ func (t *Timer) Start() {
 
 // Stop the timer
 func (t *Timer) Stop() {
-	if t.running {
+	if t.Running() {
 		t.stop <- true
 		t.running = false
 	}
@@ -58,6 +58,11 @@ func (t *Timer) Reset() {
 	t.Stop()
 	t.Seconds = 0
 	t.refresh()
+}
+
+// Check if the timer is running
+func (t *Timer) Running() bool {
+	return t.running
 }
 
 // Refresh the timer from it's current values
