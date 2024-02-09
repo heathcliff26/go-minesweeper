@@ -6,6 +6,7 @@ base_dir="$(dirname "${BASH_SOURCE[0]}" | xargs realpath)/.."
 
 os="${1}"
 arches="${2:-$(go env GOARCH)}"
+fyne_cross_image="ghcr.io/heathcliff26/go-fyne-ci:latest"
 
 fyne_cross="$(go env GOPATH)/bin/fyne-cross"
 
@@ -15,7 +16,7 @@ fi
 
 pushd "${base_dir}" >/dev/null
 
-${fyne_cross} "${os}" -arch="${arches}" ./cmd/app/
+${fyne_cross} "${os}" -arch="${arches}" -image="${fyne_cross_image}" ./cmd/app/
 
 IFS=',' read -ra arch_array <<<"${arches}"
 

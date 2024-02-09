@@ -2,7 +2,7 @@ package minesweeper
 
 import (
 	"fmt"
-	"math/rand"
+	"math/rand/v2"
 	"slices"
 )
 
@@ -18,7 +18,7 @@ func NewPos(x, y int) Pos {
 
 // Returns a random position inside the provided limits
 func RandomPos(maxX, maxY int) Pos {
-	return NewPos(rand.Intn(maxX), rand.Intn(maxY))
+	return NewPos(rand.IntN(maxX), rand.IntN(maxY))
 }
 
 // Returns a string representation of the position

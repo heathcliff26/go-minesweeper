@@ -78,16 +78,15 @@ func (a *App) makeMenu() *fyne.MainMenu {
 	difficulties := minesweeper.Difficulties()
 	diffItems := make([]*fyne.MenuItem, 0, len(difficulties)+2)
 	for _, d := range difficulties {
-		diff := d
 		item := fyne.NewMenuItem(d.Name, nil)
 		item.Action = func() {
 			if item.Checked {
 				return
 			}
 			for _, i := range a.difficulties {
-				i.Checked = (i.Label == diff.Name)
+				i.Checked = (i.Label == d.Name)
 			}
-			a.grid = NewMinesweeperGrid(diff)
+			a.grid = NewMinesweeperGrid(d)
 			a.setContent()
 		}
 		item.Checked = (d == DEFAULT_DIFFICULTY)
