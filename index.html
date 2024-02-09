@@ -55,29 +55,31 @@
 			<div id="nav">
 				<select id="files">
 				
-				<option value="file0">github.com/heathcliff26/go-minesweeper/pkg/app/app.go (62.1%)</option>
+				<option value="file0">github.com/heathcliff26/go-minesweeper/cmd/app/main.go (0.0%)</option>
 				
-				<option value="file1">github.com/heathcliff26/go-minesweeper/pkg/app/button.go (100.0%)</option>
+				<option value="file1">github.com/heathcliff26/go-minesweeper/pkg/app/app.go (61.5%)</option>
 				
-				<option value="file2">github.com/heathcliff26/go-minesweeper/pkg/app/counter.go (100.0%)</option>
+				<option value="file2">github.com/heathcliff26/go-minesweeper/pkg/app/button.go (100.0%)</option>
 				
-				<option value="file3">github.com/heathcliff26/go-minesweeper/pkg/app/grid.go (98.4%)</option>
+				<option value="file3">github.com/heathcliff26/go-minesweeper/pkg/app/counter.go (100.0%)</option>
 				
-				<option value="file4">github.com/heathcliff26/go-minesweeper/pkg/app/tile.go (100.0%)</option>
+				<option value="file4">github.com/heathcliff26/go-minesweeper/pkg/app/grid.go (98.4%)</option>
 				
-				<option value="file5">github.com/heathcliff26/go-minesweeper/pkg/app/timer.go (100.0%)</option>
+				<option value="file5">github.com/heathcliff26/go-minesweeper/pkg/app/tile.go (100.0%)</option>
 				
-				<option value="file6">github.com/heathcliff26/go-minesweeper/pkg/app/utils.go (59.5%)</option>
+				<option value="file6">github.com/heathcliff26/go-minesweeper/pkg/app/timer.go (100.0%)</option>
 				
-				<option value="file7">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/difficulty.go (100.0%)</option>
+				<option value="file7">github.com/heathcliff26/go-minesweeper/pkg/app/utils.go (59.5%)</option>
 				
-				<option value="file8">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/errors.go (50.0%)</option>
+				<option value="file8">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/difficulty.go (100.0%)</option>
 				
-				<option value="file9">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/game.go (100.0%)</option>
+				<option value="file9">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/errors.go (50.0%)</option>
 				
-				<option value="file10">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/utils.go (100.0%)</option>
+				<option value="file10">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/game.go (100.0%)</option>
 				
-				<option value="file11">github.com/heathcliff26/go-minesweeper/pkg/utils/utils.go (100.0%)</option>
+				<option value="file11">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/utils.go (100.0%)</option>
+				
+				<option value="file12">github.com/heathcliff26/go-minesweeper/pkg/utils/utils.go (100.0%)</option>
 				
 				</select>
 			</div>
@@ -91,7 +93,17 @@
 		</div>
 		<div id="content">
 		
-		<pre class="file" id="file0" style="display: none">//go:generate fyne bundle --package assets --prefix Resource -o ../../assets/bundle_generated.go ../../img/mine.png
+		<pre class="file" id="file0" style="display: none">package main
+
+import "github.com/heathcliff26/go-minesweeper/pkg/app"
+
+func main() <span class="cov0" title="0">{
+        app := app.New()
+        app.Run()
+}</span>
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">//go:generate fyne bundle --package assets --prefix Resource -o ../../assets/bundle_generated.go ../../img/mine.png
 //go:generate fyne bundle --prefix Resource -o ../../assets/bundle_generated.go -append ../../img/flag.png
 package app
 
@@ -171,16 +183,15 @@ func (a *App) makeMenu() *fyne.MainMenu <span class="cov8" title="1">{
         difficulties := minesweeper.Difficulties()
         diffItems := make([]*fyne.MenuItem, 0, len(difficulties)+2)
         for _, d := range difficulties </span><span class="cov8" title="1">{
-                diff := d
                 item := fyne.NewMenuItem(d.Name, nil)
                 item.Action = func() </span><span class="cov8" title="1">{
                         if item.Checked </span><span class="cov0" title="0">{
                                 return
                         }</span>
                         <span class="cov8" title="1">for _, i := range a.difficulties </span><span class="cov8" title="1">{
-                                i.Checked = (i.Label == diff.Name)
+                                i.Checked = (i.Label == d.Name)
                         }</span>
-                        <span class="cov8" title="1">a.grid = NewMinesweeperGrid(diff)
+                        <span class="cov8" title="1">a.grid = NewMinesweeperGrid(d)
                         a.setContent()</span>
                 }
                 <span class="cov8" title="1">item.Checked = (d == DEFAULT_DIFFICULTY)
@@ -242,7 +253,7 @@ func (a *App) customDifficultyDialog() <span class="cov0" title="0">{
 }
 </pre>
 		
-		<pre class="file" id="file1" style="display: none">package app
+		<pre class="file" id="file2" style="display: none">package app
 
 import (
         "image/color"
@@ -291,7 +302,7 @@ func (b *Button) SetText(text string) <span class="cov8" title="1">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file2" style="display: none">package app
+		<pre class="file" id="file3" style="display: none">package app
 
 import (
         "strconv"
@@ -342,7 +353,7 @@ func (m *Counter) Dec() <span class="cov8" title="1">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file3" style="display: none">package app
+		<pre class="file" id="file4" style="display: none">package app
 
 import (
         "image/color"
@@ -517,7 +528,7 @@ func (g *MinesweeperGrid) OutOfBounds(p minesweeper.Pos) bool <span class="cov8"
 }</span>
 </pre>
 		
-		<pre class="file" id="file4" style="display: none">package app
+		<pre class="file" id="file5" style="display: none">package app
 
 import (
         "image/color"
@@ -705,7 +716,7 @@ func (t *Tile) gameFinished() bool <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file5" style="display: none">package app
+		<pre class="file" id="file6" style="display: none">package app
 
 import (
         "fmt"
@@ -779,7 +790,7 @@ func (t *Timer) refresh() <span class="cov8" title="1">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file6" style="display: none">package app
+		<pre class="file" id="file7" style="display: none">package app
 
 import (
         "image/color"
@@ -871,7 +882,7 @@ func newGridLabel(text string) *canvas.Text <span class="cov8" title="1">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file7" style="display: none">package minesweeper
+		<pre class="file" id="file8" style="display: none">package minesweeper
 
 const (
         DifficultyClassic      = iota
@@ -945,7 +956,7 @@ func NewCustomDifficulty(mines, row, col int) (Difficulty, error) <span class="c
 }
 </pre>
 		
-		<pre class="file" id="file8" style="display: none">package minesweeper
+		<pre class="file" id="file9" style="display: none">package minesweeper
 
 import "fmt"
 
@@ -975,7 +986,7 @@ func (e *ErrDifficultyMineCount) Error() string <span class="cov0" title="0">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file9" style="display: none">package minesweeper
+		<pre class="file" id="file10" style="display: none">package minesweeper
 
 import (
         "log"
@@ -1208,11 +1219,11 @@ func (g *LocalGame) countNearbyMines(p Pos) int <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file10" style="display: none">package minesweeper
+		<pre class="file" id="file11" style="display: none">package minesweeper
 
 import (
         "fmt"
-        "math/rand"
+        "math/rand/v2"
         "slices"
 )
 
@@ -1228,7 +1239,7 @@ func NewPos(x, y int) Pos <span class="cov8" title="1">{
 
 // Returns a random position inside the provided limits
 func RandomPos(maxX, maxY int) Pos <span class="cov8" title="1">{
-        return NewPos(rand.Intn(maxX), rand.Intn(maxY))
+        return NewPos(rand.IntN(maxX), rand.IntN(maxY))
 }</span>
 
 // Returns a string representation of the position
@@ -1253,7 +1264,7 @@ func CreateMines(d Difficulty, p Pos) []Pos <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file11" style="display: none">package utils
+		<pre class="file" id="file12" style="display: none">package utils
 
 // Create a new, empty 2 dimensional array of the given type and dimensions.
 func Make2D[T any](x, y int) [][]T <span class="cov8" title="1">{
