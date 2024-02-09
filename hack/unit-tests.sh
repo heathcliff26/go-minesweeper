@@ -4,4 +4,12 @@ set -e
 
 base_dir="$(dirname "${BASH_SOURCE[0]}" | xargs realpath)/.."
 
-podman run -t -v "${base_dir}":/app:z ghcr.io/heathcliff26/go-fyne-ci:latest go test -v ./...
+if [ ! -d "${HOME}/.cache" ]; then
+    mkdir "${HOME}/.cache"
+fi
+
+podman run -t \
+    -v "${base_dir}":/app:z \
+    -v "${HOME}/.cache":/root/.cache \
+    ghcr.io/heathcliff26/go-fyne-ci:latest \
+    go test -v ./...
