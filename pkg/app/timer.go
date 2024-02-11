@@ -2,7 +2,7 @@ package app
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 	"time"
 
 	"fyne.io/fyne/v2/canvas"
@@ -30,12 +30,12 @@ func (t *Timer) Start() {
 	ticker := time.NewTicker(time.Second)
 	t.running = true
 	go func() {
-		log.Println("Started timer")
+		slog.Debug("Started timer")
 		for {
 			select {
 			case <-t.stop:
 				ticker.Stop()
-				log.Printf("Stopped timer after %d seconds\n", t.Seconds)
+				slog.Info("Stopped timer", slog.Int("seconds", t.Seconds))
 				return
 			case <-ticker.C:
 				t.Seconds++
