@@ -65,21 +65,23 @@
 				
 				<option value="file4">github.com/heathcliff26/go-minesweeper/pkg/app/grid.go (98.4%)</option>
 				
-				<option value="file5">github.com/heathcliff26/go-minesweeper/pkg/app/tile.go (100.0%)</option>
+				<option value="file5">github.com/heathcliff26/go-minesweeper/pkg/app/log.go (100.0%)</option>
 				
-				<option value="file6">github.com/heathcliff26/go-minesweeper/pkg/app/timer.go (100.0%)</option>
+				<option value="file6">github.com/heathcliff26/go-minesweeper/pkg/app/tile.go (100.0%)</option>
 				
-				<option value="file7">github.com/heathcliff26/go-minesweeper/pkg/app/utils.go (59.5%)</option>
+				<option value="file7">github.com/heathcliff26/go-minesweeper/pkg/app/timer.go (100.0%)</option>
 				
-				<option value="file8">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/difficulty.go (100.0%)</option>
+				<option value="file8">github.com/heathcliff26/go-minesweeper/pkg/app/utils.go (59.5%)</option>
 				
-				<option value="file9">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/errors.go (50.0%)</option>
+				<option value="file9">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/difficulty.go (100.0%)</option>
 				
-				<option value="file10">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/game.go (100.0%)</option>
+				<option value="file10">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/errors.go (50.0%)</option>
 				
-				<option value="file11">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/utils.go (100.0%)</option>
+				<option value="file11">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/game.go (100.0%)</option>
 				
-				<option value="file12">github.com/heathcliff26/go-minesweeper/pkg/utils/utils.go (100.0%)</option>
+				<option value="file12">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/utils.go (100.0%)</option>
+				
+				<option value="file13">github.com/heathcliff26/go-minesweeper/pkg/utils/utils.go (100.0%)</option>
 				
 				</select>
 			</div>
@@ -357,7 +359,7 @@ func (m *Counter) Dec() <span class="cov8" title="1">{
 
 import (
         "image/color"
-        "log"
+        "log/slog"
 
         "fyne.io/fyne/v2"
         "fyne.io/fyne/v2/container"
@@ -443,10 +445,10 @@ func (g *MinesweeperGrid) TappedTile(pos minesweeper.Pos) <span class="cov8" tit
                 g.Timer.Start()
         }</span>
 
-        <span class="cov8" title="1">log.Printf("Checking field (%d, %d)\n", pos.X, pos.Y)
+        <span class="cov8" title="1">slog.Debug("Checking field", slog.String("pos", pos.String()))
 
         s := g.Game.CheckField(pos)
-        log.Println("Checked field, updating tiles")
+        slog.Debug("Checked field, updating tiles")
         g.updateFromStatus(s)</span>
 }
 
@@ -459,10 +461,10 @@ func (g *MinesweeperGrid) updateFromStatus(s *minesweeper.Status) <span class="c
         <span class="cov8" title="1">if s.GameOver || s.GameWon </span><span class="cov8" title="1">{
                 switch </span>{
                 case s.GameWon:<span class="cov8" title="1">
-                        log.Println("Win")
+                        slog.Info("Win")
                         g.ResetButton.SetText(ResetGameWonText)</span>
                 case s.GameOver:<span class="cov8" title="1">
-                        log.Println("Game Over")
+                        slog.Info("Game Over")
                         g.ResetButton.SetText(ResetGameOverText)</span>
                 }
                 <span class="cov8" title="1">g.Timer.Stop()</span>
@@ -478,7 +480,7 @@ func (g *MinesweeperGrid) updateFromStatus(s *minesweeper.Status) <span class="c
                         t.UpdateContent()</span>
                 }
         }
-        <span class="cov8" title="1">log.Println("Finished Update")</span>
+        <span class="cov8" title="1">slog.Debug("Finished Update")</span>
 }
 
 // Return the number of rows in the grid
@@ -493,14 +495,14 @@ func (g *MinesweeperGrid) Col() int <span class="cov8" title="1">{
 
 // Start a new game
 func (g *MinesweeperGrid) NewGame() <span class="cov8" title="1">{
-        log.Println("Preparing for new game")
+        slog.Info("Preparing for new game")
         g.Game = nil
         g.Reset()
 }</span>
 
 // Replay the current game
 func (g *MinesweeperGrid) Replay() <span class="cov8" title="1">{
-        log.Println("Preparing for replay of current game")
+        slog.Info("Preparing for replay of current game")
         if g.Game != nil </span><span class="cov8" title="1">{
                 g.Game.Replay()
         }</span>
@@ -518,7 +520,7 @@ func (g *MinesweeperGrid) Reset() <span class="cov8" title="1">{
         g.Timer.Reset()
         g.ResetButton.SetText(ResetDefaultText)
         g.ResetButton.Refresh()
-        log.Println("Reset grid")</span>
+        slog.Debug("Reset grid")</span>
 }
 
 // Check if the given position is out of bounds.
@@ -529,6 +531,24 @@ func (g *MinesweeperGrid) OutOfBounds(p minesweeper.Pos) bool <span class="cov8"
 </pre>
 		
 		<pre class="file" id="file5" style="display: none">package app
+
+import (
+        "log/slog"
+        "os"
+)
+
+const logLevel = slog.LevelError
+
+func init() <span class="cov8" title="1">{
+        opts := slog.HandlerOptions{
+                Level: logLevel,
+        }
+        logger := slog.New(slog.NewTextHandler(os.Stdout, &amp;opts))
+        slog.SetDefault(logger)
+}</span>
+</pre>
+		
+		<pre class="file" id="file6" style="display: none">package app
 
 import (
         "image/color"
@@ -716,11 +736,11 @@ func (t *Tile) gameFinished() bool <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file6" style="display: none">package app
+		<pre class="file" id="file7" style="display: none">package app
 
 import (
         "fmt"
-        "log"
+        "log/slog"
         "time"
 
         "fyne.io/fyne/v2/canvas"
@@ -748,12 +768,12 @@ func (t *Timer) Start() <span class="cov8" title="1">{
         ticker := time.NewTicker(time.Second)
         t.running = true
         go func() </span><span class="cov8" title="1">{
-                log.Println("Started timer")
+                slog.Debug("Started timer")
                 for </span><span class="cov8" title="1">{
                         select </span>{
                         case &lt;-t.stop:<span class="cov8" title="1">
                                 ticker.Stop()
-                                log.Printf("Stopped timer after %d seconds\n", t.Seconds)
+                                slog.Info("Stopped timer", slog.Int("seconds", t.Seconds))
                                 return</span>
                         case &lt;-ticker.C:<span class="cov8" title="1">
                                 t.Seconds++
@@ -790,7 +810,7 @@ func (t *Timer) refresh() <span class="cov8" title="1">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file7" style="display: none">package app
+		<pre class="file" id="file8" style="display: none">package app
 
 import (
         "image/color"
@@ -882,7 +902,7 @@ func newGridLabel(text string) *canvas.Text <span class="cov8" title="1">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file8" style="display: none">package minesweeper
+		<pre class="file" id="file9" style="display: none">package minesweeper
 
 const (
         DifficultyClassic      = iota
@@ -956,7 +976,7 @@ func NewCustomDifficulty(mines, row, col int) (Difficulty, error) <span class="c
 }
 </pre>
 		
-		<pre class="file" id="file9" style="display: none">package minesweeper
+		<pre class="file" id="file10" style="display: none">package minesweeper
 
 import "fmt"
 
@@ -986,10 +1006,10 @@ func (e *ErrDifficultyMineCount) Error() string <span class="cov0" title="0">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file10" style="display: none">package minesweeper
+		<pre class="file" id="file11" style="display: none">package minesweeper
 
 import (
-        "log"
+        "log/slog"
 
         "github.com/heathcliff26/go-minesweeper/pkg/utils"
 )
@@ -1100,7 +1120,7 @@ func (g *LocalGame) CheckField(p Pos) *Status <span class="cov8" title="1">{
 // Recursive function to reveal all neighbouring fields that can be safely reveald.
 // Stops when a field has not exactly zero neighbouring mines
 func (g *LocalGame) RevealField(p Pos) <span class="cov8" title="1">{
-        log.Printf("Reveal tile (%d, %d), content: %d\n", p.X, p.Y, g.Field[p.X][p.Y].Content)
+        slog.Debug("Reveal field", slog.String("pos", p.String()), slog.String("content", g.Field[p.X][p.Y].Content.String()))
 
         g.Field[p.X][p.Y].Checked = true
 
@@ -1108,7 +1128,7 @@ func (g *LocalGame) RevealField(p Pos) <span class="cov8" title="1">{
                 return
         }</span>
 
-        <span class="cov8" title="1">log.Printf("Revealing neigbhours of (%d, %d)\n", p.X, p.Y)
+        <span class="cov8" title="1">slog.Debug("Revealing fields neigbhours", slog.String("pos", p.String()))
 
         for m := -1; m &lt; 2; m++ </span><span class="cov8" title="1">{
                 for n := -1; n &lt; 2; n++ </span><span class="cov8" title="1">{
@@ -1219,12 +1239,13 @@ func (g *LocalGame) countNearbyMines(p Pos) int <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file11" style="display: none">package minesweeper
+		<pre class="file" id="file12" style="display: none">package minesweeper
 
 import (
         "fmt"
         "math/rand/v2"
         "slices"
+        "strconv"
 )
 
 // Represent a position in the minefield
@@ -1262,9 +1283,23 @@ func CreateMines(d Difficulty, p Pos) []Pos <span class="cov8" title="1">{
         }
         <span class="cov8" title="1">return mines[1:]</span>
 }
+
+// Convert FieldContent to string for logging
+func (fc FieldContent) String() string <span class="cov8" title="1">{
+        switch </span>{
+        case fc == Mine:<span class="cov8" title="1">
+                return "Mine"</span>
+        case fc == Unknown:<span class="cov8" title="1">
+                return "Unknown"</span>
+        case fc &gt;= 0 &amp;&amp; fc &lt; 9:<span class="cov8" title="1">
+                return strconv.Itoa(int(fc))</span>
+        default:<span class="cov8" title="1">
+                return fmt.Sprintf("%d is not a valid FieldContent", fc)</span>
+        }
+}
 </pre>
 		
-		<pre class="file" id="file12" style="display: none">package utils
+		<pre class="file" id="file13" style="display: none">package utils
 
 // Create a new, empty 2 dimensional array of the given type and dimensions.
 func Make2D[T any](x, y int) [][]T <span class="cov8" title="1">{
