@@ -1,6 +1,7 @@
 package minesweeper
 
 import (
+	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -31,6 +32,59 @@ func TestCreateMines(t *testing.T) {
 
 			assert.Equal(d.Mines, len(mines))
 			assert.NotContains(mines, p)
+		})
+	}
+}
+
+type tCaseFieldContentString struct {
+	Name, Result string
+	FC           FieldContent
+}
+
+func TestFieldContentString(t *testing.T) {
+	tMatrix := []tCaseFieldContentString{
+		{
+			FC:     Mine,
+			Result: "Mine",
+		},
+		{
+			FC:     Unknown,
+			Result: "Unknown",
+		},
+		{
+			Name: "Invalid1",
+			FC:   9,
+		},
+		{
+			Name: "Invalid2",
+			FC:   -3,
+		},
+	}
+	for i := range 9 {
+		tMatrix = append(
+			tMatrix,
+			tCaseFieldContentString{
+				FC:     FieldContent(i),
+				Result: strconv.Itoa(i),
+			},
+		)
+	}
+
+	for _, tCase := range tMatrix {
+		name := tCase.Name
+		if name == "" {
+			name = tCase.Result
+		}
+
+		t.Run(name, func(t *testing.T) {
+			res := tCase.FC.String()
+
+			assert := assert.New(t)
+			if tCase.Name == "" {
+				assert.Equal(tCase.Result, res)
+			} else {
+				assert.Contains(res, "not a valid FieldContent")
+			}
 		})
 	}
 }

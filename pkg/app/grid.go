@@ -2,7 +2,7 @@ package app
 
 import (
 	"image/color"
-	"log"
+	"log/slog"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
@@ -88,10 +88,10 @@ func (g *MinesweeperGrid) TappedTile(pos minesweeper.Pos) {
 		g.Timer.Start()
 	}
 
-	log.Printf("Checking field (%d, %d)\n", pos.X, pos.Y)
+	slog.Debug("Checking field", slog.String("pos", pos.String()))
 
 	s := g.Game.CheckField(pos)
-	log.Println("Checked field, updating tiles")
+	slog.Debug("Checked field, updating tiles")
 	g.updateFromStatus(s)
 }
 
@@ -104,10 +104,10 @@ func (g *MinesweeperGrid) updateFromStatus(s *minesweeper.Status) {
 	if s.GameOver || s.GameWon {
 		switch {
 		case s.GameWon:
-			log.Println("Win")
+			slog.Info("Win")
 			g.ResetButton.SetText(ResetGameWonText)
 		case s.GameOver:
-			log.Println("Game Over")
+			slog.Info("Game Over")
 			g.ResetButton.SetText(ResetGameOverText)
 		}
 		g.Timer.Stop()
@@ -123,7 +123,7 @@ func (g *MinesweeperGrid) updateFromStatus(s *minesweeper.Status) {
 			t.UpdateContent()
 		}
 	}
-	log.Println("Finished Update")
+	slog.Debug("Finished Update")
 }
 
 // Return the number of rows in the grid
@@ -138,14 +138,14 @@ func (g *MinesweeperGrid) Col() int {
 
 // Start a new game
 func (g *MinesweeperGrid) NewGame() {
-	log.Println("Preparing for new game")
+	slog.Info("Preparing for new game")
 	g.Game = nil
 	g.Reset()
 }
 
 // Replay the current game
 func (g *MinesweeperGrid) Replay() {
-	log.Println("Preparing for replay of current game")
+	slog.Info("Preparing for replay of current game")
 	if g.Game != nil {
 		g.Game.Replay()
 	}
@@ -163,7 +163,7 @@ func (g *MinesweeperGrid) Reset() {
 	g.Timer.Reset()
 	g.ResetButton.SetText(ResetDefaultText)
 	g.ResetButton.Refresh()
-	log.Println("Reset grid")
+	slog.Debug("Reset grid")
 }
 
 // Check if the given position is out of bounds.

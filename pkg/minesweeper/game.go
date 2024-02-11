@@ -1,7 +1,7 @@
 package minesweeper
 
 import (
-	"log"
+	"log/slog"
 
 	"github.com/heathcliff26/go-minesweeper/pkg/utils"
 )
@@ -112,7 +112,7 @@ func (g *LocalGame) CheckField(p Pos) *Status {
 // Recursive function to reveal all neighbouring fields that can be safely reveald.
 // Stops when a field has not exactly zero neighbouring mines
 func (g *LocalGame) RevealField(p Pos) {
-	log.Printf("Reveal tile (%d, %d), content: %d\n", p.X, p.Y, g.Field[p.X][p.Y].Content)
+	slog.Debug("Reveal field", slog.String("pos", p.String()), slog.String("content", g.Field[p.X][p.Y].Content.String()))
 
 	g.Field[p.X][p.Y].Checked = true
 
@@ -120,7 +120,7 @@ func (g *LocalGame) RevealField(p Pos) {
 		return
 	}
 
-	log.Printf("Revealing neigbhours of (%d, %d)\n", p.X, p.Y)
+	slog.Debug("Revealing fields neigbhours", slog.String("pos", p.String()))
 
 	for m := -1; m < 2; m++ {
 		for n := -1; n < 2; n++ {
