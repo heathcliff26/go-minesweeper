@@ -52,6 +52,8 @@ type Game interface {
 	Replay()
 	// Check if the game is a replay
 	IsReplay() bool
+	// Generate a save from the game
+	ToSave() (*Save, error)
 }
 
 type LocalGame struct {
@@ -65,27 +67,26 @@ type LocalGame struct {
 	replay bool
 }
 
-// Create a new game with mines seeded randomly in the map, with the exception of the given position.
-func NewGameWithSafePos(d Difficulty, p Pos) *LocalGame {
-	g := &LocalGame{
+// Utility function to create empty game
+func blankGame(d Difficulty) *LocalGame {
+	return &LocalGame{
 		Field:      utils.Make2D[Field](d.Row, d.Col),
 		Difficulty: d,
 		GameOver:   false,
 		GameWon:    false,
 	}
+}
+
+// Create a new game with mines seeded randomly in the map, with the exception of the given position.
+func NewGameWithSafePos(d Difficulty, p Pos) *LocalGame {
+	g := blankGame(d)
 
 	mines := CreateMines(d, p)
 	for _, mine := range mines {
 		g.Field[mine.X][mine.Y].Content = Mine
 	}
 
-	g.walkField(func(x, y int) {
-		if g.Field[x][y].Content == Mine {
-			return
-		}
-
-		g.Field[x][y].Content = FieldContent(g.countNearbyMines(NewPos(x, y)))
-	})
+	g.calculateFieldContent()
 
 	return g
 }
@@ -204,6 +205,12 @@ func (g *LocalGame) IsReplay() bool {
 	return g.replay
 }
 
+// Generate a save from the game
+func (g *LocalGame) ToSave() (*Save, error) {
+	g.replay = true
+	return NewSave(g)
+}
+
 // Walk through all fields of the game and call the given function
 func (g *LocalGame) walkField(f func(x, y int)) {
 	d := g.Difficulty
@@ -228,4 +235,27 @@ func (g *LocalGame) countNearbyMines(p Pos) int {
 		}
 	}
 	return c
+}
+
+// Get a list of all mines in the game
+func (g *LocalGame) getMines() []Pos {
+	mines := make([]Pos, 0, g.Difficulty.Mines)
+
+	g.walkField(func(x, y int) {
+		if g.Field[x][y].Content == Mine {
+			mines = append(mines, NewPos(x, y))
+		}
+	})
+	return mines
+}
+
+// Calculate all fields with the count of neighbouring mines
+func (g *LocalGame) calculateFieldContent() {
+	g.walkField(func(x, y int) {
+		if g.Field[x][y].Content == Mine {
+			return
+		}
+
+		g.Field[x][y].Content = FieldContent(g.countNearbyMines(NewPos(x, y)))
+	})
 }

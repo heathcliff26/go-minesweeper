@@ -4,6 +4,7 @@ package app
 
 import (
 	"image/color"
+	"os"
 
 	"fyne.io/fyne/v2"
 	fApp "fyne.io/fyne/v2/app"
@@ -11,6 +12,7 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/data/binding"
 	"fyne.io/fyne/v2/dialog"
+	"fyne.io/fyne/v2/storage"
 	"fyne.io/fyne/v2/widget"
 	"github.com/heathcliff26/go-minesweeper/pkg/minesweeper"
 )
@@ -72,7 +74,9 @@ func (a *App) makeMenu() *fyne.MainMenu {
 	replayOption := fyne.NewMenuItem("Replay", func() {
 		a.grid.Replay()
 	})
-	a.gameMenu = []*fyne.MenuItem{newGameOption, replayOption}
+	loadOption := fyne.NewMenuItem("Load", a.loadSave)
+	saveOption := fyne.NewMenuItem("Save", a.saveGame)
+	a.gameMenu = []*fyne.MenuItem{newGameOption, replayOption, fyne.NewMenuItemSeparator(), loadOption, saveOption}
 	gameMenu := fyne.NewMenu("Game", a.gameMenu...)
 
 	difficulties := minesweeper.Difficulties()
@@ -145,4 +149,81 @@ func (a *App) customDifficultyDialog() {
 		a.setContent()
 	}, a.main)
 	diffDialog.Show()
+}
+
+func (a *App) loadSave() {
+	d := dialog.NewFileOpen(func(uri fyne.URIReadCloser, err error) {
+		if err != nil {
+			dialog.ShowError(err, a.main)
+			return
+		}
+		if uri == nil {
+			return
+		}
+
+		save, err := minesweeper.LoadSave(uri.URI().Path())
+		if err != nil {
+			dialog.ShowError(err, a.main)
+			return
+		}
+
+		for _, i := range a.difficulties {
+			i.Checked = (i.Label == save.Data.Difficulty.Name)
+		}
+		a.grid = NewMinesweeperGrid(save.Data.Difficulty)
+		a.setContent()
+
+		a.grid.Game = save.Game()
+	}, a.main)
+	d.SetFilter(storage.NewExtensionFileFilter([]string{minesweeper.SaveFileExtension}))
+
+	if !setDialogLocationToPWD(d, a.main) {
+		return
+	}
+
+	d.Show()
+}
+
+func (a *App) saveGame() {
+	if a.grid.Game == nil {
+		d := dialog.NewInformation("Can't save game", "You need to first start a game before you can save it.", a.main)
+		d.Show()
+		return
+	}
+	d := dialog.NewFileSave(func(uri fyne.URIWriteCloser, err error) {
+		if err != nil {
+			dialog.ShowError(err, a.main)
+			return
+		}
+		if uri == nil {
+			return
+		}
+		path := uri.URI().Path()
+		_ = uri.Close()
+
+		err = os.Remove(path)
+		if err != nil {
+			dialog.ShowError(err, a.main)
+			return
+		}
+
+		save, err := a.grid.Game.ToSave()
+		if err != nil {
+			dialog.ShowError(err, a.main)
+			return
+		}
+
+		err = save.Save(uri.URI().Path())
+		if err != nil {
+			dialog.ShowError(err, a.main)
+			return
+		}
+	}, a.main)
+	d.SetFilter(storage.NewExtensionFileFilter([]string{minesweeper.SaveFileExtension}))
+
+	if !setDialogLocationToPWD(d, a.main) {
+		return
+	}
+
+	d.Show()
 }
