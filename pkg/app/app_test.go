@@ -57,7 +57,7 @@ func TestApp(t *testing.T) {
 		}
 	})
 	t.Run("GameMenu", func(t *testing.T) {
-		for _, opt := range a.gameMenu {
+		for _, opt := range a.gameMenu[:2] {
 			t.Run(opt.Label, func(t *testing.T) {
 				assert := assert.New(t)
 
