@@ -57,7 +57,7 @@
 				
 				<option value="file0">github.com/heathcliff26/go-minesweeper/cmd/app/main.go (0.0%)</option>
 				
-				<option value="file1">github.com/heathcliff26/go-minesweeper/pkg/app/app.go (61.5%)</option>
+				<option value="file1">github.com/heathcliff26/go-minesweeper/pkg/app/app.go (36.8%)</option>
 				
 				<option value="file2">github.com/heathcliff26/go-minesweeper/pkg/app/button.go (100.0%)</option>
 				
@@ -71,7 +71,7 @@
 				
 				<option value="file7">github.com/heathcliff26/go-minesweeper/pkg/app/timer.go (100.0%)</option>
 				
-				<option value="file8">github.com/heathcliff26/go-minesweeper/pkg/app/utils.go (59.5%)</option>
+				<option value="file8">github.com/heathcliff26/go-minesweeper/pkg/app/utils.go (43.1%)</option>
 				
 				<option value="file9">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/difficulty.go (100.0%)</option>
 				
@@ -79,9 +79,11 @@
 				
 				<option value="file11">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/game.go (100.0%)</option>
 				
-				<option value="file12">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/utils.go (100.0%)</option>
+				<option value="file12">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/save.go (84.6%)</option>
 				
-				<option value="file13">github.com/heathcliff26/go-minesweeper/pkg/utils/utils.go (100.0%)</option>
+				<option value="file13">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/utils.go (100.0%)</option>
+				
+				<option value="file14">github.com/heathcliff26/go-minesweeper/pkg/utils/utils.go (100.0%)</option>
 				
 				</select>
 			</div>
@@ -111,6 +113,7 @@ package app
 
 import (
         "image/color"
+        "os"
 
         "fyne.io/fyne/v2"
         fApp "fyne.io/fyne/v2/app"
@@ -118,6 +121,7 @@ import (
         "fyne.io/fyne/v2/container"
         "fyne.io/fyne/v2/data/binding"
         "fyne.io/fyne/v2/dialog"
+        "fyne.io/fyne/v2/storage"
         "fyne.io/fyne/v2/widget"
         "github.com/heathcliff26/go-minesweeper/pkg/minesweeper"
 )
@@ -179,7 +183,9 @@ func (a *App) makeMenu() *fyne.MainMenu <span class="cov8" title="1">{
         <span class="cov8" title="1">replayOption := fyne.NewMenuItem("Replay", func() </span><span class="cov8" title="1">{
                 a.grid.Replay()
         }</span>)
-        <span class="cov8" title="1">a.gameMenu = []*fyne.MenuItem{newGameOption, replayOption}
+        <span class="cov8" title="1">loadOption := fyne.NewMenuItem("Load", a.loadSave)
+        saveOption := fyne.NewMenuItem("Save", a.saveGame)
+        a.gameMenu = []*fyne.MenuItem{newGameOption, replayOption, fyne.NewMenuItemSeparator(), loadOption, saveOption}
         gameMenu := fyne.NewMenu("Game", a.gameMenu...)
 
         difficulties := minesweeper.Difficulties()
@@ -252,6 +258,83 @@ func (a *App) customDifficultyDialog() <span class="cov0" title="0">{
                 a.setContent()</span>
         }, a.main)
         <span class="cov0" title="0">diffDialog.Show()</span>
+}
+
+func (a *App) loadSave() <span class="cov0" title="0">{
+        d := dialog.NewFileOpen(func(uri fyne.URIReadCloser, err error) </span><span class="cov0" title="0">{
+                if err != nil </span><span class="cov0" title="0">{
+                        dialog.ShowError(err, a.main)
+                        return
+                }</span>
+                <span class="cov0" title="0">if uri == nil </span><span class="cov0" title="0">{
+                        return
+                }</span>
+
+                <span class="cov0" title="0">save, err := minesweeper.LoadSave(uri.URI().Path())
+                if err != nil </span><span class="cov0" title="0">{
+                        dialog.ShowError(err, a.main)
+                        return
+                }</span>
+
+                <span class="cov0" title="0">for _, i := range a.difficulties </span><span class="cov0" title="0">{
+                        i.Checked = (i.Label == save.Data.Difficulty.Name)
+                }</span>
+                <span class="cov0" title="0">a.grid = NewMinesweeperGrid(save.Data.Difficulty)
+                a.setContent()
+
+                a.grid.Game = save.Game()</span>
+        }, a.main)
+        <span class="cov0" title="0">d.SetFilter(storage.NewExtensionFileFilter([]string{minesweeper.SaveFileExtension}))
+
+        if !setDialogLocationToPWD(d, a.main) </span><span class="cov0" title="0">{
+                return
+        }</span>
+
+        <span class="cov0" title="0">d.Show()</span>
+}
+
+func (a *App) saveGame() <span class="cov0" title="0">{
+        if a.grid.Game == nil </span><span class="cov0" title="0">{
+                d := dialog.NewInformation("Can't save game", "You need to first start a game before you can save it.", a.main)
+                d.Show()
+                return
+        }</span>
+        <span class="cov0" title="0">d := dialog.NewFileSave(func(uri fyne.URIWriteCloser, err error) </span><span class="cov0" title="0">{
+                if err != nil </span><span class="cov0" title="0">{
+                        dialog.ShowError(err, a.main)
+                        return
+                }</span>
+                <span class="cov0" title="0">if uri == nil </span><span class="cov0" title="0">{
+                        return
+                }</span>
+                <span class="cov0" title="0">path := uri.URI().Path()
+                _ = uri.Close()
+
+                err = os.Remove(path)
+                if err != nil </span><span class="cov0" title="0">{
+                        dialog.ShowError(err, a.main)
+                        return
+                }</span>
+
+                <span class="cov0" title="0">save, err := a.grid.Game.ToSave()
+                if err != nil </span><span class="cov0" title="0">{
+                        dialog.ShowError(err, a.main)
+                        return
+                }</span>
+
+                <span class="cov0" title="0">err = save.Save(uri.URI().Path())
+                if err != nil </span><span class="cov0" title="0">{
+                        dialog.ShowError(err, a.main)
+                        return
+                }</span>
+        }, a.main)
+        <span class="cov0" title="0">d.SetFilter(storage.NewExtensionFileFilter([]string{minesweeper.SaveFileExtension}))
+
+        if !setDialogLocationToPWD(d, a.main) </span><span class="cov0" title="0">{
+                return
+        }</span>
+
+        <span class="cov0" title="0">d.Show()</span>
 }
 </pre>
 		
@@ -823,6 +906,8 @@ import (
         "fyne.io/fyne/v2"
         "fyne.io/fyne/v2/canvas"
         "fyne.io/fyne/v2/container"
+        "fyne.io/fyne/v2/dialog"
+        "fyne.io/fyne/v2/storage"
 )
 
 // Struct for containing the current version of the app
@@ -900,6 +985,30 @@ func newGridLabel(text string) *canvas.Text <span class="cov8" title="1">{
         label.TextStyle.Bold = true
         return label
 }</span>
+
+// Set a file dialogs location to the current directory.
+// Return indicates if the operation was successfull.
+// Shows error dialog on failure.
+func setDialogLocationToPWD(d *dialog.FileDialog, window fyne.Window) bool <span class="cov0" title="0">{
+        dir, err := os.Getwd()
+        if err != nil </span><span class="cov0" title="0">{
+                dialog.ShowError(err, window)
+                return false
+        }</span>
+        <span class="cov0" title="0">uri, err := storage.ParseURI("file://" + dir)
+        if err != nil </span><span class="cov0" title="0">{
+                dialog.ShowError(err, window)
+                return false
+        }</span>
+        <span class="cov0" title="0">listURI, err := storage.ListerForURI(uri)
+        if err != nil </span><span class="cov0" title="0">{
+                dialog.ShowError(err, window)
+                return false
+        }</span>
+        <span class="cov0" title="0">d.SetLocation(listURI)
+
+        return true</span>
+}
 </pre>
 		
 		<pre class="file" id="file9" style="display: none">package minesweeper
@@ -1060,6 +1169,8 @@ type Game interface {
         Replay()
         // Check if the game is a replay
         IsReplay() bool
+        // Generate a save from the game
+        ToSave() (*Save, error)
 }
 
 type LocalGame struct {
@@ -1073,29 +1184,28 @@ type LocalGame struct {
         replay bool
 }
 
-// Create a new game with mines seeded randomly in the map, with the exception of the given position.
-func NewGameWithSafePos(d Difficulty, p Pos) *LocalGame <span class="cov8" title="1">{
-        g := &amp;LocalGame{
+// Utility function to create empty game
+func blankGame(d Difficulty) *LocalGame <span class="cov8" title="1">{
+        return &amp;LocalGame{
                 Field:      utils.Make2D[Field](d.Row, d.Col),
                 Difficulty: d,
                 GameOver:   false,
                 GameWon:    false,
         }
+}</span>
+
+// Create a new game with mines seeded randomly in the map, with the exception of the given position.
+func NewGameWithSafePos(d Difficulty, p Pos) *LocalGame <span class="cov8" title="1">{
+        g := blankGame(d)
 
         mines := CreateMines(d, p)
         for _, mine := range mines </span><span class="cov8" title="1">{
                 g.Field[mine.X][mine.Y].Content = Mine
         }</span>
 
-        <span class="cov8" title="1">g.walkField(func(x, y int) </span><span class="cov8" title="1">{
-                if g.Field[x][y].Content == Mine </span><span class="cov8" title="1">{
-                        return
-                }</span>
+        <span class="cov8" title="1">g.calculateFieldContent()
 
-                <span class="cov8" title="1">g.Field[x][y].Content = FieldContent(g.countNearbyMines(NewPos(x, y)))</span>
-        })
-
-        <span class="cov8" title="1">return g</span>
+        return g</span>
 }
 
 // Check a given field and recursevly reveal all neighboring fields that should be revield.
@@ -1212,6 +1322,12 @@ func (g *LocalGame) IsReplay() bool <span class="cov8" title="1">{
         return g.replay
 }</span>
 
+// Generate a save from the game
+func (g *LocalGame) ToSave() (*Save, error) <span class="cov8" title="1">{
+        g.replay = true
+        return NewSave(g)
+}</span>
+
 // Walk through all fields of the game and call the given function
 func (g *LocalGame) walkField(f func(x, y int)) <span class="cov8" title="1">{
         d := g.Difficulty
@@ -1237,9 +1353,123 @@ func (g *LocalGame) countNearbyMines(p Pos) int <span class="cov8" title="1">{
         }
         <span class="cov8" title="1">return c</span>
 }
+
+// Get a list of all mines in the game
+func (g *LocalGame) getMines() []Pos <span class="cov8" title="1">{
+        mines := make([]Pos, 0, g.Difficulty.Mines)
+
+        g.walkField(func(x, y int) </span><span class="cov8" title="1">{
+                if g.Field[x][y].Content == Mine </span><span class="cov8" title="1">{
+                        mines = append(mines, NewPos(x, y))
+                }</span>
+        })
+        <span class="cov8" title="1">return mines</span>
+}
+
+// Calculate all fields with the count of neighbouring mines
+func (g *LocalGame) calculateFieldContent() <span class="cov8" title="1">{
+        g.walkField(func(x, y int) </span><span class="cov8" title="1">{
+                if g.Field[x][y].Content == Mine </span><span class="cov8" title="1">{
+                        return
+                }</span>
+
+                <span class="cov8" title="1">g.Field[x][y].Content = FieldContent(g.countNearbyMines(NewPos(x, y)))</span>
+        })
+}
 </pre>
 		
 		<pre class="file" id="file12" style="display: none">package minesweeper
+
+import (
+        "crypto/sha512"
+        "encoding/hex"
+        "encoding/json"
+        "os"
+        "path/filepath"
+)
+
+const SaveFileExtension = ".sav"
+
+type Save struct {
+        // ID is the hash generated from the Data
+        ID string `json:"id"`
+        // Data contains everything necessary to create a game
+        Data saveData `json:"data"`
+}
+
+type saveData struct {
+        Mines      []Pos      `json:"mines"`
+        Difficulty Difficulty `json:"difficulty"`
+}
+
+// Create a new save from the given game
+func NewSave(game *LocalGame) (*Save, error) <span class="cov8" title="1">{
+        data := saveData{
+                Mines:      game.getMines(),
+                Difficulty: game.Difficulty,
+        }
+
+        buf, err := json.Marshal(data)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">hash := sha512.Sum512(buf)
+
+        return &amp;Save{
+                ID:   hex.EncodeToString(hash[:]),
+                Data: data,
+        }, nil</span>
+}
+
+// Load a save file from the given path
+func LoadSave(path string) (*Save, error) <span class="cov8" title="1">{
+        buf, err := os.ReadFile(path)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">var save Save
+        err = json.Unmarshal(buf, &amp;save)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return &amp;save, nil</span>
+}
+
+// Write save file to the given path.
+// Needs to have the correct extension.
+func (s *Save) Save(path string) error <span class="cov8" title="1">{
+        if filepath.Ext(path) != SaveFileExtension </span><span class="cov8" title="1">{
+                path += SaveFileExtension
+        }</span>
+
+        <span class="cov8" title="1">data, err := json.MarshalIndent(s, "", "    ")
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">return os.WriteFile(path, data, 0644)</span>
+}
+
+// Creates a LocalGame from the save.
+// The game will be considered a replay
+func (s *Save) Game() *LocalGame <span class="cov8" title="1">{
+        g := blankGame(s.Data.Difficulty)
+
+        for _, p := range s.Data.Mines </span><span class="cov8" title="1">{
+                g.Field[p.X][p.Y].Content = Mine
+        }</span>
+
+        <span class="cov8" title="1">g.calculateFieldContent()
+
+        g.replay = true
+
+        return g</span>
+}
+</pre>
+		
+		<pre class="file" id="file13" style="display: none">package minesweeper
 
 import (
         "fmt"
@@ -1299,7 +1529,7 @@ func (fc FieldContent) String() string <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file13" style="display: none">package utils
+		<pre class="file" id="file14" style="display: none">package utils
 
 // Create a new, empty 2 dimensional array of the given type and dimensions.
 func Make2D[T any](x, y int) [][]T <span class="cov8" title="1">{
