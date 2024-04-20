@@ -747,21 +747,33 @@ func (t *Tile) DoubleTapped(_ *fyne.PointEvent) <span class="cov8" title="1">{
                 return
         }</span>
 
-        <span class="cov8" title="1">var status *minesweeper.Status
+        <span class="cov8" title="1">flags := minesweeper.FieldContent(0)
+        posToCheck := make([]minesweeper.Pos, 0, 8)
         for m := -1; m &lt; 2; m++ </span><span class="cov8" title="1">{
                 for n := -1; n &lt; 2; n++ </span><span class="cov8" title="1">{
                         p := t.Pos
                         p.X += m
                         p.Y += n
                         if !t.grid.OutOfBounds(p) </span><span class="cov8" title="1">{
-                                if t.grid.Tiles[p.X][p.Y].untappable() || t.grid.Tiles[p.X][p.Y].Flagged </span><span class="cov8" title="1">{
+                                if t.grid.Tiles[p.X][p.Y].Flagged </span><span class="cov8" title="1">{
+                                        flags++
                                         continue</span>
                                 }
-                                <span class="cov8" title="1">status = t.grid.Game.CheckField(p)</span>
+                                <span class="cov8" title="1">if t.grid.Tiles[p.X][p.Y].untappable() </span><span class="cov8" title="1">{
+                                        continue</span>
+                                }
+                                <span class="cov8" title="1">posToCheck = append(posToCheck, p)</span>
                         }
                 }
         }
-        <span class="cov8" title="1">t.grid.updateFromStatus(status)</span>
+
+        <span class="cov8" title="1">if flags == t.Field.Content </span><span class="cov8" title="1">{
+                var status *minesweeper.Status
+                for _, p := range posToCheck </span><span class="cov8" title="1">{
+                        status = t.grid.Game.CheckField(p)
+                }</span>
+                <span class="cov8" title="1">t.grid.updateFromStatus(status)</span>
+        }
 }
 
 // Update the tile render depending on the current state of it's backing Field
