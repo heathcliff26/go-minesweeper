@@ -114,21 +114,33 @@ func (t *Tile) DoubleTapped(_ *fyne.PointEvent) {
 		return
 	}
 
-	var status *minesweeper.Status
+	flags := minesweeper.FieldContent(0)
+	posToCheck := make([]minesweeper.Pos, 0, 8)
 	for m := -1; m < 2; m++ {
 		for n := -1; n < 2; n++ {
 			p := t.Pos
 			p.X += m
 			p.Y += n
 			if !t.grid.OutOfBounds(p) {
-				if t.grid.Tiles[p.X][p.Y].untappable() || t.grid.Tiles[p.X][p.Y].Flagged {
+				if t.grid.Tiles[p.X][p.Y].Flagged {
+					flags++
 					continue
 				}
-				status = t.grid.Game.CheckField(p)
+				if t.grid.Tiles[p.X][p.Y].untappable() {
+					continue
+				}
+				posToCheck = append(posToCheck, p)
 			}
 		}
 	}
-	t.grid.updateFromStatus(status)
+
+	if flags == t.Field.Content {
+		var status *minesweeper.Status
+		for _, p := range posToCheck {
+			status = t.grid.Game.CheckField(p)
+		}
+		t.grid.updateFromStatus(status)
+	}
 }
 
 // Update the tile render depending on the current state of it's backing Field
