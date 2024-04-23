@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"strconv"
 
 	"fyne.io/fyne/v2/canvas"
@@ -29,9 +30,9 @@ func (m *Counter) SetCount(c int) {
 // Redraw the counter from the current count
 func (m *Counter) refresh() {
 	if m.Count < 0 {
-		m.Label.Text = "0"
+		m.Label.Text = "00"
 	} else {
-		m.Label.Text = strconv.Itoa(m.Count)
+		m.Label.Text = fmt.Sprintf("%02d", m.Count)
 	}
 	m.Label.Refresh()
 }

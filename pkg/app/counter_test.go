@@ -49,7 +49,7 @@ func TestCounter(t *testing.T) {
 
 		assert := assert.New(t)
 
-		assert.Equal("0", c.Label.Text, "Should not display negative numbers")
+		assert.Equal("00", c.Label.Text, "Should not display negative numbers")
 		assert.Equal(-1, c.Count)
 	})
 }
