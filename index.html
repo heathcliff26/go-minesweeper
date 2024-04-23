@@ -390,6 +390,7 @@ func (b *Button) SetText(text string) <span class="cov8" title="1">{
 		<pre class="file" id="file3" style="display: none">package app
 
 import (
+        "fmt"
         "strconv"
 
         "fyne.io/fyne/v2/canvas"
@@ -418,9 +419,9 @@ func (m *Counter) SetCount(c int) <span class="cov8" title="1">{
 // Redraw the counter from the current count
 func (m *Counter) refresh() <span class="cov8" title="1">{
         if m.Count &lt; 0 </span><span class="cov8" title="1">{
-                m.Label.Text = "0"
+                m.Label.Text = "00"
         }</span> else<span class="cov8" title="1"> {
-                m.Label.Text = strconv.Itoa(m.Count)
+                m.Label.Text = fmt.Sprintf("%02d", m.Count)
         }</span>
         <span class="cov8" title="1">m.Label.Refresh()</span>
 }
