@@ -82,7 +82,7 @@ func (g *MinesweeperGrid) GetCanvasObject() fyne.CanvasObject {
 // Starts a new game when no game is currently running.
 func (g *MinesweeperGrid) TappedTile(pos minesweeper.Pos) {
 	if g.Game == nil {
-		g.Game = minesweeper.NewGameWithSafePos(g.Difficulty, pos)
+		g.Game = minesweeper.NewGameWithSafeArea(g.Difficulty, pos)
 	}
 	if !g.Timer.Running() {
 		g.Timer.Start()

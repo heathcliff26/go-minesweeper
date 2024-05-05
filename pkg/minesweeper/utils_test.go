@@ -26,7 +26,7 @@ func TestCreateMines(t *testing.T) {
 	for _, d := range tMatrix {
 		t.Run(d.Name, func(t *testing.T) {
 			p := RandomPos(d.Row, d.Col)
-			mines := CreateMines(d, p)
+			mines := CreateMines(d, []Pos{p})
 
 			assert := assert.New(t)
 
