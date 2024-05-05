@@ -28,11 +28,12 @@ func (p Pos) String() string {
 }
 
 // Randomly create mines for the given difficulty.
-// Does not create a mine on the given position.
-func CreateMines(d Difficulty, p Pos) []Pos {
-	mines := make([]Pos, 0, d.Mines+1)
+// Does not create a mine on the given positions.
+func CreateMines(d Difficulty, safe []Pos) []Pos {
+	var p Pos
+	mines := make([]Pos, 0, d.Mines+len(safe))
 
-	mines = append(mines, p)
+	mines = append(mines, safe...)
 	for i := 0; i < d.Mines; i++ {
 		p = RandomPos(d.Row, d.Col)
 		for slices.Contains(mines, p) {
@@ -40,7 +41,7 @@ func CreateMines(d Difficulty, p Pos) []Pos {
 		}
 		mines = append(mines, p)
 	}
-	return mines[1:]
+	return mines[len(safe):]
 }
 
 // Convert FieldContent to string for logging
@@ -55,4 +56,9 @@ func (fc FieldContent) String() string {
 	default:
 		return fmt.Sprintf("%d is not a valid FieldContent", fc)
 	}
+}
+
+// Check if a position is out of bounds on the given difficulty
+func OutOfBounds(p Pos, d Difficulty) bool {
+	return p.X < 0 || p.X > d.Row-1 || p.Y < 0 || p.Y > d.Col-1
 }

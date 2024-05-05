@@ -77,11 +77,10 @@ func blankGame(d Difficulty) *LocalGame {
 	}
 }
 
-// Create a new game with mines seeded randomly in the map, with the exception of the given position.
-func NewGameWithSafePos(d Difficulty, p Pos) *LocalGame {
+// Create a new game with the mines in the given positions
+func newGame(d Difficulty, mines []Pos) *LocalGame {
 	g := blankGame(d)
 
-	mines := CreateMines(d, p)
 	for _, mine := range mines {
 		g.Field[mine.X][mine.Y].Content = Mine
 	}
@@ -89,6 +88,29 @@ func NewGameWithSafePos(d Difficulty, p Pos) *LocalGame {
 	g.calculateFieldContent()
 
 	return g
+}
+
+// Create a new game with mines seeded randomly in the map, with the exception of the given position.
+func NewGameWithSafePos(d Difficulty, p Pos) *LocalGame {
+	mines := CreateMines(d, []Pos{p})
+
+	return newGame(d, mines)
+}
+
+// Create a new game with mines seeded randomly in the map, with the exception of a 3x3 area around the given position.
+func NewGameWithSafeArea(d Difficulty, p Pos) *LocalGame {
+	area := make([]Pos, 0, 9)
+	for x := -1; x < 2; x++ {
+		for y := -1; y < 2; y++ {
+			p := NewPos(p.X+x, p.Y+y)
+			if !OutOfBounds(p, d) {
+				area = append(area, p)
+			}
+		}
+	}
+	mines := CreateMines(d, area)
+
+	return newGame(d, mines)
 }
 
 // Check a given field and recursevly reveal all neighboring fields that should be revield.
@@ -141,8 +163,7 @@ func (g *LocalGame) RevealField(p Pos) {
 
 // Check if the given position is out of bounds
 func (g *LocalGame) OutOfBounds(p Pos) bool {
-	d := g.Difficulty
-	return p.X < 0 || p.X > d.Row-1 || p.Y < 0 || p.Y > d.Col-1
+	return OutOfBounds(p, g.Difficulty)
 }
 
 // Returns the current status of the game. Only contains the knowledge a player should have.

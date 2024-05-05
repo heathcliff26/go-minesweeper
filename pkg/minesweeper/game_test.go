@@ -43,6 +43,46 @@ func TestNewGameWithSafePos(t *testing.T) {
 	}
 }
 
+func TestNewGameWithSafeArea(t *testing.T) {
+	tMatrix := Difficulties()
+	tMatrix = append(tMatrix, Difficulty{
+		Name:  "InvertedExpert",
+		Row:   30,
+		Col:   16,
+		Mines: 99,
+	})
+	p := NewPos(1, 1)
+
+	for _, d := range tMatrix {
+		t.Run(d.Name, func(t *testing.T) {
+			g := NewGameWithSafeArea(d, p)
+
+			assert := assert.New(t)
+
+			assert.Equal(d.Row, len(g.Field), "Should have the given number of rows")
+			assert.Equal(d.Col, len(g.Field[0]), "Should have the given number of columns")
+			assert.Equal(d, g.Difficulty, "Should have the given difficulty")
+			assert.False(g.GameOver, "Should not be Game Over")
+			assert.False(g.GameWon, "Game should not be won")
+			for x := -1; x < 2; x++ {
+				for y := -1; y < 2; y++ {
+					assert.NotEqualf(Mine, g.Field[p.X+x][p.Y+y].Content, "Safe area should not be a mine, pos=(%d, %d)", p.X+x, p.Y+y)
+				}
+			}
+
+			mines := 0
+			g.walkField(func(x, y int) {
+				if g.Field[x][y].Content == Mine {
+					mines++
+				} else {
+					assert.Equalf(g.countNearbyMines(NewPos(x, y)), int(g.Field[x][y].Content), "(%d, %d) should have the given number of neighboring mines", x, y)
+				}
+			})
+			assert.Equal(d.Mines, mines, "Should have the given number of mines")
+		})
+	}
+}
+
 func TestCheckField(t *testing.T) {
 	minefield := [][]FieldContent{
 		{Mine, 2, Mine, 1, 0, 0, 0, 0},
