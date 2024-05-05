@@ -63,11 +63,11 @@
 				
 				<option value="file3">github.com/heathcliff26/go-minesweeper/pkg/app/counter.go (100.0%)</option>
 				
-				<option value="file4">github.com/heathcliff26/go-minesweeper/pkg/app/grid.go (98.4%)</option>
+				<option value="file4">github.com/heathcliff26/go-minesweeper/pkg/app/grid.go (100.0%)</option>
 				
 				<option value="file5">github.com/heathcliff26/go-minesweeper/pkg/app/log.go (100.0%)</option>
 				
-				<option value="file6">github.com/heathcliff26/go-minesweeper/pkg/app/tile.go (100.0%)</option>
+				<option value="file6">github.com/heathcliff26/go-minesweeper/pkg/app/tile.go (97.4%)</option>
 				
 				<option value="file7">github.com/heathcliff26/go-minesweeper/pkg/app/timer.go (100.0%)</option>
 				
@@ -523,7 +523,7 @@ func (g *MinesweeperGrid) GetCanvasObject() fyne.CanvasObject <span class="cov8"
 // Starts a new game when no game is currently running.
 func (g *MinesweeperGrid) TappedTile(pos minesweeper.Pos) <span class="cov8" title="1">{
         if g.Game == nil </span><span class="cov8" title="1">{
-                g.Game = minesweeper.NewGameWithSafePos(g.Difficulty, pos)
+                g.Game = minesweeper.NewGameWithSafeArea(g.Difficulty, pos)
         }</span>
         <span class="cov8" title="1">if !g.Timer.Running() </span><span class="cov8" title="1">{
                 g.Timer.Start()
@@ -538,7 +538,7 @@ func (g *MinesweeperGrid) TappedTile(pos minesweeper.Pos) <span class="cov8" tit
 
 // Update the grid from the given status
 func (g *MinesweeperGrid) updateFromStatus(s *minesweeper.Status) <span class="cov8" title="1">{
-        if s == nil </span><span class="cov0" title="0">{
+        if s == nil </span><span class="cov8" title="1">{
                 return
         }</span>
 
@@ -763,14 +763,14 @@ func (t *Tile) DoubleTapped(_ *fyne.PointEvent) <span class="cov8" title="1">{
                                 <span class="cov8" title="1">if t.grid.Tiles[p.X][p.Y].untappable() </span><span class="cov8" title="1">{
                                         continue</span>
                                 }
-                                <span class="cov8" title="1">posToCheck = append(posToCheck, p)</span>
+                                <span class="cov0" title="0">posToCheck = append(posToCheck, p)</span>
                         }
                 }
         }
 
         <span class="cov8" title="1">if flags == t.Field.Content </span><span class="cov8" title="1">{
                 var status *minesweeper.Status
-                for _, p := range posToCheck </span><span class="cov8" title="1">{
+                for _, p := range posToCheck </span><span class="cov0" title="0">{
                         status = t.grid.Game.CheckField(p)
                 }</span>
                 <span class="cov8" title="1">t.grid.updateFromStatus(status)</span>
@@ -1207,11 +1207,10 @@ func blankGame(d Difficulty) *LocalGame <span class="cov8" title="1">{
         }
 }</span>
 
-// Create a new game with mines seeded randomly in the map, with the exception of the given position.
-func NewGameWithSafePos(d Difficulty, p Pos) *LocalGame <span class="cov8" title="1">{
+// Create a new game with the mines in the given positions
+func newGame(d Difficulty, mines []Pos) *LocalGame <span class="cov8" title="1">{
         g := blankGame(d)
 
-        mines := CreateMines(d, p)
         for _, mine := range mines </span><span class="cov8" title="1">{
                 g.Field[mine.X][mine.Y].Content = Mine
         }</span>
@@ -1219,6 +1218,29 @@ func NewGameWithSafePos(d Difficulty, p Pos) *LocalGame <span class="cov8" title
         <span class="cov8" title="1">g.calculateFieldContent()
 
         return g</span>
+}
+
+// Create a new game with mines seeded randomly in the map, with the exception of the given position.
+func NewGameWithSafePos(d Difficulty, p Pos) *LocalGame <span class="cov8" title="1">{
+        mines := CreateMines(d, []Pos{p})
+
+        return newGame(d, mines)
+}</span>
+
+// Create a new game with mines seeded randomly in the map, with the exception of a 3x3 area around the given position.
+func NewGameWithSafeArea(d Difficulty, p Pos) *LocalGame <span class="cov8" title="1">{
+        area := make([]Pos, 0, 9)
+        for x := -1; x &lt; 2; x++ </span><span class="cov8" title="1">{
+                for y := -1; y &lt; 2; y++ </span><span class="cov8" title="1">{
+                        p := NewPos(p.X+x, p.Y+y)
+                        if !OutOfBounds(p, d) </span><span class="cov8" title="1">{
+                                area = append(area, p)
+                        }</span>
+                }
+        }
+        <span class="cov8" title="1">mines := CreateMines(d, area)
+
+        return newGame(d, mines)</span>
 }
 
 // Check a given field and recursevly reveal all neighboring fields that should be revield.
@@ -1271,8 +1293,7 @@ func (g *LocalGame) RevealField(p Pos) <span class="cov8" title="1">{
 
 // Check if the given position is out of bounds
 func (g *LocalGame) OutOfBounds(p Pos) bool <span class="cov8" title="1">{
-        d := g.Difficulty
-        return p.X &lt; 0 || p.X &gt; d.Row-1 || p.Y &lt; 0 || p.Y &gt; d.Col-1
+        return OutOfBounds(p, g.Difficulty)
 }</span>
 
 // Returns the current status of the game. Only contains the knowledge a player should have.
@@ -1512,11 +1533,12 @@ func (p Pos) String() string <span class="cov8" title="1">{
 }</span>
 
 // Randomly create mines for the given difficulty.
-// Does not create a mine on the given position.
-func CreateMines(d Difficulty, p Pos) []Pos <span class="cov8" title="1">{
-        mines := make([]Pos, 0, d.Mines+1)
+// Does not create a mine on the given positions.
+func CreateMines(d Difficulty, safe []Pos) []Pos <span class="cov8" title="1">{
+        var p Pos
+        mines := make([]Pos, 0, d.Mines+len(safe))
 
-        mines = append(mines, p)
+        mines = append(mines, safe...)
         for i := 0; i &lt; d.Mines; i++ </span><span class="cov8" title="1">{
                 p = RandomPos(d.Row, d.Col)
                 for slices.Contains(mines, p) </span><span class="cov8" title="1">{
@@ -1524,7 +1546,7 @@ func CreateMines(d Difficulty, p Pos) []Pos <span class="cov8" title="1">{
                 }</span>
                 <span class="cov8" title="1">mines = append(mines, p)</span>
         }
-        <span class="cov8" title="1">return mines[1:]</span>
+        <span class="cov8" title="1">return mines[len(safe):]</span>
 }
 
 // Convert FieldContent to string for logging
@@ -1540,6 +1562,11 @@ func (fc FieldContent) String() string <span class="cov8" title="1">{
                 return fmt.Sprintf("%d is not a valid FieldContent", fc)</span>
         }
 }
+
+// Check if a position is out of bounds on the given difficulty
+func OutOfBounds(p Pos, d Difficulty) bool <span class="cov8" title="1">{
+        return p.X &lt; 0 || p.X &gt; d.Row-1 || p.Y &lt; 0 || p.Y &gt; d.Col-1
+}</span>
 </pre>
 		
 		<pre class="file" id="file14" style="display: none">package utils
