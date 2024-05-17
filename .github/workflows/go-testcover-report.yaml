@@ -21,7 +21,7 @@ jobs:
           private-key: "${{ secrets.BOT_APP_PRIVATE_KEY }}"
 
       - name: Checkout main branch
-        uses: actions/checkout@44c2b7a8a4ea60a981eaca3cf939b5f4305c123b # v4.1.5
+        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
         with:
           token: "${{ steps.app-token.outputs.token }}"
           ref: "main"
@@ -37,7 +37,7 @@ jobs:
           ${GITHUB_WORKSPACE}/main/hack/coverprofile.sh
 
       - name: Checkout gh-pages
-        uses: actions/checkout@44c2b7a8a4ea60a981eaca3cf939b5f4305c123b # v4.1.5
+        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
         with:
           token: "${{ steps.app-token.outputs.token }}"
           ref: "gh-pages"
