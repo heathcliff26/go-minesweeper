@@ -31,6 +31,7 @@ type App struct {
 	grid         *MinesweeperGrid
 	difficulties []*fyne.MenuItem
 	gameMenu     []*fyne.MenuItem
+	assistedMode *fyne.MenuItem
 }
 
 // Create a new App
@@ -43,12 +44,11 @@ func New() *App {
 		app:     app,
 		main:    main,
 		Version: version,
-		grid:    NewMinesweeperGrid(DEFAULT_DIFFICULTY),
+		grid:    NewMinesweeperGrid(DEFAULT_DIFFICULTY, false),
 	}
 
 	a.main.SetTitle(version.Name)
 	a.makeMenu()
-	a.main.SetMainMenu(a.makeMenu())
 
 	a.setContent()
 
@@ -64,7 +64,7 @@ func (a *App) Run() {
 }
 
 // Create the main menu bar
-func (a *App) makeMenu() *fyne.MainMenu {
+func (a *App) makeMenu() {
 	// Can't assign grid functions directly, as the instance of grid may change
 	newGameOption := fyne.NewMenuItem("New", func() {
 		a.grid.NewGame()
@@ -88,7 +88,7 @@ func (a *App) makeMenu() *fyne.MainMenu {
 			for _, i := range a.difficulties {
 				i.Checked = (i.Label == d.Name)
 			}
-			a.grid = NewMinesweeperGrid(d)
+			a.grid = NewMinesweeperGrid(d, a.assistedMode.Checked)
 			a.setContent()
 		}
 		item.Checked = (d == DEFAULT_DIFFICULTY)
@@ -99,13 +99,24 @@ func (a *App) makeMenu() *fyne.MainMenu {
 	a.difficulties = diffItems
 	diffMenu := fyne.NewMenu("Difficulties", diffItems...)
 
+	a.assistedMode = fyne.NewMenuItem("      Assisted Mode", func() {
+		a.assistedMode.Checked = !a.assistedMode.Checked
+		if a.grid != nil {
+			a.grid.AssistedMode = a.assistedMode.Checked
+		}
+		if a.grid != nil && a.grid.AssistedMode && a.grid.Game != nil {
+			a.grid.updateFromStatus(a.grid.Game.Status())
+		}
+	})
+	optionsMenu := fyne.NewMenu("Options", a.assistedMode)
+
 	about := fyne.NewMenuItem("About", func() {
 		vInfo := dialog.NewCustom(a.Version.Name, "close", getVersionContent(a.Version), a.main)
 		vInfo.Show()
 	})
 	helpMenu := fyne.NewMenu("Help", about)
 
-	return fyne.NewMainMenu(gameMenu, diffMenu, helpMenu)
+	a.main.SetMainMenu(fyne.NewMainMenu(gameMenu, diffMenu, optionsMenu, helpMenu))
 }
 
 // Update the content of the app and resize the window to make it fit
@@ -143,7 +154,7 @@ func (a *App) customDifficultyDialog() {
 		for _, i := range a.difficulties {
 			i.Checked = (i.Label == "Custom")
 		}
-		a.grid = NewMinesweeperGrid(d)
+		a.grid = NewMinesweeperGrid(d, a.assistedMode.Checked)
 		a.setContent()
 	}, a.main)
 	diffDialog.Show()
@@ -168,7 +179,7 @@ func (a *App) loadSave() {
 		for _, i := range a.difficulties {
 			i.Checked = (i.Label == save.Data.Difficulty.Name)
 		}
-		a.grid = NewMinesweeperGrid(save.Data.Difficulty)
+		a.grid = NewMinesweeperGrid(save.Data.Difficulty, a.assistedMode.Checked)
 		a.setContent()
 
 		a.grid.Game = save.Game()

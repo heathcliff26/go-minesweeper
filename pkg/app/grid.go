@@ -26,9 +26,10 @@ const (
 
 // Graphical display for a minesweeper game
 type MinesweeperGrid struct {
-	Tiles      [][]*Tile
-	Difficulty minesweeper.Difficulty
-	Game       minesweeper.Game
+	Tiles        [][]*Tile
+	Difficulty   minesweeper.Difficulty
+	Game         minesweeper.Game
+	AssistedMode bool
 
 	Timer       *Timer
 	MineCount   *Counter
@@ -36,13 +37,14 @@ type MinesweeperGrid struct {
 }
 
 // Create a new grid suitable for the give difficulty
-func NewMinesweeperGrid(d minesweeper.Difficulty) *MinesweeperGrid {
+func NewMinesweeperGrid(d minesweeper.Difficulty, assistedMode bool) *MinesweeperGrid {
 	tiles := utils.Make2D[*Tile](d.Row, d.Col)
 	grid := &MinesweeperGrid{
-		Tiles:      tiles,
-		Difficulty: d,
-		Timer:      NewTimer(),
-		MineCount:  NewCounter(d.Mines),
+		Tiles:        tiles,
+		Difficulty:   d,
+		AssistedMode: assistedMode,
+		Timer:        NewTimer(),
+		MineCount:    NewCounter(d.Mines),
 	}
 	grid.ResetButton = NewButton(ResetDefaultText, color.RGBA{}, grid.NewGame)
 	grid.ResetButton.Label.TextSize = ResetTextSize
@@ -111,6 +113,18 @@ func (g *MinesweeperGrid) updateFromStatus(s *minesweeper.Status) {
 			g.ResetButton.SetText(ResetGameOverText)
 		}
 		g.Timer.Stop()
+	} else if g.AssistedMode {
+		slog.Debug("Creating Markers for Assisted Mode")
+		for _, p := range s.ObviousMines() {
+			t := g.Tiles[p.X][p.Y]
+			t.Marker = HelpMarkingMine
+			t.UpdateContent()
+		}
+		for _, p := range s.ObviousSafePos() {
+			t := g.Tiles[p.X][p.Y]
+			t.Marker = HelpMarkingSafe
+			t.UpdateContent()
+		}
 	}
 
 	for x := 0; x < g.Row(); x++ {

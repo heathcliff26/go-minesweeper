@@ -1,6 +1,8 @@
 package app
 
 import (
+	"encoding/json"
+	"os"
 	"testing"
 
 	"github.com/heathcliff26/go-minesweeper/pkg/minesweeper"
@@ -8,7 +10,7 @@ import (
 )
 
 func TestNewGrid(t *testing.T) {
-	g := NewMinesweeperGrid(DEFAULT_DIFFICULTY)
+	g := NewMinesweeperGrid(DEFAULT_DIFFICULTY, false)
 
 	assert := assert.New(t)
 
@@ -22,7 +24,7 @@ func TestNewGrid(t *testing.T) {
 }
 
 func TestTappedTile(t *testing.T) {
-	g := NewMinesweeperGrid(DEFAULT_DIFFICULTY)
+	g := NewMinesweeperGrid(DEFAULT_DIFFICULTY, false)
 	for _, row := range g.Tiles {
 		for _, tile := range row {
 			tile.CreateRenderer()
@@ -52,7 +54,7 @@ func TestTappedTile(t *testing.T) {
 }
 
 func TestNewGame(t *testing.T) {
-	g := NewMinesweeperGrid(DEFAULT_DIFFICULTY)
+	g := NewMinesweeperGrid(DEFAULT_DIFFICULTY, false)
 	for _, row := range g.Tiles {
 		for _, tile := range row {
 			tile.CreateRenderer()
@@ -77,7 +79,7 @@ func TestNewGame(t *testing.T) {
 }
 
 func TestReplay(t *testing.T) {
-	g := NewMinesweeperGrid(DEFAULT_DIFFICULTY)
+	g := NewMinesweeperGrid(DEFAULT_DIFFICULTY, false)
 	for _, row := range g.Tiles {
 		for _, tile := range row {
 			tile.CreateRenderer()
@@ -103,7 +105,63 @@ func TestReplay(t *testing.T) {
 }
 
 func TestUpdateFromStatus(t *testing.T) {
-	g := NewMinesweeperGrid(DEFAULT_DIFFICULTY)
+	g := NewMinesweeperGrid(DEFAULT_DIFFICULTY, false)
 	// Should not panic
 	g.updateFromStatus(nil)
+}
+
+func TestAssistedMode(t *testing.T) {
+	assert := assert.New(t)
+
+	save, err := minesweeper.LoadSave("../minesweeper/testdata/assisted_mode_1.sav")
+	if !assert.Nil(err, "Should load savegame") {
+		t.FailNow()
+	}
+	g := NewMinesweeperGrid(save.Data.Difficulty, true)
+	for _, row := range g.Tiles {
+		for _, tile := range row {
+			tile.CreateRenderer()
+		}
+	}
+	g.Game = save.Game()
+
+	buf, err := os.ReadFile("../minesweeper/testdata/assisted_mode_1.json")
+	if !assert.Nil(err, "Should load test config") {
+		t.FailNow()
+	}
+
+	var testConfig struct {
+		StartPos minesweeper.Pos
+		Mines    []minesweeper.Pos
+		SafePos  []minesweeper.Pos
+	}
+	err = json.Unmarshal(buf, &testConfig)
+	if !assert.Nil(err, "Should parse test config") {
+		t.FailNow()
+	}
+
+	g.TappedTile(testConfig.StartPos)
+
+	mines := 0
+	safePos := 0
+	for x := 0; x < g.Row(); x++ {
+		for y := 0; y < g.Col(); y++ {
+			p := minesweeper.NewPos(x, y)
+			switch g.Tiles[p.X][p.Y].Marker {
+			case HelpMarkingNone:
+				assert.NotContains(testConfig.Mines, p, "Should have been marked as a mines")
+				assert.NotContains(testConfig.SafePos, p, "Should have been marked as safe")
+			case HelpMarkingMine:
+				mines++
+				assert.Contains(testConfig.Mines, p, "Should not have been marked as a mine")
+			case HelpMarkingSafe:
+				safePos++
+				assert.Contains(testConfig.SafePos, p, "Should not have been marked as safe")
+			default:
+				assert.Fail("Found unknown Marker %d at %s", g.Tiles[x][y].Marker, p.String())
+			}
+		}
+	}
+	assert.Equal(len(testConfig.Mines), mines, "Should have the same amount of mines as in the config")
+	assert.Equal(len(testConfig.SafePos), safePos, "Should have the same amount of safe positions as in the config")
 }
