@@ -99,3 +99,9 @@ func TestReplay(t *testing.T) {
 	assert.False(g.Timer.running)
 	assert.Equal(ResetDefaultText, g.ResetButton.Label.Text)
 }
+
+func TestUpdateFromStatus(t *testing.T) {
+	g := NewMinesweeperGrid(DEFAULT_DIFFICULTY)
+	// Should not panic
+	g.updateFromStatus(nil)
+}
