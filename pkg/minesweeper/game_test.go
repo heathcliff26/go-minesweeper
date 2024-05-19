@@ -308,22 +308,24 @@ func TestStatus(t *testing.T) {
 			g.GameOver = tCase.Loss
 			g.GameWon = tCase.Win
 
-			s := g.Status()
+			g.UpdateStatus()
 
 			assert := assert.New(t)
 
 			g.walkField(func(x, y int) {
 				if tCase.Loss || tCase.Win {
-					if !assert.Equal(g.Field[x][y], s.Field[x][y], "Fields should match") {
+					if !assert.Equal(g.Field[x][y], g.status.Field[x][y], "Fields should match") {
 						t.FailNow()
 					}
 					return
 				}
 
-				if !assert.Equal(Unknown, s.Field[x][y].Content, "Field should be unknown") {
+				if !assert.Equal(Unknown, g.status.Field[x][y].Content, "Field should be unknown") {
 					t.FailNow()
 				}
 			})
+
+			assert.Same(g.status, g.Status())
 		})
 	}
 }
@@ -341,13 +343,13 @@ func TestDetectVictory(t *testing.T) {
 		g.Field[x][y].Checked = g.Field[x][y].Content != Mine
 	})
 
-	s := g.Status()
+	g.UpdateStatus()
 
 	assert.True(g.GameWon)
-	assert.True(s.GameWon)
+	assert.True(g.status.GameWon)
 
 	assert.False(g.GameOver)
-	assert.False(s.GameOver)
+	assert.False(g.status.GameOver)
 }
 
 func TestReplay(t *testing.T) {

@@ -21,17 +21,6 @@ type Field struct {
 	Content FieldContent
 }
 
-// Status contains the current state of the game known to the player.
-// As such it will always be a copy and needs to be it's own type, despite the
-// overlapping similarities.
-// It does not support any of the functions that Game does.
-// It is safe to write to Status, as it is merely a copy.
-type Status struct {
-	Field    [][]Field
-	GameOver bool
-	GameWon  bool
-}
-
 // Interface for playing the game
 type Game interface {
 	// Check a given field and recursevly reveal all neighboring fields that should be revield.
@@ -63,6 +52,9 @@ type LocalGame struct {
 	// Keep these 2 exported for testing in other packages
 	GameOver bool
 	GameWon  bool
+
+	// Cache the last status
+	status *Status
 
 	replay bool
 }
@@ -124,11 +116,13 @@ func (g *LocalGame) CheckField(p Pos) *Status {
 
 	if g.Field[p.X][p.Y].Content == Mine {
 		g.GameOver = true
+		g.UpdateStatus()
 		return g.Status()
 	}
 
 	g.RevealField(p)
 
+	g.UpdateStatus()
 	return g.Status()
 }
 
@@ -168,6 +162,11 @@ func (g *LocalGame) OutOfBounds(p Pos) bool {
 
 // Returns the current status of the game. Only contains the knowledge a player should have.
 func (g *LocalGame) Status() *Status {
+	return g.status
+}
+
+// Create a new instance of status
+func (g *LocalGame) UpdateStatus() {
 	d := g.Difficulty
 	s := &Status{
 		Field:    utils.Make2D[Field](d.Row, d.Col),
@@ -197,7 +196,7 @@ func (g *LocalGame) Status() *Status {
 		}
 	}
 
-	return s
+	g.status = s
 }
 
 // Check if Game Over
