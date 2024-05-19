@@ -63,11 +63,11 @@
 				
 				<option value="file3">github.com/heathcliff26/go-minesweeper/pkg/app/counter.go (100.0%)</option>
 				
-				<option value="file4">github.com/heathcliff26/go-minesweeper/pkg/app/grid.go (100.0%)</option>
+				<option value="file4">github.com/heathcliff26/go-minesweeper/pkg/app/grid.go (98.4%)</option>
 				
 				<option value="file5">github.com/heathcliff26/go-minesweeper/pkg/app/log.go (100.0%)</option>
 				
-				<option value="file6">github.com/heathcliff26/go-minesweeper/pkg/app/tile.go (97.4%)</option>
+				<option value="file6">github.com/heathcliff26/go-minesweeper/pkg/app/tile.go (100.0%)</option>
 				
 				<option value="file7">github.com/heathcliff26/go-minesweeper/pkg/app/timer.go (100.0%)</option>
 				
@@ -107,9 +107,7 @@ func main() <span class="cov0" title="0">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file1" style="display: none">//go:generate fyne bundle --package assets --prefix Resource -o ../../assets/bundle_generated.go ../../img/mine.png
-//go:generate fyne bundle --prefix Resource -o ../../assets/bundle_generated.go -append ../../img/flag.png
-package app
+		<pre class="file" id="file1" style="display: none">package app
 
 import (
         "image/color"
@@ -538,7 +536,7 @@ func (g *MinesweeperGrid) TappedTile(pos minesweeper.Pos) <span class="cov8" tit
 
 // Update the grid from the given status
 func (g *MinesweeperGrid) updateFromStatus(s *minesweeper.Status) <span class="cov8" title="1">{
-        if s == nil </span><span class="cov8" title="1">{
+        if s == nil </span><span class="cov0" title="0">{
                 return
         }</span>
 
@@ -632,7 +630,10 @@ func init() <span class="cov8" title="1">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file6" style="display: none">package app
+		<pre class="file" id="file6" style="display: none">//go:generate fyne bundle --package assets --prefix Resource -o ../../assets/bundle_generated.go ../../img/mine.png
+//go:generate fyne bundle --prefix Resource -o ../../assets/bundle_generated.go -append ../../img/flag.png
+//go:generate fyne bundle --prefix Resource -o ../../assets/bundle_generated.go -append ../../img/flag-success.png
+package app
 
 import (
         "image/color"
@@ -763,14 +764,14 @@ func (t *Tile) DoubleTapped(_ *fyne.PointEvent) <span class="cov8" title="1">{
                                 <span class="cov8" title="1">if t.grid.Tiles[p.X][p.Y].untappable() </span><span class="cov8" title="1">{
                                         continue</span>
                                 }
-                                <span class="cov0" title="0">posToCheck = append(posToCheck, p)</span>
+                                <span class="cov8" title="1">posToCheck = append(posToCheck, p)</span>
                         }
                 }
         }
 
         <span class="cov8" title="1">if flags == t.Field.Content </span><span class="cov8" title="1">{
                 var status *minesweeper.Status
-                for _, p := range posToCheck </span><span class="cov0" title="0">{
+                for _, p := range posToCheck </span><span class="cov8" title="1">{
                         status = t.grid.Game.CheckField(p)
                 }</span>
                 <span class="cov8" title="1">t.grid.updateFromStatus(status)</span>
@@ -781,33 +782,31 @@ func (t *Tile) DoubleTapped(_ *fyne.PointEvent) <span class="cov8" title="1">{
 func (t *Tile) UpdateContent() <span class="cov8" title="1">{
         t.icon.Hidden = true
         t.label.Hidden = true
+        t.background.FillColor = TileDefaultColor
         defer t.Refresh()
-        if t.Flagged &amp;&amp; !t.Field.Checked </span><span class="cov8" title="1">{
-                t.icon.SetResource(assets.ResourceFlagPng)
-                t.icon.Hidden = false
-                return
-        }</span>
-        <span class="cov8" title="1">if t.Field.Checked </span><span class="cov8" title="1">{
-                t.background.FillColor = TileBackgroundColor
-        }</span> else<span class="cov8" title="1"> {
-                t.background.FillColor = TileDefaultColor
-        }</span>
-        <span class="cov8" title="1">if t.Field.Content == minesweeper.Unknown </span><span class="cov8" title="1">{
-                return
-        }</span>
 
-        <span class="cov8" title="1">if t.Field.Content == minesweeper.Mine </span><span class="cov8" title="1">{
+        switch </span>{
+        case t.Flagged &amp;&amp; !t.Field.Checked:<span class="cov8" title="1">
+                if t.Field.Content == minesweeper.Mine </span><span class="cov8" title="1">{
+                        t.icon.SetResource(assets.ResourceFlagSuccessPng)
+                }</span> else<span class="cov8" title="1"> {
+                        t.icon.SetResource(assets.ResourceFlagPng)
+                }</span>
+                <span class="cov8" title="1">t.icon.Hidden = false</span>
+        case t.Field.Content == minesweeper.Mine:<span class="cov8" title="1">
                 t.icon.SetResource(assets.ResourceMinePng)
                 t.icon.Hidden = false
                 if t.Field.Checked </span><span class="cov8" title="1">{
                         t.background.FillColor = TileExplodedColor
                 }</span>
-        }
-        <span class="cov8" title="1">if t.Field.Checked &amp;&amp; t.Field.Content &gt; 0 &amp;&amp; t.Field.Content &lt; 9 </span><span class="cov8" title="1">{
+        case t.Field.Checked &amp;&amp; t.Field.Content &gt; 0 &amp;&amp; t.Field.Content &lt; 9:<span class="cov8" title="1">
                 t.label.Text = strconv.Itoa(int(t.Field.Content))
                 t.label.Color = TileTextColor[t.Field.Content]
                 t.label.Hidden = false
-        }</span>
+                t.background.FillColor = TileBackgroundColor</span>
+        case t.Field.Checked:<span class="cov8" title="1">
+                t.background.FillColor = TileBackgroundColor</span>
+        }
 }
 
 // Reset tile to default state, used for starting new game
