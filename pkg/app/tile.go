@@ -1,3 +1,6 @@
+//go:generate fyne bundle --package assets --prefix Resource -o ../../assets/bundle_generated.go ../../img/mine.png
+//go:generate fyne bundle --prefix Resource -o ../../assets/bundle_generated.go -append ../../img/flag.png
+//go:generate fyne bundle --prefix Resource -o ../../assets/bundle_generated.go -append ../../img/flag-success.png
 package app
 
 import (
@@ -147,32 +150,30 @@ func (t *Tile) DoubleTapped(_ *fyne.PointEvent) {
 func (t *Tile) UpdateContent() {
 	t.icon.Hidden = true
 	t.label.Hidden = true
+	t.background.FillColor = TileDefaultColor
 	defer t.Refresh()
-	if t.Flagged && !t.Field.Checked {
-		t.icon.SetResource(assets.ResourceFlagPng)
-		t.icon.Hidden = false
-		return
-	}
-	if t.Field.Checked {
-		t.background.FillColor = TileBackgroundColor
-	} else {
-		t.background.FillColor = TileDefaultColor
-	}
-	if t.Field.Content == minesweeper.Unknown {
-		return
-	}
 
-	if t.Field.Content == minesweeper.Mine {
+	switch {
+	case t.Flagged && !t.Field.Checked:
+		if t.Field.Content == minesweeper.Mine {
+			t.icon.SetResource(assets.ResourceFlagSuccessPng)
+		} else {
+			t.icon.SetResource(assets.ResourceFlagPng)
+		}
+		t.icon.Hidden = false
+	case t.Field.Content == minesweeper.Mine:
 		t.icon.SetResource(assets.ResourceMinePng)
 		t.icon.Hidden = false
 		if t.Field.Checked {
 			t.background.FillColor = TileExplodedColor
 		}
-	}
-	if t.Field.Checked && t.Field.Content > 0 && t.Field.Content < 9 {
+	case t.Field.Checked && t.Field.Content > 0 && t.Field.Content < 9:
 		t.label.Text = strconv.Itoa(int(t.Field.Content))
 		t.label.Color = TileTextColor[t.Field.Content]
 		t.label.Hidden = false
+		t.background.FillColor = TileBackgroundColor
+	case t.Field.Checked:
+		t.background.FillColor = TileBackgroundColor
 	}
 }
 
