@@ -40,11 +40,13 @@ func TestTappedTile(t *testing.T) {
 	game := g.Game.(*minesweeper.LocalGame)
 
 	game.GameWon = true
+	game.UpdateStatus()
 	g.TappedTile(p)
 	assert.Equal(ResetGameWonText, g.ResetButton.Label.Text)
 	game.GameWon = false
 
 	game.GameOver = true
+	game.UpdateStatus()
 	g.TappedTile(p)
 	assert.Equal(ResetGameOverText, g.ResetButton.Label.Text)
 }
