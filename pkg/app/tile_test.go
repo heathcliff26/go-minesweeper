@@ -244,6 +244,22 @@ func TestTileUpdateContent(t *testing.T) {
 
 		assert.False(tile.icon.Hidden)
 		assert.Equal(assets.ResourceFlagPng, tile.icon.Resource)
+		assert.Equal(TileDefaultColor, tile.background.FillColor)
+	})
+	t.Run("FlaggedSuccess", func(t *testing.T) {
+		tile.Flagged = true
+		tile.Field.Content = minesweeper.Mine
+		t.Cleanup(func() {
+			tile.Flagged = false
+			tile.Field.Content = minesweeper.Unknown
+		})
+		tile.UpdateContent()
+
+		assert := assert.New(t)
+
+		assert.False(tile.icon.Hidden)
+		assert.Equal(assets.ResourceFlagSuccessPng, tile.icon.Resource)
+		assert.Equal(TileDefaultColor, tile.background.FillColor)
 	})
 	t.Run("Mine", func(t *testing.T) {
 		tile.Field.Content = minesweeper.Mine
@@ -271,6 +287,7 @@ func TestTileUpdateContent(t *testing.T) {
 	t.Run("Numbers", func(t *testing.T) {
 		t.Cleanup(func() {
 			tile.Field.Content = minesweeper.Unknown
+			tile.Field.Checked = false
 		})
 
 		assert := assert.New(t)

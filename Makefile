@@ -25,6 +25,9 @@ assets:
 dependencies:
 	hack/update-deps.sh
 
+generate:
+	go generate ./...
+
 .PHONY: \
 	default \
 	build \
@@ -33,4 +36,5 @@ dependencies:
 	coverprofile \
 	assets \
 	dependencies \
+	generate \
 	$(NULL)
