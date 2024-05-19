@@ -62,3 +62,12 @@ func (fc FieldContent) String() string {
 func OutOfBounds(p Pos, d Difficulty) bool {
 	return p.X < 0 || p.X > d.Row-1 || p.Y < 0 || p.Y > d.Col-1
 }
+
+// Walk through all fields in the given dimension and call the given function
+func walkField(f func(x, y int), limitX, limitY int) {
+	for x := 0; x < limitX; x++ {
+		for y := 0; y < limitY; y++ {
+			f(x, y)
+		}
+	}
+}

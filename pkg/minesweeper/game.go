@@ -233,12 +233,7 @@ func (g *LocalGame) ToSave() (*Save, error) {
 
 // Walk through all fields of the game and call the given function
 func (g *LocalGame) walkField(f func(x, y int)) {
-	d := g.Difficulty
-	for x := 0; x < d.Row; x++ {
-		for y := 0; y < d.Col; y++ {
-			f(x, y)
-		}
-	}
+	walkField(f, g.Difficulty.Row, g.Difficulty.Col)
 }
 
 // Count the the number of mines in the neighboring fields

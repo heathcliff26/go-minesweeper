@@ -69,7 +69,7 @@ func TestApp(t *testing.T) {
 				opt.Action()
 				assert.False(a.grid.Timer.Running(), "Game should not be running")
 
-				a.grid = NewMinesweeperGrid(DEFAULT_DIFFICULTY)
+				a.grid = NewMinesweeperGrid(DEFAULT_DIFFICULTY, a.assistedMode.Checked)
 				a.setContent()
 				a.grid.TappedTile(minesweeper.NewPos(0, 0))
 				if !assert.True(a.grid.Timer.Running(), "Assert that a game is running") {
@@ -80,5 +80,22 @@ func TestApp(t *testing.T) {
 				assert.False(a.grid.Timer.Running(), "Game should not be running")
 			})
 		}
+	})
+	t.Run("AssistedMode", func(t *testing.T) {
+		a.grid = NewMinesweeperGrid(DEFAULT_DIFFICULTY, a.assistedMode.Checked)
+		a.setContent()
+
+		assert := assert.New(t)
+
+		assert.False(a.assistedMode.Checked)
+		assert.Equal(a.assistedMode.Checked, a.grid.AssistedMode)
+
+		a.assistedMode.Action()
+		assert.True(a.assistedMode.Checked)
+		assert.Equal(a.assistedMode.Checked, a.grid.AssistedMode)
+
+		a.assistedMode.Action()
+		assert.False(a.assistedMode.Checked)
+		assert.Equal(a.assistedMode.Checked, a.grid.AssistedMode)
 	})
 }

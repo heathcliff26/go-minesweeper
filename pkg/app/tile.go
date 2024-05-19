@@ -26,6 +26,23 @@ var (
 
 const alpha = ^uint8(0)
 
+type HelpMarking int
+
+const (
+	HelpMarkingNone HelpMarking = iota
+	HelpMarkingMine
+	HelpMarkingSafe
+)
+
+var (
+	HelperMarkerSymbols = []string{"", "!", "?"}
+	HelperMarkerColors  = []color.Color{
+		color.White,
+		color.RGBA{180, 15, 15, alpha}, // Mine, red
+		color.RGBA{15, 180, 15, alpha}, // Safe, green
+	}
+)
+
 var TileTextColor = []color.Color{
 	color.White,
 	color.RGBA{20, 15, 220, alpha},  // 1, blue
@@ -50,6 +67,7 @@ type Tile struct {
 	Field   *minesweeper.Field
 	grid    *MinesweeperGrid
 	Flagged bool
+	Marker  HelpMarking
 }
 
 // Create a new Tile with a reference to it's parent grid, as well as knowledge of it's own position in the Grid
@@ -161,6 +179,10 @@ func (t *Tile) UpdateContent() {
 			t.icon.SetResource(assets.ResourceFlagPng)
 		}
 		t.icon.Hidden = false
+	case t.Marker != HelpMarkingNone && !t.Flagged && !t.Field.Checked && t.Field.Content == minesweeper.Unknown:
+		t.label.Text = HelperMarkerSymbols[t.Marker]
+		t.label.Color = HelperMarkerColors[t.Marker]
+		t.label.Hidden = false
 	case t.Field.Content == minesweeper.Mine:
 		t.icon.SetResource(assets.ResourceMinePng)
 		t.icon.Hidden = false
@@ -182,6 +204,7 @@ func (t *Tile) Reset() {
 	t.Flagged = false
 	t.Field.Checked = false
 	t.Field.Content = minesweeper.Unknown
+	t.Marker = HelpMarkingNone
 	t.UpdateContent()
 }
 
