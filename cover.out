@@ -189,7 +189,7 @@ github.com/heathcliff26/go-minesweeper/pkg/app/grid.go:87.2,87.24 1 1
 github.com/heathcliff26/go-minesweeper/pkg/app/grid.go:87.24,89.3 1 1
 github.com/heathcliff26/go-minesweeper/pkg/app/grid.go:91.2,95.23 4 1
 github.com/heathcliff26/go-minesweeper/pkg/app/grid.go:99.67,100.14 1 1
-github.com/heathcliff26/go-minesweeper/pkg/app/grid.go:100.14,102.3 1 0
+github.com/heathcliff26/go-minesweeper/pkg/app/grid.go:100.14,102.3 1 1
 github.com/heathcliff26/go-minesweeper/pkg/app/grid.go:104.2,104.29 1 1
 github.com/heathcliff26/go-minesweeper/pkg/app/grid.go:104.29,105.10 1 1
 github.com/heathcliff26/go-minesweeper/pkg/app/grid.go:106.18,108.43 2 1
@@ -233,10 +233,10 @@ github.com/heathcliff26/go-minesweeper/pkg/app/tile.go:127.30,128.39 1 1
 github.com/heathcliff26/go-minesweeper/pkg/app/tile.go:128.39,130.14 2 1
 github.com/heathcliff26/go-minesweeper/pkg/app/tile.go:132.5,132.44 1 1
 github.com/heathcliff26/go-minesweeper/pkg/app/tile.go:132.44,133.14 1 1
-github.com/heathcliff26/go-minesweeper/pkg/app/tile.go:135.5,135.39 1 1
+github.com/heathcliff26/go-minesweeper/pkg/app/tile.go:135.5,135.39 1 0
 github.com/heathcliff26/go-minesweeper/pkg/app/tile.go:140.2,140.30 1 1
 github.com/heathcliff26/go-minesweeper/pkg/app/tile.go:140.30,142.32 2 1
-github.com/heathcliff26/go-minesweeper/pkg/app/tile.go:142.32,144.4 1 1
+github.com/heathcliff26/go-minesweeper/pkg/app/tile.go:142.32,144.4 1 0
 github.com/heathcliff26/go-minesweeper/pkg/app/tile.go:145.3,145.34 1 1
 github.com/heathcliff26/go-minesweeper/pkg/app/tile.go:150.32,156.9 5 1
 github.com/heathcliff26/go-minesweeper/pkg/app/tile.go:157.37,158.42 1 1

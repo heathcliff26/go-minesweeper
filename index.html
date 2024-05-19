@@ -63,11 +63,11 @@
 				
 				<option value="file3">github.com/heathcliff26/go-minesweeper/pkg/app/counter.go (100.0%)</option>
 				
-				<option value="file4">github.com/heathcliff26/go-minesweeper/pkg/app/grid.go (98.4%)</option>
+				<option value="file4">github.com/heathcliff26/go-minesweeper/pkg/app/grid.go (100.0%)</option>
 				
 				<option value="file5">github.com/heathcliff26/go-minesweeper/pkg/app/log.go (100.0%)</option>
 				
-				<option value="file6">github.com/heathcliff26/go-minesweeper/pkg/app/tile.go (100.0%)</option>
+				<option value="file6">github.com/heathcliff26/go-minesweeper/pkg/app/tile.go (97.3%)</option>
 				
 				<option value="file7">github.com/heathcliff26/go-minesweeper/pkg/app/timer.go (100.0%)</option>
 				
@@ -536,7 +536,7 @@ func (g *MinesweeperGrid) TappedTile(pos minesweeper.Pos) <span class="cov8" tit
 
 // Update the grid from the given status
 func (g *MinesweeperGrid) updateFromStatus(s *minesweeper.Status) <span class="cov8" title="1">{
-        if s == nil </span><span class="cov0" title="0">{
+        if s == nil </span><span class="cov8" title="1">{
                 return
         }</span>
 
@@ -764,14 +764,14 @@ func (t *Tile) DoubleTapped(_ *fyne.PointEvent) <span class="cov8" title="1">{
                                 <span class="cov8" title="1">if t.grid.Tiles[p.X][p.Y].untappable() </span><span class="cov8" title="1">{
                                         continue</span>
                                 }
-                                <span class="cov8" title="1">posToCheck = append(posToCheck, p)</span>
+                                <span class="cov0" title="0">posToCheck = append(posToCheck, p)</span>
                         }
                 }
         }
 
         <span class="cov8" title="1">if flags == t.Field.Content </span><span class="cov8" title="1">{
                 var status *minesweeper.Status
-                for _, p := range posToCheck </span><span class="cov8" title="1">{
+                for _, p := range posToCheck </span><span class="cov0" title="0">{
                         status = t.grid.Game.CheckField(p)
                 }</span>
                 <span class="cov8" title="1">t.grid.updateFromStatus(status)</span>
