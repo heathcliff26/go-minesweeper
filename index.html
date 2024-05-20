@@ -57,13 +57,13 @@
 				
 				<option value="file0">github.com/heathcliff26/go-minesweeper/cmd/app/main.go (0.0%)</option>
 				
-				<option value="file1">github.com/heathcliff26/go-minesweeper/pkg/app/app.go (46.2%)</option>
+				<option value="file1">github.com/heathcliff26/go-minesweeper/pkg/app/app.go (45.9%)</option>
 				
 				<option value="file2">github.com/heathcliff26/go-minesweeper/pkg/app/button.go (100.0%)</option>
 				
 				<option value="file3">github.com/heathcliff26/go-minesweeper/pkg/app/counter.go (100.0%)</option>
 				
-				<option value="file4">github.com/heathcliff26/go-minesweeper/pkg/app/grid.go (100.0%)</option>
+				<option value="file4">github.com/heathcliff26/go-minesweeper/pkg/app/grid.go (99.0%)</option>
 				
 				<option value="file5">github.com/heathcliff26/go-minesweeper/pkg/app/log.go (100.0%)</option>
 				
@@ -228,11 +228,16 @@ func (a *App) makeMenu() <span class="cov8" title="1">{
         gameAlgorithmSubMenu.ChildMenu = fyne.NewMenu("Creation Algorithm", a.gameAlgorithms...)
         optionsMenu := fyne.NewMenu("Options", a.assistedMode, gameAlgorithmSubMenu)
 
-        about := fyne.NewMenuItem("About", func() </span><span class="cov0" title="0">{
+        hint := fyne.NewMenuItem("Hint", func() </span><span class="cov0" title="0">{
+                if !a.grid.Hint() </span><span class="cov0" title="0">{
+                        dialog.NewInformation("No hint found", "Could not find any hints to give.", a.main).Show()
+                }</span>
+        })
+        <span class="cov8" title="1">about := fyne.NewMenuItem("About", func() </span><span class="cov0" title="0">{
                 vInfo := dialog.NewCustom(a.Version.Name, "close", getVersionContent(a.Version), a.main)
                 vInfo.Show()
         }</span>)
-        <span class="cov8" title="1">helpMenu := fyne.NewMenu("Help", about)
+        <span class="cov8" title="1">helpMenu := fyne.NewMenu("Help", hint, about)
 
         a.main.SetMainMenu(fyne.NewMainMenu(gameMenu, diffMenu, optionsMenu, helpMenu))</span>
 }
@@ -674,6 +679,36 @@ func (g *MinesweeperGrid) Reset() <span class="cov8" title="1">{
 func (g *MinesweeperGrid) OutOfBounds(p minesweeper.Pos) bool <span class="cov8" title="1">{
         return g.Game.OutOfBounds(p)
 }</span>
+
+// Display a single hint on the grid.
+// Returns false if no hint could be displayed.
+func (g *MinesweeperGrid) Hint() bool <span class="cov8" title="1">{
+        if g.Game == nil </span><span class="cov8" title="1">{
+                return false
+        }</span>
+        <span class="cov8" title="1">s := g.Game.Status()
+        if s.GameOver || s.GameWon </span><span class="cov8" title="1">{
+                return false
+        }</span>
+
+        <span class="cov8" title="1">for _, mine := range s.ObviousMines() </span><span class="cov8" title="1">{
+                tile := g.Tiles[mine.X][mine.Y]
+                if tile.Flagged </span><span class="cov8" title="1">{
+                        continue</span>
+                }
+                <span class="cov8" title="1">tile.Marker = HelpMarkingMine
+                tile.UpdateContent()
+                return true</span>
+        }
+        <span class="cov8" title="1">safePos := s.ObviousSafePos()
+        if len(safePos) &gt; 0 </span><span class="cov8" title="1">{
+                tile := g.Tiles[safePos[0].X][safePos[0].Y]
+                tile.Marker = HelpMarkingSafe
+                tile.UpdateContent()
+                return true
+        }</span>
+        <span class="cov0" title="0">return false</span>
+}
 </pre>
 		
 		<pre class="file" id="file5" style="display: none">package app
