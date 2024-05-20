@@ -19,19 +19,22 @@ var TEXT_COLOR = color.White
 
 var DEFAULT_DIFFICULTY = minesweeper.Difficulties()[minesweeper.DifficultyIntermediate]
 
+const DEFAULT_GAME_ALGORITHM = GameAlgorithmSafeArea
+
 // Used to change the new app function for testing
 var newApp = fApp.New
 
 // Struct representing the current app.
 // There should only ever be a single instance during runtime.
 type App struct {
-	app          fyne.App
-	main         fyne.Window
-	Version      Version
-	grid         *MinesweeperGrid
-	difficulties []*fyne.MenuItem
-	gameMenu     []*fyne.MenuItem
-	assistedMode *fyne.MenuItem
+	app            fyne.App
+	main           fyne.Window
+	Version        Version
+	grid           *MinesweeperGrid
+	difficulties   []*fyne.MenuItem
+	gameMenu       []*fyne.MenuItem
+	assistedMode   *fyne.MenuItem
+	gameAlgorithms []*fyne.MenuItem
 }
 
 // Create a new App
@@ -44,13 +47,11 @@ func New() *App {
 		app:     app,
 		main:    main,
 		Version: version,
-		grid:    NewMinesweeperGrid(DEFAULT_DIFFICULTY, false),
 	}
-
 	a.main.SetTitle(version.Name)
 	a.makeMenu()
-
-	a.setContent()
+	a.NewGrid(DEFAULT_DIFFICULTY)
+	a.setGameAlgorithm(DEFAULT_GAME_ALGORITHM)
 
 	a.main.SetFixedSize(true)
 	a.main.Show()
@@ -88,8 +89,7 @@ func (a *App) makeMenu() {
 			for _, i := range a.difficulties {
 				i.Checked = (i.Label == d.Name)
 			}
-			a.grid = NewMinesweeperGrid(d, a.assistedMode.Checked)
-			a.setContent()
+			a.NewGrid(d)
 		}
 		item.Checked = (d == DEFAULT_DIFFICULTY)
 		diffItems = append(diffItems, item)
@@ -101,14 +101,21 @@ func (a *App) makeMenu() {
 
 	a.assistedMode = fyne.NewMenuItem("      Assisted Mode", func() {
 		a.assistedMode.Checked = !a.assistedMode.Checked
-		if a.grid != nil {
-			a.grid.AssistedMode = a.assistedMode.Checked
-		}
-		if a.grid != nil && a.grid.AssistedMode && a.grid.Game != nil {
+		a.grid.AssistedMode = a.assistedMode.Checked
+		if a.grid.AssistedMode && a.grid.Game != nil {
 			a.grid.updateFromStatus(a.grid.Game.Status())
 		}
 	})
-	optionsMenu := fyne.NewMenu("Options", a.assistedMode)
+	a.gameAlgorithms = make([]*fyne.MenuItem, 2)
+	a.gameAlgorithms[0] = fyne.NewMenuItem("Safe Position", func() {
+		a.setGameAlgorithm(GameAlgorithmSafePos)
+	})
+	a.gameAlgorithms[1] = fyne.NewMenuItem("Safe Area", func() {
+		a.setGameAlgorithm(GameAlgorithmSafeArea)
+	})
+	gameAlgorithmSubMenu := fyne.NewMenuItem("Creation Algorithm", nil)
+	gameAlgorithmSubMenu.ChildMenu = fyne.NewMenu("Creation Algorithm", a.gameAlgorithms...)
+	optionsMenu := fyne.NewMenu("Options", a.assistedMode, gameAlgorithmSubMenu)
 
 	about := fyne.NewMenuItem("About", func() {
 		vInfo := dialog.NewCustom(a.Version.Name, "close", getVersionContent(a.Version), a.main)
@@ -154,8 +161,7 @@ func (a *App) customDifficultyDialog() {
 		for _, i := range a.difficulties {
 			i.Checked = (i.Label == "Custom")
 		}
-		a.grid = NewMinesweeperGrid(d, a.assistedMode.Checked)
-		a.setContent()
+		a.NewGrid(d)
 	}, a.main)
 	diffDialog.Show()
 }
@@ -179,8 +185,7 @@ func (a *App) loadSave() {
 		for _, i := range a.difficulties {
 			i.Checked = (i.Label == save.Data.Difficulty.Name)
 		}
-		a.grid = NewMinesweeperGrid(save.Data.Difficulty, a.assistedMode.Checked)
-		a.setContent()
+		a.NewGrid(save.Data.Difficulty)
 
 		a.grid.Game = save.Game()
 	}, a.main)
@@ -235,4 +240,21 @@ func (a *App) saveGame() {
 	}
 
 	d.Show()
+}
+
+func (a *App) NewGrid(d minesweeper.Difficulty) {
+	a.grid = NewMinesweeperGrid(d, a.assistedMode.Checked)
+	for i, item := range a.gameAlgorithms {
+		if item.Checked {
+			a.grid.GameAlgorithm = i
+		}
+	}
+	a.setContent()
+}
+
+func (a *App) setGameAlgorithm(id int) {
+	for i, item := range a.gameAlgorithms {
+		item.Checked = i == id
+	}
+	a.grid.GameAlgorithm = id
 }
