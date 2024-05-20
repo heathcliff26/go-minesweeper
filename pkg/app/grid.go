@@ -200,3 +200,33 @@ func (g *MinesweeperGrid) Reset() {
 func (g *MinesweeperGrid) OutOfBounds(p minesweeper.Pos) bool {
 	return g.Game.OutOfBounds(p)
 }
+
+// Display a single hint on the grid.
+// Returns false if no hint could be displayed.
+func (g *MinesweeperGrid) Hint() bool {
+	if g.Game == nil {
+		return false
+	}
+	s := g.Game.Status()
+	if s.GameOver || s.GameWon {
+		return false
+	}
+
+	for _, mine := range s.ObviousMines() {
+		tile := g.Tiles[mine.X][mine.Y]
+		if tile.Flagged {
+			continue
+		}
+		tile.Marker = HelpMarkingMine
+		tile.UpdateContent()
+		return true
+	}
+	safePos := s.ObviousSafePos()
+	if len(safePos) > 0 {
+		tile := g.Tiles[safePos[0].X][safePos[0].Y]
+		tile.Marker = HelpMarkingSafe
+		tile.UpdateContent()
+		return true
+	}
+	return false
+}

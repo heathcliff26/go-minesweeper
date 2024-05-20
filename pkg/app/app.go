@@ -117,11 +117,16 @@ func (a *App) makeMenu() {
 	gameAlgorithmSubMenu.ChildMenu = fyne.NewMenu("Creation Algorithm", a.gameAlgorithms...)
 	optionsMenu := fyne.NewMenu("Options", a.assistedMode, gameAlgorithmSubMenu)
 
+	hint := fyne.NewMenuItem("Hint", func() {
+		if !a.grid.Hint() {
+			dialog.NewInformation("No hint found", "Could not find any hints to give.", a.main).Show()
+		}
+	})
 	about := fyne.NewMenuItem("About", func() {
 		vInfo := dialog.NewCustom(a.Version.Name, "close", getVersionContent(a.Version), a.main)
 		vInfo.Show()
 	})
-	helpMenu := fyne.NewMenu("Help", about)
+	helpMenu := fyne.NewMenu("Help", hint, about)
 
 	a.main.SetMainMenu(fyne.NewMainMenu(gameMenu, diffMenu, optionsMenu, helpMenu))
 }
