@@ -1,0 +1,17 @@
+{
+    "id": "5811547955bb645ababa9ce8c45c58b4cf834b488de2160d167010463c9233c5f943f46e9ba179f937350e079239281e46a829ab3e33fb8b4f7b487198ac6eef",
+    "data": {
+        "mines": [
+            {
+                "X": 0,
+                "Y": 0
+            }
+        ],
+        "difficulty": {
+            "Name": "Custom",
+            "Row": 3,
+            "Col": 3,
+            "Mines": 1
+        }
+    }
+}
