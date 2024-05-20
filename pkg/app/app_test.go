@@ -35,6 +35,8 @@ func TestApp(t *testing.T) {
 
 		assert.NotEmpty(a.grid)
 		assert.Equal(DEFAULT_DIFFICULTY, a.grid.Difficulty)
+		assert.False(a.grid.AssistedMode)
+		assert.Equal(DEFAULT_GAME_ALGORITHM, a.grid.GameAlgorithm)
 	})
 	t.Run("Difficulties", func(t *testing.T) {
 		assert := assert.New(t)
@@ -69,8 +71,7 @@ func TestApp(t *testing.T) {
 				opt.Action()
 				assert.False(a.grid.Timer.Running(), "Game should not be running")
 
-				a.grid = NewMinesweeperGrid(DEFAULT_DIFFICULTY, a.assistedMode.Checked)
-				a.setContent()
+				a.NewGrid(DEFAULT_DIFFICULTY)
 				a.grid.TappedTile(minesweeper.NewPos(0, 0))
 				if !assert.True(a.grid.Timer.Running(), "Assert that a game is running") {
 					t.FailNow()
@@ -82,8 +83,7 @@ func TestApp(t *testing.T) {
 		}
 	})
 	t.Run("AssistedMode", func(t *testing.T) {
-		a.grid = NewMinesweeperGrid(DEFAULT_DIFFICULTY, a.assistedMode.Checked)
-		a.setContent()
+		a.NewGrid(DEFAULT_DIFFICULTY)
 
 		assert := assert.New(t)
 
@@ -97,5 +97,23 @@ func TestApp(t *testing.T) {
 		a.assistedMode.Action()
 		assert.False(a.assistedMode.Checked)
 		assert.Equal(a.assistedMode.Checked, a.grid.AssistedMode)
+	})
+	t.Run("GameAlgorithm", func(t *testing.T) {
+		for id, algorithm := range a.gameAlgorithms {
+			t.Run(algorithm.Label, func(t *testing.T) {
+				algorithm.Action()
+
+				assert := assert.New(t)
+
+				assert.Equal(id, a.grid.GameAlgorithm, "Should have set grids Algorithm")
+				assert.True(algorithm.Checked, "Current Algorithm should be checked")
+				for _, item := range a.gameAlgorithms {
+					if item == algorithm {
+						continue
+					}
+					assert.False(item.Checked, "No other algorithm should be checked")
+				}
+			})
+		}
 	})
 }

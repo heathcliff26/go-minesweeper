@@ -24,12 +24,18 @@ const (
 	ResetTextSize     float32 = 40
 )
 
+const (
+	GameAlgorithmSafePos = iota
+	GameAlgorithmSafeArea
+)
+
 // Graphical display for a minesweeper game
 type MinesweeperGrid struct {
-	Tiles        [][]*Tile
-	Difficulty   minesweeper.Difficulty
-	Game         minesweeper.Game
-	AssistedMode bool
+	Tiles         [][]*Tile
+	Difficulty    minesweeper.Difficulty
+	Game          minesweeper.Game
+	AssistedMode  bool
+	GameAlgorithm int
 
 	Timer       *Timer
 	MineCount   *Counter
@@ -40,11 +46,12 @@ type MinesweeperGrid struct {
 func NewMinesweeperGrid(d minesweeper.Difficulty, assistedMode bool) *MinesweeperGrid {
 	tiles := utils.Make2D[*Tile](d.Row, d.Col)
 	grid := &MinesweeperGrid{
-		Tiles:        tiles,
-		Difficulty:   d,
-		AssistedMode: assistedMode,
-		Timer:        NewTimer(),
-		MineCount:    NewCounter(d.Mines),
+		Tiles:         tiles,
+		Difficulty:    d,
+		AssistedMode:  assistedMode,
+		GameAlgorithm: DEFAULT_GAME_ALGORITHM,
+		Timer:         NewTimer(),
+		MineCount:     NewCounter(d.Mines),
 	}
 	grid.ResetButton = NewButton(ResetDefaultText, color.RGBA{}, grid.NewGame)
 	grid.ResetButton.Label.TextSize = ResetTextSize
@@ -84,7 +91,15 @@ func (g *MinesweeperGrid) GetCanvasObject() fyne.CanvasObject {
 // Starts a new game when no game is currently running.
 func (g *MinesweeperGrid) TappedTile(pos minesweeper.Pos) {
 	if g.Game == nil {
-		g.Game = minesweeper.NewGameWithSafeArea(g.Difficulty, pos)
+		switch g.GameAlgorithm {
+		case GameAlgorithmSafePos:
+			g.Game = minesweeper.NewGameWithSafePos(g.Difficulty, pos)
+		case GameAlgorithmSafeArea:
+			g.Game = minesweeper.NewGameWithSafeArea(g.Difficulty, pos)
+		default:
+			slog.Error("Unkown Algorithm for creating a new game", slog.Int("algorithm", g.GameAlgorithm))
+			return
+		}
 	}
 	if !g.Timer.Running() {
 		g.Timer.Start()

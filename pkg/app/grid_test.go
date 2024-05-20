@@ -10,7 +10,7 @@ import (
 )
 
 func TestNewGrid(t *testing.T) {
-	g := NewMinesweeperGrid(DEFAULT_DIFFICULTY, false)
+	g := NewMinesweeperGrid(DEFAULT_DIFFICULTY, true)
 
 	assert := assert.New(t)
 
@@ -18,6 +18,8 @@ func TestNewGrid(t *testing.T) {
 	assert.Equal(g.Col(), len(g.Tiles[0]))
 	assert.Equal(DEFAULT_DIFFICULTY, g.Difficulty)
 	assert.Nil(g.Game)
+	assert.True(g.AssistedMode)
+	assert.Equal(DEFAULT_GAME_ALGORITHM, g.GameAlgorithm)
 	assert.NotNil(g.Timer)
 	assert.NotNil(g.MineCount)
 	assert.NotNil(g.ResetButton)
@@ -51,6 +53,31 @@ func TestTappedTile(t *testing.T) {
 	game.UpdateStatus()
 	g.TappedTile(p)
 	assert.Equal(ResetGameOverText, g.ResetButton.Label.Text)
+}
+
+func TestGameAlgorithm(t *testing.T) {
+	g := NewMinesweeperGrid(DEFAULT_DIFFICULTY, false)
+	for _, row := range g.Tiles {
+		for _, tile := range row {
+			tile.CreateRenderer()
+		}
+	}
+
+	tMatrix := []string{"SafePos", "safeArea"}
+	for i, tCase := range tMatrix {
+		t.Run(tCase, func(t *testing.T) {
+			t.Cleanup(g.NewGame)
+			g.GameAlgorithm = i
+			g.TappedTile(minesweeper.NewPos(0, 0))
+			assert.NotNil(t, g.Game)
+		})
+	}
+	t.Run("Unknown", func(t *testing.T) {
+		t.Cleanup(g.NewGame)
+		g.GameAlgorithm = -1
+		g.TappedTile(minesweeper.NewPos(0, 0))
+		assert.Nil(t, g.Game)
+	})
 }
 
 func TestNewGame(t *testing.T) {
