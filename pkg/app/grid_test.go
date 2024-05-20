@@ -9,6 +9,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+type assistedModeTestConfig struct {
+	StartPos minesweeper.Pos
+	Mines    []minesweeper.Pos
+	SafePos  []minesweeper.Pos
+}
+
 func TestNewGrid(t *testing.T) {
 	g := NewMinesweeperGrid(DEFAULT_DIFFICULTY, true)
 
@@ -140,30 +146,8 @@ func TestUpdateFromStatus(t *testing.T) {
 func TestAssistedMode(t *testing.T) {
 	assert := assert.New(t)
 
-	save, err := minesweeper.LoadSave("../minesweeper/testdata/assisted_mode_1.sav")
-	if !assert.Nil(err, "Should load savegame") {
-		t.FailNow()
-	}
-	g := NewMinesweeperGrid(save.Data.Difficulty, true)
-	for _, row := range g.Tiles {
-		for _, tile := range row {
-			tile.CreateRenderer()
-		}
-	}
-	g.Game = save.Game()
-
-	buf, err := os.ReadFile("../minesweeper/testdata/assisted_mode_1.json")
-	if !assert.Nil(err, "Should load test config") {
-		t.FailNow()
-	}
-
-	var testConfig struct {
-		StartPos minesweeper.Pos
-		Mines    []minesweeper.Pos
-		SafePos  []minesweeper.Pos
-	}
-	err = json.Unmarshal(buf, &testConfig)
-	if !assert.Nil(err, "Should parse test config") {
+	g, testConfig, err := loadAssistedModeTest("../minesweeper/testdata/assisted_mode_1", true)
+	if !assert.Nil(err, "Should have loaded the test") {
 		t.FailNow()
 	}
 
@@ -191,4 +175,78 @@ func TestAssistedMode(t *testing.T) {
 	}
 	assert.Equal(len(testConfig.Mines), mines, "Should have the same amount of mines as in the config")
 	assert.Equal(len(testConfig.SafePos), safePos, "Should have the same amount of safe positions as in the config")
+}
+
+func TestHint(t *testing.T) {
+	assert := assert.New(t)
+
+	g := NewMinesweeperGrid(DEFAULT_DIFFICULTY, false)
+	assert.False(g.Hint(), "Should not give hint when game is nil")
+
+	g, testConfig, err := loadAssistedModeTest("testdata/hint", false)
+	if !assert.Nil(err, "Should have loaded the test") {
+		t.FailNow()
+	}
+
+	g.TappedTile(testConfig.StartPos)
+
+	for _, mine := range testConfig.Mines {
+		assert.True(g.Hint(), "Should be able to display hints")
+		tile := g.Tiles[mine.X][mine.Y]
+		assert.Equalf(HelpMarkingMine, tile.Marker, "Tile should be marked as mine, tile=%s", tile.Pos.String())
+		tile.Flagged = true
+		for x := 0; x < g.Difficulty.Row; x++ {
+			for y := 0; y < g.Difficulty.Col; y++ {
+				tile := g.Tiles[x][y]
+				if tile.Flagged || tile.Field.Checked {
+					continue
+				}
+				if !assert.Equalf(HelpMarkingNone, tile.Marker, "No other tiles should be marked, tile=%s, mine=%s", tile.Pos.String(), mine.String()) {
+					t.FailNow()
+				}
+			}
+		}
+	}
+	assert.True(g.Hint(), "Should be able to display hints")
+	assert.Equal(HelpMarkingSafe, g.Tiles[testConfig.SafePos[0].X][testConfig.SafePos[0].Y].Marker, "Tile should be marked as safe")
+	for x := 0; x < g.Difficulty.Row; x++ {
+		for y := 0; y < g.Difficulty.Col; y++ {
+			tile := g.Tiles[x][y]
+			if tile.Flagged || tile.Field.Checked || tile.Pos == testConfig.SafePos[0] {
+				continue
+			}
+			if !assert.Equalf(HelpMarkingNone, tile.Marker, "No other tiles should be marked, tile=%s", tile.Pos.String()) {
+				t.FailNow()
+			}
+		}
+	}
+
+	g.TappedTile(minesweeper.NewPos(15, 6))
+	assert.False(g.Hint(), "Should not be able to display hint on failed game")
+}
+
+func loadAssistedModeTest(path string, assistedMode bool) (*MinesweeperGrid, assistedModeTestConfig, error) {
+	save, err := minesweeper.LoadSave(path + ".sav")
+	if err != nil {
+		return nil, assistedModeTestConfig{}, err
+	}
+	g := NewMinesweeperGrid(save.Data.Difficulty, assistedMode)
+	for _, row := range g.Tiles {
+		for _, tile := range row {
+			tile.CreateRenderer()
+		}
+	}
+	g.Game = save.Game()
+
+	buf, err := os.ReadFile(path + ".json")
+	if err != nil {
+		return nil, assistedModeTestConfig{}, err
+	}
+
+	var testConfig assistedModeTestConfig
+	err = json.Unmarshal(buf, &testConfig)
+	if err != nil {
+		return nil, assistedModeTestConfig{}, err
+	}
+	return g, testConfig, nil
 }
