@@ -57,7 +57,7 @@
 				
 				<option value="file0">github.com/heathcliff26/go-minesweeper/cmd/app/main.go (0.0%)</option>
 				
-				<option value="file1">github.com/heathcliff26/go-minesweeper/pkg/app/app.go (36.8%)</option>
+				<option value="file1">github.com/heathcliff26/go-minesweeper/pkg/app/app.go (39.2%)</option>
 				
 				<option value="file2">github.com/heathcliff26/go-minesweeper/pkg/app/button.go (100.0%)</option>
 				
@@ -67,7 +67,7 @@
 				
 				<option value="file5">github.com/heathcliff26/go-minesweeper/pkg/app/log.go (100.0%)</option>
 				
-				<option value="file6">github.com/heathcliff26/go-minesweeper/pkg/app/tile.go (97.3%)</option>
+				<option value="file6">github.com/heathcliff26/go-minesweeper/pkg/app/tile.go (100.0%)</option>
 				
 				<option value="file7">github.com/heathcliff26/go-minesweeper/pkg/app/timer.go (100.0%)</option>
 				
@@ -81,9 +81,11 @@
 				
 				<option value="file12">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/save.go (84.6%)</option>
 				
-				<option value="file13">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/utils.go (100.0%)</option>
+				<option value="file13">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/status.go (95.3%)</option>
 				
-				<option value="file14">github.com/heathcliff26/go-minesweeper/pkg/utils/utils.go (100.0%)</option>
+				<option value="file14">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/utils.go (100.0%)</option>
+				
+				<option value="file15">github.com/heathcliff26/go-minesweeper/pkg/utils/utils.go (100.0%)</option>
 				
 				</select>
 			</div>
@@ -140,6 +142,7 @@ type App struct {
         grid         *MinesweeperGrid
         difficulties []*fyne.MenuItem
         gameMenu     []*fyne.MenuItem
+        assistedMode *fyne.MenuItem
 }
 
 // Create a new App
@@ -152,12 +155,11 @@ func New() *App <span class="cov8" title="1">{
                 app:     app,
                 main:    main,
                 Version: version,
-                grid:    NewMinesweeperGrid(DEFAULT_DIFFICULTY),
+                grid:    NewMinesweeperGrid(DEFAULT_DIFFICULTY, false),
         }
 
         a.main.SetTitle(version.Name)
         a.makeMenu()
-        a.main.SetMainMenu(a.makeMenu())
 
         a.setContent()
 
@@ -173,7 +175,7 @@ func (a *App) Run() <span class="cov0" title="0">{
 }</span>
 
 // Create the main menu bar
-func (a *App) makeMenu() *fyne.MainMenu <span class="cov8" title="1">{
+func (a *App) makeMenu() <span class="cov8" title="1">{
         // Can't assign grid functions directly, as the instance of grid may change
         newGameOption := fyne.NewMenuItem("New", func() </span><span class="cov8" title="1">{
                 a.grid.NewGame()
@@ -197,7 +199,7 @@ func (a *App) makeMenu() *fyne.MainMenu <span class="cov8" title="1">{
                         <span class="cov8" title="1">for _, i := range a.difficulties </span><span class="cov8" title="1">{
                                 i.Checked = (i.Label == d.Name)
                         }</span>
-                        <span class="cov8" title="1">a.grid = NewMinesweeperGrid(d)
+                        <span class="cov8" title="1">a.grid = NewMinesweeperGrid(d, a.assistedMode.Checked)
                         a.setContent()</span>
                 }
                 <span class="cov8" title="1">item.Checked = (d == DEFAULT_DIFFICULTY)
@@ -208,13 +210,24 @@ func (a *App) makeMenu() *fyne.MainMenu <span class="cov8" title="1">{
         a.difficulties = diffItems
         diffMenu := fyne.NewMenu("Difficulties", diffItems...)
 
+        a.assistedMode = fyne.NewMenuItem("      Assisted Mode", func() </span><span class="cov8" title="1">{
+                a.assistedMode.Checked = !a.assistedMode.Checked
+                if a.grid != nil </span><span class="cov8" title="1">{
+                        a.grid.AssistedMode = a.assistedMode.Checked
+                }</span>
+                <span class="cov8" title="1">if a.grid != nil &amp;&amp; a.grid.AssistedMode &amp;&amp; a.grid.Game != nil </span><span class="cov0" title="0">{
+                        a.grid.updateFromStatus(a.grid.Game.Status())
+                }</span>
+        })
+        <span class="cov8" title="1">optionsMenu := fyne.NewMenu("Options", a.assistedMode)
+
         about := fyne.NewMenuItem("About", func() </span><span class="cov0" title="0">{
                 vInfo := dialog.NewCustom(a.Version.Name, "close", getVersionContent(a.Version), a.main)
                 vInfo.Show()
         }</span>)
         <span class="cov8" title="1">helpMenu := fyne.NewMenu("Help", about)
 
-        return fyne.NewMainMenu(gameMenu, diffMenu, helpMenu)</span>
+        a.main.SetMainMenu(fyne.NewMainMenu(gameMenu, diffMenu, optionsMenu, helpMenu))</span>
 }
 
 // Update the content of the app and resize the window to make it fit
@@ -252,7 +265,7 @@ func (a *App) customDifficultyDialog() <span class="cov0" title="0">{
                 <span class="cov0" title="0">for _, i := range a.difficulties </span><span class="cov0" title="0">{
                         i.Checked = (i.Label == "Custom")
                 }</span>
-                <span class="cov0" title="0">a.grid = NewMinesweeperGrid(d)
+                <span class="cov0" title="0">a.grid = NewMinesweeperGrid(d, a.assistedMode.Checked)
                 a.setContent()</span>
         }, a.main)
         <span class="cov0" title="0">diffDialog.Show()</span>
@@ -277,7 +290,7 @@ func (a *App) loadSave() <span class="cov0" title="0">{
                 <span class="cov0" title="0">for _, i := range a.difficulties </span><span class="cov0" title="0">{
                         i.Checked = (i.Label == save.Data.Difficulty.Name)
                 }</span>
-                <span class="cov0" title="0">a.grid = NewMinesweeperGrid(save.Data.Difficulty)
+                <span class="cov0" title="0">a.grid = NewMinesweeperGrid(save.Data.Difficulty, a.assistedMode.Checked)
                 a.setContent()
 
                 a.grid.Game = save.Game()</span>
@@ -465,9 +478,10 @@ const (
 
 // Graphical display for a minesweeper game
 type MinesweeperGrid struct {
-        Tiles      [][]*Tile
-        Difficulty minesweeper.Difficulty
-        Game       minesweeper.Game
+        Tiles        [][]*Tile
+        Difficulty   minesweeper.Difficulty
+        Game         minesweeper.Game
+        AssistedMode bool
 
         Timer       *Timer
         MineCount   *Counter
@@ -475,13 +489,14 @@ type MinesweeperGrid struct {
 }
 
 // Create a new grid suitable for the give difficulty
-func NewMinesweeperGrid(d minesweeper.Difficulty) *MinesweeperGrid <span class="cov8" title="1">{
+func NewMinesweeperGrid(d minesweeper.Difficulty, assistedMode bool) *MinesweeperGrid <span class="cov8" title="1">{
         tiles := utils.Make2D[*Tile](d.Row, d.Col)
         grid := &amp;MinesweeperGrid{
-                Tiles:      tiles,
-                Difficulty: d,
-                Timer:      NewTimer(),
-                MineCount:  NewCounter(d.Mines),
+                Tiles:        tiles,
+                Difficulty:   d,
+                AssistedMode: assistedMode,
+                Timer:        NewTimer(),
+                MineCount:    NewCounter(d.Mines),
         }
         grid.ResetButton = NewButton(ResetDefaultText, color.RGBA{}, grid.NewGame)
         grid.ResetButton.Label.TextSize = ResetTextSize
@@ -550,6 +565,18 @@ func (g *MinesweeperGrid) updateFromStatus(s *minesweeper.Status) <span class="c
                         g.ResetButton.SetText(ResetGameOverText)</span>
                 }
                 <span class="cov8" title="1">g.Timer.Stop()</span>
+        } else<span class="cov8" title="1"> if g.AssistedMode </span><span class="cov8" title="1">{
+                slog.Debug("Creating Markers for Assisted Mode")
+                for _, p := range s.ObviousMines() </span><span class="cov8" title="1">{
+                        t := g.Tiles[p.X][p.Y]
+                        t.Marker = HelpMarkingMine
+                        t.UpdateContent()
+                }</span>
+                <span class="cov8" title="1">for _, p := range s.ObviousSafePos() </span><span class="cov8" title="1">{
+                        t := g.Tiles[p.X][p.Y]
+                        t.Marker = HelpMarkingSafe
+                        t.UpdateContent()
+                }</span>
         }
 
         <span class="cov8" title="1">for x := 0; x &lt; g.Row(); x++ </span><span class="cov8" title="1">{
@@ -658,6 +685,23 @@ var (
 
 const alpha = ^uint8(0)
 
+type HelpMarking int
+
+const (
+        HelpMarkingNone HelpMarking = iota
+        HelpMarkingMine
+        HelpMarkingSafe
+)
+
+var (
+        HelperMarkerSymbols = []string{"", "!", "?"}
+        HelperMarkerColors  = []color.Color{
+                color.White,
+                color.RGBA{180, 15, 15, alpha}, // Mine, red
+                color.RGBA{15, 180, 15, alpha}, // Safe, green
+        }
+)
+
 var TileTextColor = []color.Color{
         color.White,
         color.RGBA{20, 15, 220, alpha},  // 1, blue
@@ -682,6 +726,7 @@ type Tile struct {
         Field   *minesweeper.Field
         grid    *MinesweeperGrid
         Flagged bool
+        Marker  HelpMarking
 }
 
 // Create a new Tile with a reference to it's parent grid, as well as knowledge of it's own position in the Grid
@@ -764,14 +809,14 @@ func (t *Tile) DoubleTapped(_ *fyne.PointEvent) <span class="cov8" title="1">{
                                 <span class="cov8" title="1">if t.grid.Tiles[p.X][p.Y].untappable() </span><span class="cov8" title="1">{
                                         continue</span>
                                 }
-                                <span class="cov0" title="0">posToCheck = append(posToCheck, p)</span>
+                                <span class="cov8" title="1">posToCheck = append(posToCheck, p)</span>
                         }
                 }
         }
 
         <span class="cov8" title="1">if flags == t.Field.Content </span><span class="cov8" title="1">{
                 var status *minesweeper.Status
-                for _, p := range posToCheck </span><span class="cov0" title="0">{
+                for _, p := range posToCheck </span><span class="cov8" title="1">{
                         status = t.grid.Game.CheckField(p)
                 }</span>
                 <span class="cov8" title="1">t.grid.updateFromStatus(status)</span>
@@ -793,6 +838,10 @@ func (t *Tile) UpdateContent() <span class="cov8" title="1">{
                         t.icon.SetResource(assets.ResourceFlagPng)
                 }</span>
                 <span class="cov8" title="1">t.icon.Hidden = false</span>
+        case t.Marker != HelpMarkingNone &amp;&amp; !t.Flagged &amp;&amp; !t.Field.Checked &amp;&amp; t.Field.Content == minesweeper.Unknown:<span class="cov8" title="1">
+                t.label.Text = HelperMarkerSymbols[t.Marker]
+                t.label.Color = HelperMarkerColors[t.Marker]
+                t.label.Hidden = false</span>
         case t.Field.Content == minesweeper.Mine:<span class="cov8" title="1">
                 t.icon.SetResource(assets.ResourceMinePng)
                 t.icon.Hidden = false
@@ -814,6 +863,7 @@ func (t *Tile) Reset() <span class="cov8" title="1">{
         t.Flagged = false
         t.Field.Checked = false
         t.Field.Content = minesweeper.Unknown
+        t.Marker = HelpMarkingNone
         t.UpdateContent()
 }</span>
 
@@ -1150,17 +1200,6 @@ type Field struct {
         Content FieldContent
 }
 
-// Status contains the current state of the game known to the player.
-// As such it will always be a copy and needs to be it's own type, despite the
-// overlapping similarities.
-// It does not support any of the functions that Game does.
-// It is safe to write to Status, as it is merely a copy.
-type Status struct {
-        Field    [][]Field
-        GameOver bool
-        GameWon  bool
-}
-
 // Interface for playing the game
 type Game interface {
         // Check a given field and recursevly reveal all neighboring fields that should be revield.
@@ -1192,6 +1231,9 @@ type LocalGame struct {
         // Keep these 2 exported for testing in other packages
         GameOver bool
         GameWon  bool
+
+        // Cache the last status
+        status *Status
 
         replay bool
 }
@@ -1253,11 +1295,13 @@ func (g *LocalGame) CheckField(p Pos) *Status <span class="cov8" title="1">{
 
         if g.Field[p.X][p.Y].Content == Mine </span><span class="cov8" title="1">{
                 g.GameOver = true
+                g.UpdateStatus()
                 return g.Status()
         }</span>
 
         <span class="cov8" title="1">g.RevealField(p)
 
+        g.UpdateStatus()
         return g.Status()</span>
 }
 
@@ -1297,6 +1341,11 @@ func (g *LocalGame) OutOfBounds(p Pos) bool <span class="cov8" title="1">{
 
 // Returns the current status of the game. Only contains the knowledge a player should have.
 func (g *LocalGame) Status() *Status <span class="cov8" title="1">{
+        return g.status
+}</span>
+
+// Create a new instance of status
+func (g *LocalGame) UpdateStatus() <span class="cov8" title="1">{
         d := g.Difficulty
         s := &amp;Status{
                 Field:    utils.Make2D[Field](d.Row, d.Col),
@@ -1326,7 +1375,7 @@ func (g *LocalGame) Status() *Status <span class="cov8" title="1">{
                 }</span>
         }
 
-        <span class="cov8" title="1">return s</span>
+        <span class="cov8" title="1">g.status = s</span>
 }
 
 // Check if Game Over
@@ -1363,13 +1412,8 @@ func (g *LocalGame) ToSave() (*Save, error) <span class="cov8" title="1">{
 
 // Walk through all fields of the game and call the given function
 func (g *LocalGame) walkField(f func(x, y int)) <span class="cov8" title="1">{
-        d := g.Difficulty
-        for x := 0; x &lt; d.Row; x++ </span><span class="cov8" title="1">{
-                for y := 0; y &lt; d.Col; y++ </span><span class="cov8" title="1">{
-                        f(x, y)
-                }</span>
-        }
-}
+        walkField(f, g.Difficulty.Row, g.Difficulty.Col)
+}</span>
 
 // Count the the number of mines in the neighboring fields
 func (g *LocalGame) countNearbyMines(p Pos) int <span class="cov8" title="1">{
@@ -1505,6 +1549,119 @@ func (s *Save) Game() *LocalGame <span class="cov8" title="1">{
 		<pre class="file" id="file13" style="display: none">package minesweeper
 
 import (
+        "log/slog"
+        "slices"
+)
+
+// Status contains the current state of the game known to the player.
+// As such it will always be a copy and needs to be it's own type, despite the
+// overlapping similarities.
+// It does not support any of the functions that Game does.
+// It is safe to write to Status, as it is merely a copy.
+type Status struct {
+        Field    [][]Field
+        GameOver bool
+        GameWon  bool
+
+        actions Actions
+}
+
+type Actions struct {
+        Mines   []Pos
+        SafePos []Pos
+}
+
+func (s *Status) ObviousMines() []Pos <span class="cov8" title="1">{
+        if s.actions.Mines == nil </span><span class="cov8" title="1">{
+                s.createActions()
+        }</span>
+        <span class="cov8" title="1">return s.actions.Mines</span>
+}
+
+func (s *Status) ObviousSafePos() []Pos <span class="cov8" title="1">{
+        if s.actions.SafePos == nil </span><span class="cov0" title="0">{
+                s.createActions()
+        }</span>
+        <span class="cov8" title="1">return s.actions.SafePos</span>
+}
+
+func (s *Status) createActions() <span class="cov8" title="1">{
+        s.actions = Actions{
+                Mines:   make([]Pos, 0, 10),
+                SafePos: make([]Pos, 0, 10),
+        }
+        if len(s.Field) == 0 || s.GameOver || s.GameWon </span><span class="cov0" title="0">{
+                return
+        }</span>
+
+        <span class="cov8" title="1">d := Difficulty{
+                Row: len(s.Field),
+                Col: len(s.Field[0]),
+        }
+
+        i := 0
+        oldLenMines := -1
+        oldLenSafe := -1
+        for len(s.actions.Mines) &gt; oldLenMines || len(s.actions.SafePos) &gt; oldLenSafe </span><span class="cov8" title="1">{
+                i++
+                oldLenMines = len(s.actions.Mines)
+                oldLenSafe = len(s.actions.SafePos)
+                walkField(func(x, y int) </span><span class="cov8" title="1">{
+                        if !s.Field[x][y].Checked || s.Field[x][y].Content &lt;= 0 </span><span class="cov8" title="1">{
+                                return
+                        }</span>
+
+                        <span class="cov8" title="1">unchecked := FieldContent(0)
+                        mines := unchecked
+                        newPos := make([]Pos, 0, 8)
+                        for m := -1; m &lt; 2; m++ </span><span class="cov8" title="1">{
+                                for n := -1; n &lt; 2; n++ </span><span class="cov8" title="1">{
+                                        p := NewPos(x+m, y+n)
+                                        if OutOfBounds(p, d) </span><span class="cov8" title="1">{
+                                                continue</span>
+                                        }
+                                        <span class="cov8" title="1">if !s.Field[p.X][p.Y].Checked </span><span class="cov8" title="1">{
+                                                unchecked++
+                                                if slices.Contains(s.actions.Mines, p) </span><span class="cov8" title="1">{
+                                                        mines++
+                                                }</span> else<span class="cov8" title="1"> if !slices.Contains(s.actions.SafePos, p) </span><span class="cov8" title="1">{
+                                                        newPos = append(newPos, p)
+                                                }</span>
+                                        }
+                                }
+                        }
+                        <span class="cov8" title="1">if len(newPos) == 0 </span><span class="cov8" title="1">{
+                                return
+                        }</span>
+                        <span class="cov8" title="1">if unchecked == s.Field[x][y].Content &amp;&amp; mines != s.Field[x][y].Content </span><span class="cov8" title="1">{
+                                slog.Debug("Assisted Mode: Found mines near field",
+                                        slog.String("pos", NewPos(x, y).String()),
+                                        slog.Int("mines", int(mines)),
+                                        slog.Int("unchecked", int(unchecked)),
+                                        slog.Int("content", int(s.Field[x][y].Content)),
+                                        slog.Any("newPos", newPos),
+                                )
+                                s.actions.Mines = append(s.actions.Mines, newPos...)
+                        }</span> else<span class="cov8" title="1"> if mines == s.Field[x][y].Content &amp;&amp; unchecked &gt; s.Field[x][y].Content </span><span class="cov8" title="1">{
+                                slog.Debug("Assisted Mode: Found safe positions near field",
+                                        slog.String("pos", NewPos(x, y).String()),
+                                        slog.Int("mines", int(mines)),
+                                        slog.Int("unchecked", int(unchecked)),
+                                        slog.Int("content", int(s.Field[x][y].Content)),
+                                        slog.Any("newPos", newPos),
+                                )
+                                s.actions.SafePos = append(s.actions.SafePos, newPos...)
+                        }</span>
+                }, d.Row, d.Col)
+        }
+
+        <span class="cov8" title="1">slog.Debug("Assisted Mode: Mines and safe Positions found", slog.Any("mines", s.actions.Mines), slog.Any("safe", s.actions.SafePos), slog.Int("iterations", i))</span>
+}
+</pre>
+		
+		<pre class="file" id="file14" style="display: none">package minesweeper
+
+import (
         "fmt"
         "math/rand/v2"
         "slices"
@@ -1566,9 +1723,18 @@ func (fc FieldContent) String() string <span class="cov8" title="1">{
 func OutOfBounds(p Pos, d Difficulty) bool <span class="cov8" title="1">{
         return p.X &lt; 0 || p.X &gt; d.Row-1 || p.Y &lt; 0 || p.Y &gt; d.Col-1
 }</span>
+
+// Walk through all fields in the given dimension and call the given function
+func walkField(f func(x, y int), limitX, limitY int) <span class="cov8" title="1">{
+        for x := 0; x &lt; limitX; x++ </span><span class="cov8" title="1">{
+                for y := 0; y &lt; limitY; y++ </span><span class="cov8" title="1">{
+                        f(x, y)
+                }</span>
+        }
+}
 </pre>
 		
-		<pre class="file" id="file14" style="display: none">package utils
+		<pre class="file" id="file15" style="display: none">package utils
 
 // Create a new, empty 2 dimensional array of the given type and dimensions.
 func Make2D[T any](x, y int) [][]T <span class="cov8" title="1">{
