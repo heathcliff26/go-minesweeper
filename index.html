@@ -81,7 +81,7 @@
 				
 				<option value="file12">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/save.go (84.6%)</option>
 				
-				<option value="file13">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/status.go (95.3%)</option>
+				<option value="file13">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/status.go (100.0%)</option>
 				
 				<option value="file14">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/utils.go (100.0%)</option>
 				
@@ -1579,7 +1579,7 @@ func (s *Status) ObviousMines() []Pos <span class="cov8" title="1">{
 }
 
 func (s *Status) ObviousSafePos() []Pos <span class="cov8" title="1">{
-        if s.actions.SafePos == nil </span><span class="cov0" title="0">{
+        if s.actions.SafePos == nil </span><span class="cov8" title="1">{
                 s.createActions()
         }</span>
         <span class="cov8" title="1">return s.actions.SafePos</span>
@@ -1590,7 +1590,7 @@ func (s *Status) createActions() <span class="cov8" title="1">{
                 Mines:   make([]Pos, 0, 10),
                 SafePos: make([]Pos, 0, 10),
         }
-        if len(s.Field) == 0 || s.GameOver || s.GameWon </span><span class="cov0" title="0">{
+        if len(s.Field) == 0 || s.GameOver || s.GameWon </span><span class="cov8" title="1">{
                 return
         }</span>
 

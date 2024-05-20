@@ -94,10 +94,10 @@ github.com/heathcliff26/go-minesweeper/pkg/minesweeper/status.go:26.39,27.28 1 1
 github.com/heathcliff26/go-minesweeper/pkg/minesweeper/status.go:27.28,29.3 1 1
 github.com/heathcliff26/go-minesweeper/pkg/minesweeper/status.go:30.2,30.24 1 1
 github.com/heathcliff26/go-minesweeper/pkg/minesweeper/status.go:33.41,34.30 1 1
-github.com/heathcliff26/go-minesweeper/pkg/minesweeper/status.go:34.30,36.3 1 0
+github.com/heathcliff26/go-minesweeper/pkg/minesweeper/status.go:34.30,36.3 1 1
 github.com/heathcliff26/go-minesweeper/pkg/minesweeper/status.go:37.2,37.26 1 1
 github.com/heathcliff26/go-minesweeper/pkg/minesweeper/status.go:40.34,45.50 2 1
-github.com/heathcliff26/go-minesweeper/pkg/minesweeper/status.go:45.50,47.3 1 0
+github.com/heathcliff26/go-minesweeper/pkg/minesweeper/status.go:45.50,47.3 1 1
 github.com/heathcliff26/go-minesweeper/pkg/minesweeper/status.go:49.2,57.80 5 1
 github.com/heathcliff26/go-minesweeper/pkg/minesweeper/status.go:57.80,61.28 4 1
 github.com/heathcliff26/go-minesweeper/pkg/minesweeper/status.go:61.28,62.60 1 1
