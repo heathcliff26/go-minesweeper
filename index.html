@@ -57,7 +57,7 @@
 				
 				<option value="file0">github.com/heathcliff26/go-minesweeper/cmd/app/main.go (0.0%)</option>
 				
-				<option value="file1">github.com/heathcliff26/go-minesweeper/pkg/app/app.go (39.2%)</option>
+				<option value="file1">github.com/heathcliff26/go-minesweeper/pkg/app/app.go (46.2%)</option>
 				
 				<option value="file2">github.com/heathcliff26/go-minesweeper/pkg/app/button.go (100.0%)</option>
 				
@@ -130,19 +130,22 @@ var TEXT_COLOR = color.White
 
 var DEFAULT_DIFFICULTY = minesweeper.Difficulties()[minesweeper.DifficultyIntermediate]
 
+const DEFAULT_GAME_ALGORITHM = GameAlgorithmSafeArea
+
 // Used to change the new app function for testing
 var newApp = fApp.New
 
 // Struct representing the current app.
 // There should only ever be a single instance during runtime.
 type App struct {
-        app          fyne.App
-        main         fyne.Window
-        Version      Version
-        grid         *MinesweeperGrid
-        difficulties []*fyne.MenuItem
-        gameMenu     []*fyne.MenuItem
-        assistedMode *fyne.MenuItem
+        app            fyne.App
+        main           fyne.Window
+        Version        Version
+        grid           *MinesweeperGrid
+        difficulties   []*fyne.MenuItem
+        gameMenu       []*fyne.MenuItem
+        assistedMode   *fyne.MenuItem
+        gameAlgorithms []*fyne.MenuItem
 }
 
 // Create a new App
@@ -155,13 +158,11 @@ func New() *App <span class="cov8" title="1">{
                 app:     app,
                 main:    main,
                 Version: version,
-                grid:    NewMinesweeperGrid(DEFAULT_DIFFICULTY, false),
         }
-
         a.main.SetTitle(version.Name)
         a.makeMenu()
-
-        a.setContent()
+        a.NewGrid(DEFAULT_DIFFICULTY)
+        a.setGameAlgorithm(DEFAULT_GAME_ALGORITHM)
 
         a.main.SetFixedSize(true)
         a.main.Show()
@@ -199,8 +200,7 @@ func (a *App) makeMenu() <span class="cov8" title="1">{
                         <span class="cov8" title="1">for _, i := range a.difficulties </span><span class="cov8" title="1">{
                                 i.Checked = (i.Label == d.Name)
                         }</span>
-                        <span class="cov8" title="1">a.grid = NewMinesweeperGrid(d, a.assistedMode.Checked)
-                        a.setContent()</span>
+                        <span class="cov8" title="1">a.NewGrid(d)</span>
                 }
                 <span class="cov8" title="1">item.Checked = (d == DEFAULT_DIFFICULTY)
                 diffItems = append(diffItems, item)</span>
@@ -212,14 +212,21 @@ func (a *App) makeMenu() <span class="cov8" title="1">{
 
         a.assistedMode = fyne.NewMenuItem("      Assisted Mode", func() </span><span class="cov8" title="1">{
                 a.assistedMode.Checked = !a.assistedMode.Checked
-                if a.grid != nil </span><span class="cov8" title="1">{
-                        a.grid.AssistedMode = a.assistedMode.Checked
-                }</span>
-                <span class="cov8" title="1">if a.grid != nil &amp;&amp; a.grid.AssistedMode &amp;&amp; a.grid.Game != nil </span><span class="cov0" title="0">{
+                a.grid.AssistedMode = a.assistedMode.Checked
+                if a.grid.AssistedMode &amp;&amp; a.grid.Game != nil </span><span class="cov0" title="0">{
                         a.grid.updateFromStatus(a.grid.Game.Status())
                 }</span>
         })
-        <span class="cov8" title="1">optionsMenu := fyne.NewMenu("Options", a.assistedMode)
+        <span class="cov8" title="1">a.gameAlgorithms = make([]*fyne.MenuItem, 2)
+        a.gameAlgorithms[0] = fyne.NewMenuItem("Safe Position", func() </span><span class="cov8" title="1">{
+                a.setGameAlgorithm(GameAlgorithmSafePos)
+        }</span>)
+        <span class="cov8" title="1">a.gameAlgorithms[1] = fyne.NewMenuItem("Safe Area", func() </span><span class="cov8" title="1">{
+                a.setGameAlgorithm(GameAlgorithmSafeArea)
+        }</span>)
+        <span class="cov8" title="1">gameAlgorithmSubMenu := fyne.NewMenuItem("Creation Algorithm", nil)
+        gameAlgorithmSubMenu.ChildMenu = fyne.NewMenu("Creation Algorithm", a.gameAlgorithms...)
+        optionsMenu := fyne.NewMenu("Options", a.assistedMode, gameAlgorithmSubMenu)
 
         about := fyne.NewMenuItem("About", func() </span><span class="cov0" title="0">{
                 vInfo := dialog.NewCustom(a.Version.Name, "close", getVersionContent(a.Version), a.main)
@@ -265,8 +272,7 @@ func (a *App) customDifficultyDialog() <span class="cov0" title="0">{
                 <span class="cov0" title="0">for _, i := range a.difficulties </span><span class="cov0" title="0">{
                         i.Checked = (i.Label == "Custom")
                 }</span>
-                <span class="cov0" title="0">a.grid = NewMinesweeperGrid(d, a.assistedMode.Checked)
-                a.setContent()</span>
+                <span class="cov0" title="0">a.NewGrid(d)</span>
         }, a.main)
         <span class="cov0" title="0">diffDialog.Show()</span>
 }
@@ -290,8 +296,7 @@ func (a *App) loadSave() <span class="cov0" title="0">{
                 <span class="cov0" title="0">for _, i := range a.difficulties </span><span class="cov0" title="0">{
                         i.Checked = (i.Label == save.Data.Difficulty.Name)
                 }</span>
-                <span class="cov0" title="0">a.grid = NewMinesweeperGrid(save.Data.Difficulty, a.assistedMode.Checked)
-                a.setContent()
+                <span class="cov0" title="0">a.NewGrid(save.Data.Difficulty)
 
                 a.grid.Game = save.Game()</span>
         }, a.main)
@@ -346,6 +351,23 @@ func (a *App) saveGame() <span class="cov0" title="0">{
         }</span>
 
         <span class="cov0" title="0">d.Show()</span>
+}
+
+func (a *App) NewGrid(d minesweeper.Difficulty) <span class="cov8" title="1">{
+        a.grid = NewMinesweeperGrid(d, a.assistedMode.Checked)
+        for i, item := range a.gameAlgorithms </span><span class="cov8" title="1">{
+                if item.Checked </span><span class="cov8" title="1">{
+                        a.grid.GameAlgorithm = i
+                }</span>
+        }
+        <span class="cov8" title="1">a.setContent()</span>
+}
+
+func (a *App) setGameAlgorithm(id int) <span class="cov8" title="1">{
+        for i, item := range a.gameAlgorithms </span><span class="cov8" title="1">{
+                item.Checked = i == id
+        }</span>
+        <span class="cov8" title="1">a.grid.GameAlgorithm = id</span>
 }
 </pre>
 		
@@ -476,12 +498,18 @@ const (
         ResetTextSize     float32 = 40
 )
 
+const (
+        GameAlgorithmSafePos = iota
+        GameAlgorithmSafeArea
+)
+
 // Graphical display for a minesweeper game
 type MinesweeperGrid struct {
-        Tiles        [][]*Tile
-        Difficulty   minesweeper.Difficulty
-        Game         minesweeper.Game
-        AssistedMode bool
+        Tiles         [][]*Tile
+        Difficulty    minesweeper.Difficulty
+        Game          minesweeper.Game
+        AssistedMode  bool
+        GameAlgorithm int
 
         Timer       *Timer
         MineCount   *Counter
@@ -492,11 +520,12 @@ type MinesweeperGrid struct {
 func NewMinesweeperGrid(d minesweeper.Difficulty, assistedMode bool) *MinesweeperGrid <span class="cov8" title="1">{
         tiles := utils.Make2D[*Tile](d.Row, d.Col)
         grid := &amp;MinesweeperGrid{
-                Tiles:        tiles,
-                Difficulty:   d,
-                AssistedMode: assistedMode,
-                Timer:        NewTimer(),
-                MineCount:    NewCounter(d.Mines),
+                Tiles:         tiles,
+                Difficulty:    d,
+                AssistedMode:  assistedMode,
+                GameAlgorithm: DEFAULT_GAME_ALGORITHM,
+                Timer:         NewTimer(),
+                MineCount:     NewCounter(d.Mines),
         }
         grid.ResetButton = NewButton(ResetDefaultText, color.RGBA{}, grid.NewGame)
         grid.ResetButton.Label.TextSize = ResetTextSize
@@ -536,8 +565,16 @@ func (g *MinesweeperGrid) GetCanvasObject() fyne.CanvasObject <span class="cov8"
 // Starts a new game when no game is currently running.
 func (g *MinesweeperGrid) TappedTile(pos minesweeper.Pos) <span class="cov8" title="1">{
         if g.Game == nil </span><span class="cov8" title="1">{
-                g.Game = minesweeper.NewGameWithSafeArea(g.Difficulty, pos)
-        }</span>
+                switch g.GameAlgorithm </span>{
+                case GameAlgorithmSafePos:<span class="cov8" title="1">
+                        g.Game = minesweeper.NewGameWithSafePos(g.Difficulty, pos)</span>
+                case GameAlgorithmSafeArea:<span class="cov8" title="1">
+                        g.Game = minesweeper.NewGameWithSafeArea(g.Difficulty, pos)</span>
+                default:<span class="cov8" title="1">
+                        slog.Error("Unkown Algorithm for creating a new game", slog.Int("algorithm", g.GameAlgorithm))
+                        return</span>
+                }
+        }
         <span class="cov8" title="1">if !g.Timer.Running() </span><span class="cov8" title="1">{
                 g.Timer.Start()
         }</span>
