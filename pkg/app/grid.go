@@ -105,7 +105,7 @@ func (g *MinesweeperGrid) TappedTile(pos minesweeper.Pos) {
 		g.Timer.Start()
 	}
 
-	slog.Debug("Checking field", slog.String("pos", pos.String()))
+	slog.Info("Checking field", slog.String("pos", pos.String()))
 
 	s := g.Game.CheckField(pos)
 	slog.Debug("Checked field, updating tiles")
