@@ -118,12 +118,12 @@ func (g *MinesweeperGrid) updateFromStatus(s *minesweeper.Status) {
 		return
 	}
 
-	if s.GameOver || s.GameWon {
+	if s.GameOver() || s.GameWon() {
 		switch {
-		case s.GameWon:
+		case s.GameWon():
 			slog.Info("Win")
 			g.ResetButton.SetText(ResetGameWonText)
-		case s.GameOver:
+		case s.GameOver():
 			slog.Info("Game Over")
 			g.ResetButton.SetText(ResetGameOverText)
 		}
@@ -208,7 +208,7 @@ func (g *MinesweeperGrid) Hint() bool {
 		return false
 	}
 	s := g.Game.Status()
-	if s.GameOver || s.GameWon {
+	if s.GameOver() || s.GameWon() {
 		return false
 	}
 

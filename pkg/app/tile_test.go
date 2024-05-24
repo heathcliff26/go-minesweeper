@@ -160,8 +160,8 @@ func TestDoubleTapped(t *testing.T) {
 
 		tile.DoubleTapped(nil)
 
-		assert.False(g.Game.Status().GameOver, "Game should not be lost")
-		assert.True(g.Game.Status().GameWon, "Game should be won")
+		assert.False(g.Game.Status().GameOver(), "Game should not be lost")
+		assert.True(g.Game.Status().GameWon(), "Game should be won")
 		assert.False(g.Tiles[0][0].Field.Checked, "Flagged field should not be checked")
 
 		for x := 0; x < 2; x++ {

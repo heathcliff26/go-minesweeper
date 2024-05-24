@@ -155,7 +155,7 @@ func measureAssistedMode(res chan time.Duration) {
 		s := game.CheckField(pos)
 		s.ObviousMines()
 		s.ObviousSafePos()
-		if s.GameOver || s.GameWon {
+		if s.GameOver() || s.GameWon() {
 			fmt.Println("Something unexpected happened, the game finished")
 		}
 	}

@@ -98,14 +98,14 @@ func TestCreateActionsEarlyReturn(t *testing.T) {
 			Name: "FieldGameOver",
 			Status: Status{
 				Field:    utils.Make2D[Field](1, 1),
-				GameOver: true,
+				gameOver: true,
 			},
 		},
 		{
 			Name: "FieldGameWon",
 			Status: Status{
 				Field:   utils.Make2D[Field](1, 1),
-				GameWon: true,
+				gameWon: true,
 			},
 		},
 	}

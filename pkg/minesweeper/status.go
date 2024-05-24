@@ -12,8 +12,8 @@ import (
 // It is safe to write to Status, as it is merely a copy.
 type Status struct {
 	Field    [][]Field
-	GameOver bool
-	GameWon  bool
+	gameOver bool
+	gameWon  bool
 
 	actions Actions
 }
@@ -21,6 +21,14 @@ type Status struct {
 type Actions struct {
 	Mines   []Pos
 	SafePos []Pos
+}
+
+func (s *Status) GameOver() bool {
+	return s.gameOver
+}
+
+func (s *Status) GameWon() bool {
+	return s.gameWon
 }
 
 func (s *Status) ObviousMines() []Pos {
@@ -42,7 +50,8 @@ func (s *Status) createActions() {
 		Mines:   make([]Pos, 0, 10),
 		SafePos: make([]Pos, 0, 10),
 	}
-	if len(s.Field) == 0 || s.GameOver || s.GameWon {
+
+	if len(s.Field) == 0 || s.GameOver() || s.GameWon() {
 		return
 	}
 
