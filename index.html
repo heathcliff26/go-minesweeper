@@ -57,35 +57,37 @@
 				
 				<option value="file0">github.com/heathcliff26/go-minesweeper/cmd/app/main.go (0.0%)</option>
 				
-				<option value="file1">github.com/heathcliff26/go-minesweeper/pkg/app/app.go (45.9%)</option>
+				<option value="file1">github.com/heathcliff26/go-minesweeper/cmd/log-parser/main.go (0.0%)</option>
 				
-				<option value="file2">github.com/heathcliff26/go-minesweeper/pkg/app/button.go (100.0%)</option>
+				<option value="file2">github.com/heathcliff26/go-minesweeper/pkg/app/app.go (45.9%)</option>
 				
-				<option value="file3">github.com/heathcliff26/go-minesweeper/pkg/app/counter.go (100.0%)</option>
+				<option value="file3">github.com/heathcliff26/go-minesweeper/pkg/app/button.go (100.0%)</option>
 				
-				<option value="file4">github.com/heathcliff26/go-minesweeper/pkg/app/grid.go (99.0%)</option>
+				<option value="file4">github.com/heathcliff26/go-minesweeper/pkg/app/counter.go (100.0%)</option>
 				
-				<option value="file5">github.com/heathcliff26/go-minesweeper/pkg/app/log.go (100.0%)</option>
+				<option value="file5">github.com/heathcliff26/go-minesweeper/pkg/app/grid.go (99.0%)</option>
 				
-				<option value="file6">github.com/heathcliff26/go-minesweeper/pkg/app/tile.go (100.0%)</option>
+				<option value="file6">github.com/heathcliff26/go-minesweeper/pkg/app/log.go (100.0%)</option>
 				
-				<option value="file7">github.com/heathcliff26/go-minesweeper/pkg/app/timer.go (100.0%)</option>
+				<option value="file7">github.com/heathcliff26/go-minesweeper/pkg/app/tile.go (100.0%)</option>
 				
-				<option value="file8">github.com/heathcliff26/go-minesweeper/pkg/app/utils.go (43.1%)</option>
+				<option value="file8">github.com/heathcliff26/go-minesweeper/pkg/app/timer.go (100.0%)</option>
 				
-				<option value="file9">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/difficulty.go (100.0%)</option>
+				<option value="file9">github.com/heathcliff26/go-minesweeper/pkg/app/utils.go (43.1%)</option>
 				
-				<option value="file10">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/errors.go (50.0%)</option>
+				<option value="file10">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/difficulty.go (100.0%)</option>
 				
-				<option value="file11">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/game.go (100.0%)</option>
+				<option value="file11">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/errors.go (50.0%)</option>
 				
-				<option value="file12">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/save.go (84.6%)</option>
+				<option value="file12">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/game.go (100.0%)</option>
 				
-				<option value="file13">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/status.go (100.0%)</option>
+				<option value="file13">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/save.go (84.6%)</option>
 				
-				<option value="file14">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/utils.go (100.0%)</option>
+				<option value="file14">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/status.go (100.0%)</option>
 				
-				<option value="file15">github.com/heathcliff26/go-minesweeper/pkg/utils/utils.go (100.0%)</option>
+				<option value="file15">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/utils.go (100.0%)</option>
+				
+				<option value="file16">github.com/heathcliff26/go-minesweeper/pkg/utils/utils.go (100.0%)</option>
 				
 				</select>
 			</div>
@@ -109,7 +111,83 @@ func main() <span class="cov0" title="0">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file1" style="display: none">package app
+		<pre class="file" id="file1" style="display: none">package main
+
+import (
+        "encoding/json"
+        "flag"
+        "fmt"
+        "os"
+        "regexp"
+        "strconv"
+
+        "github.com/heathcliff26/go-minesweeper/pkg/minesweeper"
+)
+
+var input, output string
+var usage bool
+
+func init() <span class="cov0" title="0">{
+        flag.StringVar(&amp;input, "i", "", "Input file")
+        flag.StringVar(&amp;output, "o", "", "Output file")
+        flag.BoolVar(&amp;usage, "h", false, "Show helptext")
+}</span>
+
+func main() <span class="cov0" title="0">{
+        flag.Parse()
+        if usage </span><span class="cov0" title="0">{
+                flag.Usage()
+                os.Exit(0)
+        }</span>
+        <span class="cov0" title="0">if input == "" </span><span class="cov0" title="0">{
+                fmt.Println("You need to specify an input file with -i &lt;file&gt;")
+                os.Exit(1)
+        }</span>
+        <span class="cov0" title="0">if output == "" </span><span class="cov0" title="0">{
+                fmt.Println("You need to specify an output file with -o &lt;file&gt;")
+                os.Exit(1)
+        }</span>
+        <span class="cov0" title="0">f, err := os.ReadFile(input)
+        if err != nil </span><span class="cov0" title="0">{
+                fmt.Println(err)
+                os.Exit(1)
+        }</span>
+        <span class="cov0" title="0">reg := regexp.MustCompile(`time=.* level=INFO msg="Checking field" pos="\((\d*), (\d*)\)"\n`)
+
+        positions := reg.FindAllStringSubmatch(string(f), -1)
+        p := make([]minesweeper.Pos, len(positions))
+        for i, pos := range positions </span><span class="cov0" title="0">{
+                x, err := strconv.Atoi(pos[1])
+                if err != nil </span><span class="cov0" title="0">{
+                        fmt.Println(err)
+                        os.Exit(1)
+                }</span>
+                <span class="cov0" title="0">y, err := strconv.Atoi(pos[2])
+                if err != nil </span><span class="cov0" title="0">{
+                        fmt.Println(err)
+                        os.Exit(1)
+                }</span>
+
+                <span class="cov0" title="0">p[i] = minesweeper.NewPos(x, y)</span>
+        }
+        <span class="cov0" title="0">fmt.Printf("Found %d positions in log\n", len(p))
+
+        buf, err := json.MarshalIndent(p, "", "    ")
+        if err != nil </span><span class="cov0" title="0">{
+                fmt.Println(err)
+                os.Exit(1)
+        }</span>
+
+        <span class="cov0" title="0">err = os.WriteFile(output, buf, 0644)
+        if err != nil </span><span class="cov0" title="0">{
+                fmt.Println(err)
+                os.Exit(1)
+        }</span>
+        <span class="cov0" title="0">fmt.Println("Success!!!")</span>
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package app
 
 import (
         "image/color"
@@ -376,7 +454,7 @@ func (a *App) setGameAlgorithm(id int) <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file2" style="display: none">package app
+		<pre class="file" id="file3" style="display: none">package app
 
 import (
         "image/color"
@@ -425,7 +503,7 @@ func (b *Button) SetText(text string) <span class="cov8" title="1">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file3" style="display: none">package app
+		<pre class="file" id="file4" style="display: none">package app
 
 import (
         "fmt"
@@ -477,7 +555,7 @@ func (m *Counter) Dec() <span class="cov8" title="1">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file4" style="display: none">package app
+		<pre class="file" id="file5" style="display: none">package app
 
 import (
         "image/color"
@@ -711,7 +789,7 @@ func (g *MinesweeperGrid) Hint() bool <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file5" style="display: none">package app
+		<pre class="file" id="file6" style="display: none">package app
 
 import (
         "log/slog"
@@ -729,7 +807,7 @@ func init() <span class="cov8" title="1">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file6" style="display: none">//go:generate fyne bundle --package assets --prefix Resource -o ../../assets/bundle_generated.go ../../img/mine.png
+		<pre class="file" id="file7" style="display: none">//go:generate fyne bundle --package assets --prefix Resource -o ../../assets/bundle_generated.go ../../img/mine.png
 //go:generate fyne bundle --prefix Resource -o ../../assets/bundle_generated.go -append ../../img/flag.png
 //go:generate fyne bundle --prefix Resource -o ../../assets/bundle_generated.go -append ../../img/flag-success.png
 package app
@@ -953,7 +1031,7 @@ func (t *Tile) gameFinished() bool <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file7" style="display: none">package app
+		<pre class="file" id="file8" style="display: none">package app
 
 import (
         "fmt"
@@ -1027,7 +1105,7 @@ func (t *Timer) refresh() <span class="cov8" title="1">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file8" style="display: none">package app
+		<pre class="file" id="file9" style="display: none">package app
 
 import (
         "image/color"
@@ -1145,7 +1223,7 @@ func setDialogLocationToPWD(d *dialog.FileDialog, window fyne.Window) bool <span
 }
 </pre>
 		
-		<pre class="file" id="file9" style="display: none">package minesweeper
+		<pre class="file" id="file10" style="display: none">package minesweeper
 
 const (
         DifficultyClassic      = iota
@@ -1219,7 +1297,7 @@ func NewCustomDifficulty(mines, row, col int) (Difficulty, error) <span class="c
 }
 </pre>
 		
-		<pre class="file" id="file10" style="display: none">package minesweeper
+		<pre class="file" id="file11" style="display: none">package minesweeper
 
 import "fmt"
 
@@ -1249,7 +1327,7 @@ func (e *ErrDifficultyMineCount) Error() string <span class="cov0" title="0">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file11" style="display: none">package minesweeper
+		<pre class="file" id="file12" style="display: none">package minesweeper
 
 import (
         "log/slog"
@@ -1527,7 +1605,7 @@ func (g *LocalGame) calculateFieldContent() <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file12" style="display: none">package minesweeper
+		<pre class="file" id="file13" style="display: none">package minesweeper
 
 import (
         "crypto/sha512"
@@ -1618,7 +1696,7 @@ func (s *Save) Game() *LocalGame <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file13" style="display: none">package minesweeper
+		<pre class="file" id="file14" style="display: none">package minesweeper
 
 import (
         "log/slog"
@@ -1731,7 +1809,7 @@ func (s *Status) createActions() <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file14" style="display: none">package minesweeper
+		<pre class="file" id="file15" style="display: none">package minesweeper
 
 import (
         "fmt"
@@ -1806,7 +1884,7 @@ func walkField(f func(x, y int), limitX, limitY int) <span class="cov8" title="1
 }
 </pre>
 		
-		<pre class="file" id="file15" style="display: none">package utils
+		<pre class="file" id="file16" style="display: none">package utils
 
 // Create a new, empty 2 dimensional array of the given type and dimensions.
 func Make2D[T any](x, y int) [][]T <span class="cov8" title="1">{

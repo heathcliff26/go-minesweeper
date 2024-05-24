@@ -1,5 +1,25 @@
 mode: set
 github.com/heathcliff26/go-minesweeper/cmd/app/main.go:5.13,8.2 2 0
+github.com/heathcliff26/go-minesweeper/cmd/log-parser/main.go:17.13,21.2 3 0
+github.com/heathcliff26/go-minesweeper/cmd/log-parser/main.go:23.13,25.11 2 0
+github.com/heathcliff26/go-minesweeper/cmd/log-parser/main.go:25.11,28.3 2 0
+github.com/heathcliff26/go-minesweeper/cmd/log-parser/main.go:29.2,29.17 1 0
+github.com/heathcliff26/go-minesweeper/cmd/log-parser/main.go:29.17,32.3 2 0
+github.com/heathcliff26/go-minesweeper/cmd/log-parser/main.go:33.2,33.18 1 0
+github.com/heathcliff26/go-minesweeper/cmd/log-parser/main.go:33.18,36.3 2 0
+github.com/heathcliff26/go-minesweeper/cmd/log-parser/main.go:37.2,38.16 2 0
+github.com/heathcliff26/go-minesweeper/cmd/log-parser/main.go:38.16,41.3 2 0
+github.com/heathcliff26/go-minesweeper/cmd/log-parser/main.go:42.2,46.32 4 0
+github.com/heathcliff26/go-minesweeper/cmd/log-parser/main.go:46.32,48.17 2 0
+github.com/heathcliff26/go-minesweeper/cmd/log-parser/main.go:48.17,51.4 2 0
+github.com/heathcliff26/go-minesweeper/cmd/log-parser/main.go:52.3,53.17 2 0
+github.com/heathcliff26/go-minesweeper/cmd/log-parser/main.go:53.17,56.4 2 0
+github.com/heathcliff26/go-minesweeper/cmd/log-parser/main.go:58.3,58.34 1 0
+github.com/heathcliff26/go-minesweeper/cmd/log-parser/main.go:60.2,63.16 3 0
+github.com/heathcliff26/go-minesweeper/cmd/log-parser/main.go:63.16,66.3 2 0
+github.com/heathcliff26/go-minesweeper/cmd/log-parser/main.go:68.2,69.16 2 0
+github.com/heathcliff26/go-minesweeper/cmd/log-parser/main.go:69.16,72.3 2 0
+github.com/heathcliff26/go-minesweeper/cmd/log-parser/main.go:73.2,73.27 1 0
 github.com/heathcliff26/go-minesweeper/pkg/utils/utils.go:4.36,5.20 1 1
 github.com/heathcliff26/go-minesweeper/pkg/utils/utils.go:5.20,7.3 1 1
 github.com/heathcliff26/go-minesweeper/pkg/utils/utils.go:9.2,12.25 3 1
