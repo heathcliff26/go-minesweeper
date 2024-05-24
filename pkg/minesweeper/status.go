@@ -23,14 +23,17 @@ type Actions struct {
 	SafePos []Pos
 }
 
+// Returns if the game is lost
 func (s *Status) GameOver() bool {
 	return s.gameOver
 }
 
+// Returns if the game is won
 func (s *Status) GameWon() bool {
 	return s.gameWon
 }
 
+// Returns the position of all obvious mines
 func (s *Status) ObviousMines() []Pos {
 	if s.actions.Mines == nil {
 		s.createActions()
@@ -38,6 +41,7 @@ func (s *Status) ObviousMines() []Pos {
 	return s.actions.Mines
 }
 
+// Returns the position of all obvious safe positions
 func (s *Status) ObviousSafePos() []Pos {
 	if s.actions.SafePos == nil {
 		s.createActions()
@@ -45,6 +49,7 @@ func (s *Status) ObviousSafePos() []Pos {
 	return s.actions.SafePos
 }
 
+// Calculate the next actions based on the current status
 func (s *Status) createActions() {
 	s.actions = Actions{
 		Mines:   make([]Pos, 0, 10),
