@@ -64,7 +64,8 @@ func (s *Status) createActions() {
 			}
 
 			unchecked := FieldContent(0)
-			mines := unchecked
+			mines := FieldContent(0)
+			safePos := FieldContent(0)
 			newPos := make([]Pos, 0, 8)
 			for m := -1; m < 2; m++ {
 				for n := -1; n < 2; n++ {
@@ -78,6 +79,8 @@ func (s *Status) createActions() {
 							mines++
 						} else if !slices.Contains(s.actions.SafePos, p) {
 							newPos = append(newPos, p)
+						} else {
+							safePos++
 						}
 					}
 				}
@@ -85,7 +88,7 @@ func (s *Status) createActions() {
 			if len(newPos) == 0 {
 				return
 			}
-			if unchecked == s.Field[x][y].Content && mines != s.Field[x][y].Content {
+			if unchecked-safePos == s.Field[x][y].Content && mines != s.Field[x][y].Content {
 				slog.Debug("Assisted Mode: Found mines near field",
 					slog.String("pos", NewPos(x, y).String()),
 					slog.Int("mines", int(mines)),

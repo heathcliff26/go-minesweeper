@@ -10,7 +10,7 @@ import (
 )
 
 type assistedModeTestConfig struct {
-	StartPos minesweeper.Pos
+	CheckPos minesweeper.Pos
 	Mines    []minesweeper.Pos
 	SafePos  []minesweeper.Pos
 }
@@ -148,33 +148,38 @@ func TestAssistedMode(t *testing.T) {
 
 	g, testConfig, err := loadAssistedModeTest("../minesweeper/testdata/assisted_mode_1", true)
 	if !assert.Nil(err, "Should have loaded the test") {
-		t.FailNow()
+		t.Fatal(err)
 	}
 
-	g.TappedTile(testConfig.StartPos)
+	for _, step := range testConfig {
+		g.TappedTile(step.CheckPos)
 
-	mines := 0
-	safePos := 0
-	for x := 0; x < g.Row(); x++ {
-		for y := 0; y < g.Col(); y++ {
-			p := minesweeper.NewPos(x, y)
-			switch g.Tiles[p.X][p.Y].Marker {
-			case HelpMarkingNone:
-				assert.NotContains(testConfig.Mines, p, "Should have been marked as a mines")
-				assert.NotContains(testConfig.SafePos, p, "Should have been marked as safe")
-			case HelpMarkingMine:
-				mines++
-				assert.Contains(testConfig.Mines, p, "Should not have been marked as a mine")
-			case HelpMarkingSafe:
-				safePos++
-				assert.Contains(testConfig.SafePos, p, "Should not have been marked as safe")
-			default:
-				assert.Fail("Found unknown Marker %d at %s", g.Tiles[x][y].Marker, p.String())
+		mines := 0
+		safePos := 0
+		for x := 0; x < g.Row(); x++ {
+			for y := 0; y < g.Col(); y++ {
+				p := minesweeper.NewPos(x, y)
+				if g.Tiles[p.X][p.Y].Field.Checked {
+					continue
+				}
+				switch g.Tiles[p.X][p.Y].Marker {
+				case HelpMarkingNone:
+					assert.NotContains(step.Mines, p, "Should have been marked as a mines")
+					assert.NotContains(step.SafePos, p, "Should have been marked as safe")
+				case HelpMarkingMine:
+					mines++
+					assert.Contains(step.Mines, p, "Should not have been marked as a mine")
+				case HelpMarkingSafe:
+					safePos++
+					assert.Contains(step.SafePos, p, "Should not have been marked as safe")
+				default:
+					assert.Fail("Found unknown Marker %d at %s", g.Tiles[x][y].Marker, p.String())
+				}
 			}
 		}
+		assert.Equal(len(step.Mines), mines, "Should have the same amount of mines as in the config")
+		assert.Equal(len(step.SafePos), safePos, "Should have the same amount of safe positions as in the config")
 	}
-	assert.Equal(len(testConfig.Mines), mines, "Should have the same amount of mines as in the config")
-	assert.Equal(len(testConfig.SafePos), safePos, "Should have the same amount of safe positions as in the config")
 }
 
 func TestHint(t *testing.T) {
@@ -185,12 +190,13 @@ func TestHint(t *testing.T) {
 
 	g, testConfig, err := loadAssistedModeTest("testdata/hint", false)
 	if !assert.Nil(err, "Should have loaded the test") {
-		t.FailNow()
+		t.Fatal(err)
 	}
+	step := testConfig[0]
 
-	g.TappedTile(testConfig.StartPos)
+	g.TappedTile(step.CheckPos)
 
-	for _, mine := range testConfig.Mines {
+	for _, mine := range step.Mines {
 		assert.True(g.Hint(), "Should be able to display hints")
 		tile := g.Tiles[mine.X][mine.Y]
 		assert.Equalf(HelpMarkingMine, tile.Marker, "Tile should be marked as mine, tile=%s", tile.Pos.String())
@@ -208,11 +214,11 @@ func TestHint(t *testing.T) {
 		}
 	}
 	assert.True(g.Hint(), "Should be able to display hints")
-	assert.Equal(HelpMarkingSafe, g.Tiles[testConfig.SafePos[0].X][testConfig.SafePos[0].Y].Marker, "Tile should be marked as safe")
+	assert.Equal(HelpMarkingSafe, g.Tiles[step.SafePos[0].X][step.SafePos[0].Y].Marker, "Tile should be marked as safe")
 	for x := 0; x < g.Difficulty.Row; x++ {
 		for y := 0; y < g.Difficulty.Col; y++ {
 			tile := g.Tiles[x][y]
-			if tile.Flagged || tile.Field.Checked || tile.Pos == testConfig.SafePos[0] {
+			if tile.Flagged || tile.Field.Checked || tile.Pos == step.SafePos[0] {
 				continue
 			}
 			if !assert.Equalf(HelpMarkingNone, tile.Marker, "No other tiles should be marked, tile=%s", tile.Pos.String()) {
@@ -225,10 +231,10 @@ func TestHint(t *testing.T) {
 	assert.False(g.Hint(), "Should not be able to display hint on failed game")
 }
 
-func loadAssistedModeTest(path string, assistedMode bool) (*MinesweeperGrid, assistedModeTestConfig, error) {
+func loadAssistedModeTest(path string, assistedMode bool) (*MinesweeperGrid, []assistedModeTestConfig, error) {
 	save, err := minesweeper.LoadSave(path + ".sav")
 	if err != nil {
-		return nil, assistedModeTestConfig{}, err
+		return nil, nil, err
 	}
 	g := NewMinesweeperGrid(save.Data.Difficulty, assistedMode)
 	for _, row := range g.Tiles {
@@ -240,13 +246,13 @@ func loadAssistedModeTest(path string, assistedMode bool) (*MinesweeperGrid, ass
 
 	buf, err := os.ReadFile(path + ".json")
 	if err != nil {
-		return nil, assistedModeTestConfig{}, err
+		return nil, nil, err
 	}
 
-	var testConfig assistedModeTestConfig
+	var testConfig []assistedModeTestConfig
 	err = json.Unmarshal(buf, &testConfig)
 	if err != nil {
-		return nil, assistedModeTestConfig{}, err
+		return nil, nil, err
 	}
 	return g, testConfig, nil
 }

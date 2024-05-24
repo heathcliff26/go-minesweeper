@@ -10,37 +10,71 @@ import (
 )
 
 func TestAssistedMode(t *testing.T) {
-	tCase := "assisted_mode_1"
+	tMatrix := []string{"assisted_mode_1", "assisted_mode_2"}
+	for _, tCase := range tMatrix {
+		t.Run(tCase, func(t *testing.T) {
+			assert := assert.New(t)
 
-	assert := assert.New(t)
+			save, err := LoadSave("testdata/" + tCase + ".sav")
+			if !assert.Nil(err, "Should load savegame") {
+				t.FailNow()
+			}
+			game := save.Game()
 
-	save, err := LoadSave("testdata/" + tCase + ".sav")
-	if !assert.Nil(err, "Should load savegame") {
-		t.FailNow()
+			buf, err := os.ReadFile("testdata/" + tCase + ".json")
+			if !assert.Nil(err, "Should load test config") {
+				t.FailNow()
+			}
+			var testConfig []struct {
+				CheckPos Pos
+				Mines    []Pos
+				SafePos  []Pos
+			}
+			err = json.Unmarshal(buf, &testConfig)
+			if !assert.Nil(err, "Should parse test config") {
+				t.FailNow()
+			}
+
+			for i, step := range testConfig {
+				s := game.CheckField(step.CheckPos)
+
+				fail := false
+
+				if !assert.ElementsMatch(step.Mines, s.ObviousMines(), "Mines should match") {
+					fail = true
+				}
+				if !assert.Equal(len(step.Mines), len(s.actions.Mines), "Should have the same amount of mines") {
+					fail = true
+				}
+				if !assert.Equal(len(step.SafePos), len(s.actions.SafePos), "Should already have safe positions") {
+					fail = true
+				}
+				if !assert.ElementsMatch(step.SafePos, s.ObviousSafePos(), "Safe positions should match") {
+					fail = true
+				}
+
+				s.actions.SafePos = nil
+				if !assert.ElementsMatch(step.SafePos, s.ObviousSafePos(), "Safe positions should match") {
+					fail = true
+				}
+
+				for _, p := range s.ObviousMines() {
+					if !assert.Falsef(s.Field[p.X][p.Y].Checked, "Mine should not be checked, pos="+p.String()) {
+						fail = true
+					}
+				}
+				for _, p := range s.ObviousSafePos() {
+					if !assert.Falsef(s.Field[p.X][p.Y].Checked, "Safe position should not be checked, pos="+p.String()) {
+						fail = true
+					}
+				}
+
+				if fail {
+					t.Fatalf("Failed on step %d, checkPos=%s", i, step.CheckPos.String())
+				}
+			}
+		})
 	}
-	buf, err := os.ReadFile("testdata/" + tCase + ".json")
-	if !assert.Nil(err, "Should load test config") {
-		t.FailNow()
-	}
-	var testConfig struct {
-		StartPos Pos
-		Mines    []Pos
-		SafePos  []Pos
-	}
-	err = json.Unmarshal(buf, &testConfig)
-	if !assert.Nil(err, "Should parse test config") {
-		t.FailNow()
-	}
-
-	s := save.Game().CheckField(testConfig.StartPos)
-
-	assert.ElementsMatch(testConfig.Mines, s.ObviousMines(), "Mines should match")
-	assert.Equal(len(testConfig.Mines), len(s.actions.Mines), "Should have the same amount of mines")
-	assert.Equal(len(testConfig.SafePos), len(s.actions.SafePos), "Should already have safe positions")
-	assert.ElementsMatch(testConfig.SafePos, s.ObviousSafePos(), "Safe positions should match")
-
-	s.actions.SafePos = nil
-	assert.ElementsMatch(testConfig.SafePos, s.ObviousSafePos(), "Safe positions should match")
 }
 
 func TestCreateActionsEarlyReturn(t *testing.T) {
