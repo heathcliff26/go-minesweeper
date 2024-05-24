@@ -346,10 +346,10 @@ func TestDetectVictory(t *testing.T) {
 	g.UpdateStatus()
 
 	assert.True(g.GameWon)
-	assert.True(g.status.GameWon)
+	assert.True(g.status.GameWon())
 
 	assert.False(g.GameOver)
-	assert.False(g.status.GameOver)
+	assert.False(g.status.GameOver())
 }
 
 func TestReplay(t *testing.T) {

@@ -170,8 +170,8 @@ func (g *LocalGame) UpdateStatus() {
 	d := g.Difficulty
 	s := &Status{
 		Field:    utils.Make2D[Field](d.Row, d.Col),
-		GameOver: g.Lost(),
-		GameWon:  g.Won(),
+		gameOver: g.Lost(),
+		gameWon:  g.Won(),
 	}
 
 	wasWon := g.Won()
@@ -190,7 +190,7 @@ func (g *LocalGame) UpdateStatus() {
 	})
 
 	if !wasWon && isWon {
-		g.GameWon, s.GameWon = isWon, isWon
+		g.GameWon, s.gameWon = isWon, isWon
 		for x := 0; x < d.Row; x++ {
 			copy(s.Field[x], g.Field[x])
 		}
