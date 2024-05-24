@@ -695,12 +695,12 @@ func (g *MinesweeperGrid) updateFromStatus(s *minesweeper.Status) <span class="c
                 return
         }</span>
 
-        <span class="cov8" title="1">if s.GameOver || s.GameWon </span><span class="cov8" title="1">{
+        <span class="cov8" title="1">if s.GameOver() || s.GameWon() </span><span class="cov8" title="1">{
                 switch </span>{
-                case s.GameWon:<span class="cov8" title="1">
+                case s.GameWon():<span class="cov8" title="1">
                         slog.Info("Win")
                         g.ResetButton.SetText(ResetGameWonText)</span>
-                case s.GameOver:<span class="cov8" title="1">
+                case s.GameOver():<span class="cov8" title="1">
                         slog.Info("Game Over")
                         g.ResetButton.SetText(ResetGameOverText)</span>
                 }
@@ -725,7 +725,7 @@ func (g *MinesweeperGrid) updateFromStatus(s *minesweeper.Status) <span class="c
                         if s.Field[x][y].Content == minesweeper.Unknown </span><span class="cov8" title="1">{
                                 continue</span>
                         }
-                        <span class="cov8" title="1">t.Field = &amp;s.Field[x][y]
+                        <span class="cov8" title="1">t.Field = s.Field[x][y]
                         t.UpdateContent()</span>
                 }
         }
@@ -785,7 +785,7 @@ func (g *MinesweeperGrid) Hint() bool <span class="cov8" title="1">{
                 return false
         }</span>
         <span class="cov8" title="1">s := g.Game.Status()
-        if s.GameOver || s.GameWon </span><span class="cov8" title="1">{
+        if s.GameOver() || s.GameWon() </span><span class="cov8" title="1">{
                 return false
         }</span>
 
@@ -875,7 +875,7 @@ type Tile struct {
         icon       *widget.Icon
 
         Pos     minesweeper.Pos
-        Field   *minesweeper.Field
+        Field   minesweeper.Field
         grid    *MinesweeperGrid
         Flagged bool
         Marker  HelpMarking
@@ -885,7 +885,7 @@ type Tile struct {
 func NewTile(x, y int, grid *MinesweeperGrid) *Tile <span class="cov8" title="1">{
         t := &amp;Tile{
                 Pos: minesweeper.NewPos(x, y),
-                Field: &amp;minesweeper.Field{
+                Field: minesweeper.Field{
                         Checked: false,
                         Content: minesweeper.Unknown,
                 },
@@ -1447,14 +1447,12 @@ func (g *LocalGame) CheckField(p Pos) *Status <span class="cov8" title="1">{
 
         if g.Field[p.X][p.Y].Content == Mine </span><span class="cov8" title="1">{
                 g.GameOver = true
-                g.UpdateStatus()
-                return g.Status()
+                return g.UpdateStatus()
         }</span>
 
         <span class="cov8" title="1">g.RevealField(p)
 
-        g.UpdateStatus()
-        return g.Status()</span>
+        return g.UpdateStatus()</span>
 }
 
 // Recursive function to reveal all neighbouring fields that can be safely reveald.
@@ -1496,24 +1494,28 @@ func (g *LocalGame) Status() *Status <span class="cov8" title="1">{
         return g.status
 }</span>
 
-// Create a new instance of status
-func (g *LocalGame) UpdateStatus() <span class="cov8" title="1">{
-        d := g.Difficulty
-        s := &amp;Status{
-                Field:    utils.Make2D[Field](d.Row, d.Col),
-                GameOver: g.Lost(),
-                GameWon:  g.Won(),
-        }
+// Update the status from the current state of the game.
+// Returns status for convenience.
+func (g *LocalGame) UpdateStatus() *Status <span class="cov8" title="1">{
+        if g.status == nil </span><span class="cov8" title="1">{
+                g.status = &amp;Status{
+                        Field:      utils.Make2D[Field](g.Difficulty.Row, g.Difficulty.Col),
+                        gameOver:   g.Lost(),
+                        gameWon:    g.Won(),
+                        difficulty: g.Difficulty,
+                }
+        }</span>
+        <span class="cov8" title="1">g.status.actionsUpdated = false
 
         wasWon := g.Won()
         isWon := true
 
         g.walkField(func(x, y int) </span><span class="cov8" title="1">{
-                s.Field[x][y].Checked = g.Field[x][y].Checked
+                g.status.Field[x][y].Checked = g.Field[x][y].Checked
                 if g.Field[x][y].Checked || g.Lost() || g.Won() </span><span class="cov8" title="1">{
-                        s.Field[x][y].Content = g.Field[x][y].Content
+                        g.status.Field[x][y].Content = g.Field[x][y].Content
                 }</span> else<span class="cov8" title="1"> {
-                        s.Field[x][y].Content = Unknown
+                        g.status.Field[x][y].Content = Unknown
                 }</span>
                 <span class="cov8" title="1">if !g.Field[x][y].Checked &amp;&amp; g.Field[x][y].Content != Mine </span><span class="cov8" title="1">{
                         isWon = false
@@ -1521,13 +1523,16 @@ func (g *LocalGame) UpdateStatus() <span class="cov8" title="1">{
         })
 
         <span class="cov8" title="1">if !wasWon &amp;&amp; isWon </span><span class="cov8" title="1">{
-                g.GameWon, s.GameWon = isWon, isWon
-                for x := 0; x &lt; d.Row; x++ </span><span class="cov8" title="1">{
-                        copy(s.Field[x], g.Field[x])
+                g.GameWon = isWon
+                for x := 0; x &lt; g.Difficulty.Row; x++ </span><span class="cov8" title="1">{
+                        copy(g.status.Field[x], g.Field[x])
                 }</span>
         }
 
-        <span class="cov8" title="1">g.status = s</span>
+        <span class="cov8" title="1">g.status.gameOver = g.GameOver
+        g.status.gameWon = g.GameWon
+
+        return g.status</span>
 }
 
 // Check if Game Over
@@ -1711,11 +1716,13 @@ import (
 // It does not support any of the functions that Game does.
 // It is safe to write to Status, as it is merely a copy.
 type Status struct {
-        Field    [][]Field
-        GameOver bool
-        GameWon  bool
+        Field      [][]Field
+        gameOver   bool
+        gameWon    bool
+        difficulty Difficulty
 
-        actions Actions
+        actionsUpdated bool
+        actions        Actions
 }
 
 type Actions struct {
@@ -1723,33 +1730,48 @@ type Actions struct {
         SafePos []Pos
 }
 
+// Returns if the game is lost
+func (s *Status) GameOver() bool <span class="cov8" title="1">{
+        return s.gameOver
+}</span>
+
+// Returns if the game is won
+func (s *Status) GameWon() bool <span class="cov8" title="1">{
+        return s.gameWon
+}</span>
+
+// Returns the position of all obvious mines
 func (s *Status) ObviousMines() []Pos <span class="cov8" title="1">{
-        if s.actions.Mines == nil </span><span class="cov8" title="1">{
-                s.createActions()
+        if !s.actionsUpdated </span><span class="cov8" title="1">{
+                s.updateActions()
         }</span>
         <span class="cov8" title="1">return s.actions.Mines</span>
 }
 
+// Returns the position of all obvious safe positions
 func (s *Status) ObviousSafePos() []Pos <span class="cov8" title="1">{
-        if s.actions.SafePos == nil </span><span class="cov8" title="1">{
-                s.createActions()
+        if !s.actionsUpdated </span><span class="cov8" title="1">{
+                s.updateActions()
         }</span>
         <span class="cov8" title="1">return s.actions.SafePos</span>
 }
 
-func (s *Status) createActions() <span class="cov8" title="1">{
-        s.actions = Actions{
-                Mines:   make([]Pos, 0, 10),
-                SafePos: make([]Pos, 0, 10),
-        }
-        if len(s.Field) == 0 || s.GameOver || s.GameWon </span><span class="cov8" title="1">{
+// Calculate the next actions based on the current status
+func (s *Status) updateActions() <span class="cov8" title="1">{
+        s.actionsUpdated = true
+        if len(s.Field) == 0 || s.GameOver() || s.GameWon() </span><span class="cov8" title="1">{
                 return
         }</span>
-
-        <span class="cov8" title="1">d := Difficulty{
-                Row: len(s.Field),
-                Col: len(s.Field[0]),
+        <span class="cov8" title="1">if s.actions.Mines == nil </span><span class="cov8" title="1">{
+                s.actions.Mines = make([]Pos, 0, s.difficulty.Mines)
+        }</span>
+        <span class="cov8" title="1">safePos := make([]Pos, 0, 25)
+        for _, p := range s.actions.SafePos </span><span class="cov8" title="1">{
+                if !s.Field[p.X][p.Y].Checked </span><span class="cov8" title="1">{
+                        safePos = append(safePos, p)
+                }</span>
         }
+        <span class="cov8" title="1">s.actions.SafePos = safePos
 
         i := 0
         oldLenMines := -1
@@ -1770,7 +1792,7 @@ func (s *Status) createActions() <span class="cov8" title="1">{
                         for m := -1; m &lt; 2; m++ </span><span class="cov8" title="1">{
                                 for n := -1; n &lt; 2; n++ </span><span class="cov8" title="1">{
                                         p := NewPos(x+m, y+n)
-                                        if OutOfBounds(p, d) </span><span class="cov8" title="1">{
+                                        if OutOfBounds(p, s.difficulty) </span><span class="cov8" title="1">{
                                                 continue</span>
                                         }
                                         <span class="cov8" title="1">if !s.Field[p.X][p.Y].Checked </span><span class="cov8" title="1">{
@@ -1807,7 +1829,7 @@ func (s *Status) createActions() <span class="cov8" title="1">{
                                 )
                                 s.actions.SafePos = append(s.actions.SafePos, newPos...)
                         }</span>
-                }, d.Row, d.Col)
+                }, s.difficulty.Row, s.difficulty.Col)
         }
 
         <span class="cov8" title="1">slog.Debug("Assisted Mode: Mines and safe Positions found", slog.Any("mines", s.actions.Mines), slog.Any("safe", s.actions.SafePos), slog.Int("iterations", i))</span>
@@ -2064,7 +2086,7 @@ func measureAssistedMode(res chan time.Duration) <span class="cov0" title="0">{
                 s := game.CheckField(pos)
                 s.ObviousMines()
                 s.ObviousSafePos()
-                if s.GameOver || s.GameWon </span><span class="cov0" title="0">{
+                if s.GameOver() || s.GameWon() </span><span class="cov0" title="0">{
                         fmt.Println("Something unexpected happened, the game finished")
                 }</span>
         }
