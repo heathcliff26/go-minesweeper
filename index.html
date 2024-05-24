@@ -89,6 +89,8 @@
 				
 				<option value="file16">github.com/heathcliff26/go-minesweeper/pkg/utils/utils.go (100.0%)</option>
 				
+				<option value="file17">github.com/heathcliff26/go-minesweeper/tests/performance/main.go (0.0%)</option>
+				
 				</select>
 			</div>
 			<div id="legend">
@@ -1899,6 +1901,143 @@ func Make2D[T any](x, y int) [][]T <span class="cov8" title="1">{
                 matrix[i] = rows[i*y : (i+1)*y]
         }</span>
         <span class="cov8" title="1">return matrix</span>
+}
+</pre>
+		
+		<pre class="file" id="file17" style="display: none">package main
+
+import (
+        "encoding/json"
+        "fmt"
+        "os"
+        "strconv"
+        "time"
+
+        "github.com/heathcliff26/go-minesweeper/pkg/minesweeper"
+)
+
+const workerThreads = 10
+
+func main() <span class="cov0" title="0">{
+        difficulty, _ := minesweeper.NewCustomDifficulty(700, 99, 99)
+        measureLoop("NewGameWithSafePos", 100, func(res chan time.Duration) </span><span class="cov0" title="0">{
+                measure(res, func() </span><span class="cov0" title="0">{
+                        minesweeper.NewGameWithSafePos(difficulty, minesweeper.NewPos(50, 50))
+                }</span>)
+        })
+        <span class="cov0" title="0">measureLoop("NewGameWithSafeArea", 100, func(res chan time.Duration) </span><span class="cov0" title="0">{
+                measure(res, func() </span><span class="cov0" title="0">{
+                        minesweeper.NewGameWithSafeArea(difficulty, minesweeper.NewPos(50, 50))
+                }</span>)
+        })
+        <span class="cov0" title="0">measureLoop("AssistedMode", 100, measureAssistedMode)</span>
+}
+
+// Run the measurement multiple times, running in parallel as set by workerThreads
+func measureLoop(name string, iterations int, f func(res chan time.Duration)) string <span class="cov0" title="0">{
+        fmt.Printf("Measuring %s using %d iterations\n", name, iterations)
+
+        rest := iterations % workerThreads
+
+        measurements := make([]time.Duration, iterations)
+        res := make(chan time.Duration, workerThreads)
+        i := 0
+
+        for x := 0; x &lt; iterations/workerThreads; x++ </span><span class="cov0" title="0">{
+                for y := 0; y &lt; workerThreads; y++ </span><span class="cov0" title="0">{
+                        go f(res)
+                }</span>
+                <span class="cov0" title="0">for y := 0; y &lt; workerThreads; y++ </span><span class="cov0" title="0">{
+                        measurements[i] = &lt;-res
+                        i++
+                }</span>
+        }
+        <span class="cov0" title="0">for y := 0; y &lt; rest; y++ </span><span class="cov0" title="0">{
+                go f(res)
+        }</span>
+        <span class="cov0" title="0">for y := 0; y &lt; rest; y++ </span><span class="cov0" title="0">{
+                measurements[i] = &lt;-res
+                i++
+        }</span>
+
+        <span class="cov0" title="0">fmt.Printf("Finished measuring %s, calculating result\n\n", name)
+        max, min, average := calculateStats(measurements)
+        output := fmt.Sprintf("Name: %s\nMax: %s\nMin: %s\nAverage: %s\nMeasurements:\n", name, dString(max), dString(min), dString(average))
+        for i := 0; i &lt; iterations; i++ </span><span class="cov0" title="0">{
+                output += dString(measurements[i])
+                if (i+1)%workerThreads == 0 </span><span class="cov0" title="0">{
+                        output += "\n"
+                }</span> else<span class="cov0" title="0"> {
+                        output += " "
+                }</span>
+        }
+        <span class="cov0" title="0">if !(iterations%workerThreads == 0) </span><span class="cov0" title="0">{
+                output += "\n"
+        }</span>
+        <span class="cov0" title="0">fmt.Print(output + "\n")
+        return output</span>
+}
+
+func measure(res chan time.Duration, f func()) <span class="cov0" title="0">{
+        start := time.Now()
+        f()
+        res &lt;- time.Since(start)
+}</span>
+
+func calculateStats(measurements []time.Duration) (max, min, average time.Duration) <span class="cov0" title="0">{
+        var sum time.Duration = 0
+
+        if len(measurements) == 0 </span><span class="cov0" title="0">{
+                return
+        }</span>
+        <span class="cov0" title="0">min = measurements[0]
+        for _, m := range measurements </span><span class="cov0" title="0">{
+                sum += m
+                if m &gt; max </span><span class="cov0" title="0">{
+                        max = m
+                }</span>
+                <span class="cov0" title="0">if m &lt; min </span><span class="cov0" title="0">{
+                        min = m
+                }</span>
+        }
+        <span class="cov0" title="0">average = sum / time.Duration(len(measurements))
+        return</span>
+}
+
+func dString(d time.Duration) string <span class="cov0" title="0">{
+        return strconv.FormatInt(d.Microseconds(), 10) + "µs"
+}</span>
+
+func measureAssistedMode(res chan time.Duration) <span class="cov0" title="0">{
+        save, err := minesweeper.LoadSave("testdata/game.sav")
+        if err != nil </span><span class="cov0" title="0">{
+                fmt.Println(err)
+                os.Exit(1)
+        }</span>
+        <span class="cov0" title="0">game := save.Game()
+
+        f, err := os.ReadFile("testdata/positions.json")
+        if err != nil </span><span class="cov0" title="0">{
+                fmt.Println(err)
+                os.Exit(1)
+        }</span>
+        <span class="cov0" title="0">var positions []minesweeper.Pos
+        err = json.Unmarshal(f, &amp;positions)
+        if err != nil </span><span class="cov0" title="0">{
+                fmt.Println(err)
+                os.Exit(1)
+        }</span>
+
+        <span class="cov0" title="0">start := time.Now()
+        for _, pos := range positions </span><span class="cov0" title="0">{
+                s := game.CheckField(pos)
+                s.ObviousMines()
+                s.ObviousSafePos()
+                if s.GameOver || s.GameWon </span><span class="cov0" title="0">{
+                        fmt.Println("Something unexpected happened, the game finished")
+                }</span>
+        }
+        <span class="cov0" title="0">res &lt;- time.Since(start)</span>
 }
 </pre>
 		
