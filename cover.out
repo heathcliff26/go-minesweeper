@@ -1,4 +1,5 @@
 mode: set
+github.com/heathcliff26/go-minesweeper/cmd/app/log.go:10.13,16.2 3 0
 github.com/heathcliff26/go-minesweeper/cmd/app/main.go:5.13,8.2 2 0
 github.com/heathcliff26/go-minesweeper/cmd/log-parser/main.go:17.13,21.2 3 0
 github.com/heathcliff26/go-minesweeper/cmd/log-parser/main.go:23.13,25.11 2 0
@@ -341,7 +342,6 @@ github.com/heathcliff26/go-minesweeper/pkg/app/grid.go:220.3,222.14 3 1
 github.com/heathcliff26/go-minesweeper/pkg/app/grid.go:224.2,225.22 2 1
 github.com/heathcliff26/go-minesweeper/pkg/app/grid.go:225.22,230.3 4 1
 github.com/heathcliff26/go-minesweeper/pkg/app/grid.go:231.2,231.14 1 0
-github.com/heathcliff26/go-minesweeper/pkg/app/log.go:10.13,16.2 3 1
 github.com/heathcliff26/go-minesweeper/pkg/app/tile.go:74.53,86.2 3 1
 github.com/heathcliff26/go-minesweeper/pkg/app/tile.go:89.53,107.2 13 1
 github.com/heathcliff26/go-minesweeper/pkg/app/tile.go:110.43,111.33 1 1

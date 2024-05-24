@@ -55,19 +55,19 @@
 			<div id="nav">
 				<select id="files">
 				
-				<option value="file0">github.com/heathcliff26/go-minesweeper/cmd/app/main.go (0.0%)</option>
+				<option value="file0">github.com/heathcliff26/go-minesweeper/cmd/app/log.go (0.0%)</option>
 				
-				<option value="file1">github.com/heathcliff26/go-minesweeper/cmd/log-parser/main.go (0.0%)</option>
+				<option value="file1">github.com/heathcliff26/go-minesweeper/cmd/app/main.go (0.0%)</option>
 				
-				<option value="file2">github.com/heathcliff26/go-minesweeper/pkg/app/app.go (45.9%)</option>
+				<option value="file2">github.com/heathcliff26/go-minesweeper/cmd/log-parser/main.go (0.0%)</option>
 				
-				<option value="file3">github.com/heathcliff26/go-minesweeper/pkg/app/button.go (100.0%)</option>
+				<option value="file3">github.com/heathcliff26/go-minesweeper/pkg/app/app.go (45.9%)</option>
 				
-				<option value="file4">github.com/heathcliff26/go-minesweeper/pkg/app/counter.go (100.0%)</option>
+				<option value="file4">github.com/heathcliff26/go-minesweeper/pkg/app/button.go (100.0%)</option>
 				
-				<option value="file5">github.com/heathcliff26/go-minesweeper/pkg/app/grid.go (99.0%)</option>
+				<option value="file5">github.com/heathcliff26/go-minesweeper/pkg/app/counter.go (100.0%)</option>
 				
-				<option value="file6">github.com/heathcliff26/go-minesweeper/pkg/app/log.go (100.0%)</option>
+				<option value="file6">github.com/heathcliff26/go-minesweeper/pkg/app/grid.go (99.0%)</option>
 				
 				<option value="file7">github.com/heathcliff26/go-minesweeper/pkg/app/tile.go (100.0%)</option>
 				
@@ -105,6 +105,24 @@
 		
 		<pre class="file" id="file0" style="display: none">package main
 
+import (
+        "log/slog"
+        "os"
+)
+
+const logLevel = slog.LevelError
+
+func init() <span class="cov0" title="0">{
+        opts := slog.HandlerOptions{
+                Level: logLevel,
+        }
+        logger := slog.New(slog.NewTextHandler(os.Stdout, &amp;opts))
+        slog.SetDefault(logger)
+}</span>
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package main
+
 import "github.com/heathcliff26/go-minesweeper/pkg/app"
 
 func main() <span class="cov0" title="0">{
@@ -113,7 +131,7 @@ func main() <span class="cov0" title="0">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file1" style="display: none">package main
+		<pre class="file" id="file2" style="display: none">package main
 
 import (
         "encoding/json"
@@ -189,7 +207,7 @@ func main() <span class="cov0" title="0">{
 }
 </pre>
 		
-		<pre class="file" id="file2" style="display: none">package app
+		<pre class="file" id="file3" style="display: none">package app
 
 import (
         "image/color"
@@ -456,7 +474,7 @@ func (a *App) setGameAlgorithm(id int) <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file3" style="display: none">package app
+		<pre class="file" id="file4" style="display: none">package app
 
 import (
         "image/color"
@@ -505,7 +523,7 @@ func (b *Button) SetText(text string) <span class="cov8" title="1">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file4" style="display: none">package app
+		<pre class="file" id="file5" style="display: none">package app
 
 import (
         "fmt"
@@ -557,7 +575,7 @@ func (m *Counter) Dec() <span class="cov8" title="1">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file5" style="display: none">package app
+		<pre class="file" id="file6" style="display: none">package app
 
 import (
         "image/color"
@@ -664,7 +682,7 @@ func (g *MinesweeperGrid) TappedTile(pos minesweeper.Pos) <span class="cov8" tit
                 g.Timer.Start()
         }</span>
 
-        <span class="cov8" title="1">slog.Debug("Checking field", slog.String("pos", pos.String()))
+        <span class="cov8" title="1">slog.Info("Checking field", slog.String("pos", pos.String()))
 
         s := g.Game.CheckField(pos)
         slog.Debug("Checked field, updating tiles")
@@ -789,24 +807,6 @@ func (g *MinesweeperGrid) Hint() bool <span class="cov8" title="1">{
         }</span>
         <span class="cov0" title="0">return false</span>
 }
-</pre>
-		
-		<pre class="file" id="file6" style="display: none">package app
-
-import (
-        "log/slog"
-        "os"
-)
-
-const logLevel = slog.LevelError
-
-func init() <span class="cov8" title="1">{
-        opts := slog.HandlerOptions{
-                Level: logLevel,
-        }
-        logger := slog.New(slog.NewTextHandler(os.Stdout, &amp;opts))
-        slog.SetDefault(logger)
-}</span>
 </pre>
 		
 		<pre class="file" id="file7" style="display: none">//go:generate fyne bundle --package assets --prefix Resource -o ../../assets/bundle_generated.go ../../img/mine.png
