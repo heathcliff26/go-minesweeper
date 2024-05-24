@@ -64,7 +64,7 @@ type Tile struct {
 	icon       *widget.Icon
 
 	Pos     minesweeper.Pos
-	Field   *minesweeper.Field
+	Field   minesweeper.Field
 	grid    *MinesweeperGrid
 	Flagged bool
 	Marker  HelpMarking
@@ -74,7 +74,7 @@ type Tile struct {
 func NewTile(x, y int, grid *MinesweeperGrid) *Tile {
 	t := &Tile{
 		Pos: minesweeper.NewPos(x, y),
-		Field: &minesweeper.Field{
+		Field: minesweeper.Field{
 			Checked: false,
 			Content: minesweeper.Unknown,
 		},

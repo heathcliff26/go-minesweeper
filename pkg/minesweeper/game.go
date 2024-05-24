@@ -116,14 +116,12 @@ func (g *LocalGame) CheckField(p Pos) *Status {
 
 	if g.Field[p.X][p.Y].Content == Mine {
 		g.GameOver = true
-		g.UpdateStatus()
-		return g.Status()
+		return g.UpdateStatus()
 	}
 
 	g.RevealField(p)
 
-	g.UpdateStatus()
-	return g.Status()
+	return g.UpdateStatus()
 }
 
 // Recursive function to reveal all neighbouring fields that can be safely reveald.
@@ -165,24 +163,28 @@ func (g *LocalGame) Status() *Status {
 	return g.status
 }
 
-// Create a new instance of status
-func (g *LocalGame) UpdateStatus() {
-	d := g.Difficulty
-	s := &Status{
-		Field:    utils.Make2D[Field](d.Row, d.Col),
-		gameOver: g.Lost(),
-		gameWon:  g.Won(),
+// Update the status from the current state of the game.
+// Returns status for convenience.
+func (g *LocalGame) UpdateStatus() *Status {
+	if g.status == nil {
+		g.status = &Status{
+			Field:      utils.Make2D[Field](g.Difficulty.Row, g.Difficulty.Col),
+			gameOver:   g.Lost(),
+			gameWon:    g.Won(),
+			difficulty: g.Difficulty,
+		}
 	}
+	g.status.actionsUpdated = false
 
 	wasWon := g.Won()
 	isWon := true
 
 	g.walkField(func(x, y int) {
-		s.Field[x][y].Checked = g.Field[x][y].Checked
+		g.status.Field[x][y].Checked = g.Field[x][y].Checked
 		if g.Field[x][y].Checked || g.Lost() || g.Won() {
-			s.Field[x][y].Content = g.Field[x][y].Content
+			g.status.Field[x][y].Content = g.Field[x][y].Content
 		} else {
-			s.Field[x][y].Content = Unknown
+			g.status.Field[x][y].Content = Unknown
 		}
 		if !g.Field[x][y].Checked && g.Field[x][y].Content != Mine {
 			isWon = false
@@ -190,13 +192,16 @@ func (g *LocalGame) UpdateStatus() {
 	})
 
 	if !wasWon && isWon {
-		g.GameWon, s.gameWon = isWon, isWon
-		for x := 0; x < d.Row; x++ {
-			copy(s.Field[x], g.Field[x])
+		g.GameWon = isWon
+		for x := 0; x < g.Difficulty.Row; x++ {
+			copy(g.status.Field[x], g.Field[x])
 		}
 	}
 
-	g.status = s
+	g.status.gameOver = g.GameOver
+	g.status.gameWon = g.GameWon
+
+	return g.status
 }
 
 // Check if Game Over

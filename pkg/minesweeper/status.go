@@ -11,11 +11,13 @@ import (
 // It does not support any of the functions that Game does.
 // It is safe to write to Status, as it is merely a copy.
 type Status struct {
-	Field    [][]Field
-	gameOver bool
-	gameWon  bool
+	Field      [][]Field
+	gameOver   bool
+	gameWon    bool
+	difficulty Difficulty
 
-	actions Actions
+	actionsUpdated bool
+	actions        Actions
 }
 
 type Actions struct {
@@ -35,35 +37,36 @@ func (s *Status) GameWon() bool {
 
 // Returns the position of all obvious mines
 func (s *Status) ObviousMines() []Pos {
-	if s.actions.Mines == nil {
-		s.createActions()
+	if !s.actionsUpdated {
+		s.updateActions()
 	}
 	return s.actions.Mines
 }
 
 // Returns the position of all obvious safe positions
 func (s *Status) ObviousSafePos() []Pos {
-	if s.actions.SafePos == nil {
-		s.createActions()
+	if !s.actionsUpdated {
+		s.updateActions()
 	}
 	return s.actions.SafePos
 }
 
 // Calculate the next actions based on the current status
-func (s *Status) createActions() {
-	s.actions = Actions{
-		Mines:   make([]Pos, 0, 10),
-		SafePos: make([]Pos, 0, 10),
-	}
-
+func (s *Status) updateActions() {
+	s.actionsUpdated = true
 	if len(s.Field) == 0 || s.GameOver() || s.GameWon() {
 		return
 	}
-
-	d := Difficulty{
-		Row: len(s.Field),
-		Col: len(s.Field[0]),
+	if s.actions.Mines == nil {
+		s.actions.Mines = make([]Pos, 0, s.difficulty.Mines)
 	}
+	safePos := make([]Pos, 0, 25)
+	for _, p := range s.actions.SafePos {
+		if !s.Field[p.X][p.Y].Checked {
+			safePos = append(safePos, p)
+		}
+	}
+	s.actions.SafePos = safePos
 
 	i := 0
 	oldLenMines := -1
@@ -84,7 +87,7 @@ func (s *Status) createActions() {
 			for m := -1; m < 2; m++ {
 				for n := -1; n < 2; n++ {
 					p := NewPos(x+m, y+n)
-					if OutOfBounds(p, d) {
+					if OutOfBounds(p, s.difficulty) {
 						continue
 					}
 					if !s.Field[p.X][p.Y].Checked {
@@ -121,7 +124,7 @@ func (s *Status) createActions() {
 				)
 				s.actions.SafePos = append(s.actions.SafePos, newPos...)
 			}
-		}, d.Row, d.Col)
+		}, s.difficulty.Row, s.difficulty.Col)
 	}
 
 	slog.Debug("Assisted Mode: Mines and safe Positions found", slog.Any("mines", s.actions.Mines), slog.Any("safe", s.actions.SafePos), slog.Int("iterations", i))

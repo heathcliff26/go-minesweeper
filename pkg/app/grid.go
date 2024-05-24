@@ -148,7 +148,7 @@ func (g *MinesweeperGrid) updateFromStatus(s *minesweeper.Status) {
 			if s.Field[x][y].Content == minesweeper.Unknown {
 				continue
 			}
-			t.Field = &s.Field[x][y]
+			t.Field = s.Field[x][y]
 			t.UpdateContent()
 		}
 	}
