@@ -20,7 +20,7 @@ func TestNewTile(t *testing.T) {
 
 		assert.Equal(g, tile.grid)
 
-		f := &minesweeper.Field{
+		f := minesweeper.Field{
 			Checked: false,
 			Content: minesweeper.Unknown,
 		}

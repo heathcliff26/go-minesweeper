@@ -40,7 +40,14 @@ func TestAssistedMode(t *testing.T) {
 
 				fail := false
 
+				if !assert.False(s.actionsUpdated, "Status should need update for actions") {
+					fail = true
+				}
+
 				if !assert.ElementsMatch(step.Mines, s.ObviousMines(), "Mines should match") {
+					fail = true
+				}
+				if !assert.True(s.actionsUpdated, "Status should no longer need update for actions") {
 					fail = true
 				}
 				if !assert.Equal(len(step.Mines), len(s.actions.Mines), "Should have the same amount of mines") {
@@ -53,8 +60,9 @@ func TestAssistedMode(t *testing.T) {
 					fail = true
 				}
 
+				s.actionsUpdated = false
 				s.actions.SafePos = nil
-				if !assert.ElementsMatch(step.SafePos, s.ObviousSafePos(), "Safe positions should match") {
+				if !assert.ElementsMatch(step.SafePos, s.ObviousSafePos(), "Safe positions should still match") {
 					fail = true
 				}
 
@@ -77,7 +85,7 @@ func TestAssistedMode(t *testing.T) {
 	}
 }
 
-func TestCreateActionsEarlyReturn(t *testing.T) {
+func TestUpdateActionsEarlyReturn(t *testing.T) {
 	tMatrix := []struct {
 		Name   string
 		Status Status
@@ -114,10 +122,10 @@ func TestCreateActionsEarlyReturn(t *testing.T) {
 		t.Run(tCase.Name, func(t *testing.T) {
 			assert := assert.New(t)
 
-			tCase.Status.createActions()
+			tCase.Status.updateActions()
 
-			assert.NotNil(tCase.Status.actions.Mines, "Mines should not be nil")
-			assert.NotNil(tCase.Status.actions.SafePos, "SafePos should not be nil")
+			assert.Nil(tCase.Status.actions.Mines, "Mines should not be nil")
+			assert.Nil(tCase.Status.actions.SafePos, "SafePos should not be nil")
 			assert.Empty(tCase.Status.actions.Mines, "Mines should be empty")
 			assert.Empty(tCase.Status.actions.SafePos, "SafePos should be empty")
 		})

@@ -326,6 +326,7 @@ func TestStatus(t *testing.T) {
 			})
 
 			assert.Same(g.status, g.Status())
+			assert.False(g.status.actionsUpdated)
 		})
 	}
 }
