@@ -1764,7 +1764,8 @@ func (s *Status) createActions() <span class="cov8" title="1">{
                         }</span>
 
                         <span class="cov8" title="1">unchecked := FieldContent(0)
-                        mines := unchecked
+                        mines := FieldContent(0)
+                        safePos := FieldContent(0)
                         newPos := make([]Pos, 0, 8)
                         for m := -1; m &lt; 2; m++ </span><span class="cov8" title="1">{
                                 for n := -1; n &lt; 2; n++ </span><span class="cov8" title="1">{
@@ -1778,6 +1779,8 @@ func (s *Status) createActions() <span class="cov8" title="1">{
                                                         mines++
                                                 }</span> else<span class="cov8" title="1"> if !slices.Contains(s.actions.SafePos, p) </span><span class="cov8" title="1">{
                                                         newPos = append(newPos, p)
+                                                }</span> else<span class="cov8" title="1"> {
+                                                        safePos++
                                                 }</span>
                                         }
                                 }
@@ -1785,7 +1788,7 @@ func (s *Status) createActions() <span class="cov8" title="1">{
                         <span class="cov8" title="1">if len(newPos) == 0 </span><span class="cov8" title="1">{
                                 return
                         }</span>
-                        <span class="cov8" title="1">if unchecked == s.Field[x][y].Content &amp;&amp; mines != s.Field[x][y].Content </span><span class="cov8" title="1">{
+                        <span class="cov8" title="1">if unchecked-safePos == s.Field[x][y].Content &amp;&amp; mines != s.Field[x][y].Content </span><span class="cov8" title="1">{
                                 slog.Debug("Assisted Mode: Found mines near field",
                                         slog.String("pos", NewPos(x, y).String()),
                                         slog.Int("mines", int(mines)),
