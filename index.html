@@ -1908,6 +1908,7 @@ func Make2D[T any](x, y int) [][]T <span class="cov8" title="1">{
 
 import (
         "encoding/json"
+        "flag"
         "fmt"
         "os"
         "strconv"
@@ -1916,21 +1917,45 @@ import (
         "github.com/heathcliff26/go-minesweeper/pkg/minesweeper"
 )
 
-const workerThreads = 10
+var (
+        workerThreads            int
+        iterationsPerMeasureLoop int
+        printMeasurements        bool
+)
+
+var usage bool
+
+const measurementsPerLine = 10
+
+func init() <span class="cov0" title="0">{
+        flag.IntVar(&amp;iterationsPerMeasureLoop, "i", 10000, "Iterations per measurement")
+        flag.IntVar(&amp;workerThreads, "w", 10, "Simoultaneous worker threads")
+        flag.BoolVar(&amp;printMeasurements, "v", false, "Print measurements in addition to average")
+        flag.BoolVar(&amp;usage, "h", false, "Show helptext")
+}</span>
 
 func main() <span class="cov0" title="0">{
+        flag.Parse()
+        if usage </span><span class="cov0" title="0">{
+                flag.Usage()
+                os.Exit(0)
+        }</span>
+
+        <span class="cov0" title="0">fmt.Printf("Settings: threads=%d, iterations=%d\n\n", workerThreads, iterationsPerMeasureLoop)
+
         difficulty, _ := minesweeper.NewCustomDifficulty(700, 99, 99)
-        measureLoop("NewGameWithSafePos", 100, func(res chan time.Duration) </span><span class="cov0" title="0">{
+        measureLoop("NewGameWithSafePos", iterationsPerMeasureLoop, func(res chan time.Duration) </span><span class="cov0" title="0">{
                 measure(res, func() </span><span class="cov0" title="0">{
                         minesweeper.NewGameWithSafePos(difficulty, minesweeper.NewPos(50, 50))
                 }</span>)
         })
-        <span class="cov0" title="0">measureLoop("NewGameWithSafeArea", 100, func(res chan time.Duration) </span><span class="cov0" title="0">{
+        <span class="cov0" title="0">measureLoop("NewGameWithSafeArea", iterationsPerMeasureLoop, func(res chan time.Duration) </span><span class="cov0" title="0">{
                 measure(res, func() </span><span class="cov0" title="0">{
                         minesweeper.NewGameWithSafeArea(difficulty, minesweeper.NewPos(50, 50))
                 }</span>)
         })
-        <span class="cov0" title="0">measureLoop("AssistedMode", 100, measureAssistedMode)</span>
+
+        <span class="cov0" title="0">measureLoop("AssistedMode", iterationsPerMeasureLoop, measureAssistedMode)</span>
 }
 
 // Run the measurement multiple times, running in parallel as set by workerThreads
@@ -1962,18 +1987,21 @@ func measureLoop(name string, iterations int, f func(res chan time.Duration)) st
 
         <span class="cov0" title="0">fmt.Printf("Finished measuring %s, calculating result\n\n", name)
         max, min, average := calculateStats(measurements)
-        output := fmt.Sprintf("Name: %s\nMax: %s\nMin: %s\nAverage: %s\nMeasurements:\n", name, dString(max), dString(min), dString(average))
-        for i := 0; i &lt; iterations; i++ </span><span class="cov0" title="0">{
-                output += dString(measurements[i])
-                if (i+1)%workerThreads == 0 </span><span class="cov0" title="0">{
+        output := fmt.Sprintf("Name: %s\nMax: %s\nMin: %s\nAverage: %s\n", name, dString(max), dString(min), dString(average))
+        if printMeasurements </span><span class="cov0" title="0">{
+                fmt.Println("Measurements:")
+                for i := 0; i &lt; iterations; i++ </span><span class="cov0" title="0">{
+                        output += dString(measurements[i])
+                        if (i+1)%measurementsPerLine == 0 </span><span class="cov0" title="0">{
+                                output += "\n"
+                        }</span> else<span class="cov0" title="0"> {
+                                output += " "
+                        }</span>
+                }
+                <span class="cov0" title="0">if !(iterations%measurementsPerLine == 0) </span><span class="cov0" title="0">{
                         output += "\n"
-                }</span> else<span class="cov0" title="0"> {
-                        output += " "
                 }</span>
         }
-        <span class="cov0" title="0">if !(iterations%workerThreads == 0) </span><span class="cov0" title="0">{
-                output += "\n"
-        }</span>
         <span class="cov0" title="0">fmt.Print(output + "\n")
         return output</span>
 }
