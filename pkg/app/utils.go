@@ -11,8 +11,6 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
-	"fyne.io/fyne/v2/dialog"
-	"fyne.io/fyne/v2/storage"
 )
 
 // Struct for containing the current version of the app
@@ -89,28 +87,4 @@ func newGridLabel(text string) *canvas.Text {
 	label.TextSize = GridLabelSize
 	label.TextStyle.Bold = true
 	return label
-}
-
-// Set a file dialogs location to the current directory.
-// Return indicates if the operation was successfull.
-// Shows error dialog on failure.
-func setDialogLocationToPWD(d *dialog.FileDialog, window fyne.Window) bool {
-	dir, err := os.Getwd()
-	if err != nil {
-		dialog.ShowError(err, window)
-		return false
-	}
-	uri, err := storage.ParseURI("file://" + dir)
-	if err != nil {
-		dialog.ShowError(err, window)
-		return false
-	}
-	listURI, err := storage.ListerForURI(uri)
-	if err != nil {
-		dialog.ShowError(err, window)
-		return false
-	}
-	d.SetLocation(listURI)
-
-	return true
 }
