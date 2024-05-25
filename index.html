@@ -61,35 +61,37 @@
 				
 				<option value="file2">github.com/heathcliff26/go-minesweeper/cmd/log-parser/main.go (0.0%)</option>
 				
-				<option value="file3">github.com/heathcliff26/go-minesweeper/pkg/app/app.go (45.9%)</option>
+				<option value="file3">github.com/heathcliff26/go-minesweeper/pkg/app/app.go (49.6%)</option>
 				
 				<option value="file4">github.com/heathcliff26/go-minesweeper/pkg/app/button.go (100.0%)</option>
 				
 				<option value="file5">github.com/heathcliff26/go-minesweeper/pkg/app/counter.go (100.0%)</option>
 				
-				<option value="file6">github.com/heathcliff26/go-minesweeper/pkg/app/grid.go (98.3%)</option>
+				<option value="file6">github.com/heathcliff26/go-minesweeper/pkg/app/filedialog/dialog.go (0.0%)</option>
 				
-				<option value="file7">github.com/heathcliff26/go-minesweeper/pkg/app/tile.go (100.0%)</option>
+				<option value="file7">github.com/heathcliff26/go-minesweeper/pkg/app/grid.go (98.3%)</option>
 				
-				<option value="file8">github.com/heathcliff26/go-minesweeper/pkg/app/timer.go (100.0%)</option>
+				<option value="file8">github.com/heathcliff26/go-minesweeper/pkg/app/tile.go (100.0%)</option>
 				
-				<option value="file9">github.com/heathcliff26/go-minesweeper/pkg/app/utils.go (43.1%)</option>
+				<option value="file9">github.com/heathcliff26/go-minesweeper/pkg/app/timer.go (100.0%)</option>
 				
-				<option value="file10">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/difficulty.go (100.0%)</option>
+				<option value="file10">github.com/heathcliff26/go-minesweeper/pkg/app/utils.go (59.5%)</option>
 				
-				<option value="file11">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/errors.go (50.0%)</option>
+				<option value="file11">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/difficulty.go (100.0%)</option>
 				
-				<option value="file12">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/game.go (100.0%)</option>
+				<option value="file12">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/errors.go (50.0%)</option>
 				
-				<option value="file13">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/save.go (84.6%)</option>
+				<option value="file13">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/game.go (100.0%)</option>
 				
-				<option value="file14">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/status.go (100.0%)</option>
+				<option value="file14">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/save.go (84.6%)</option>
 				
-				<option value="file15">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/utils.go (100.0%)</option>
+				<option value="file15">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/status.go (100.0%)</option>
 				
-				<option value="file16">github.com/heathcliff26/go-minesweeper/pkg/utils/utils.go (100.0%)</option>
+				<option value="file16">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/utils.go (100.0%)</option>
 				
-				<option value="file17">github.com/heathcliff26/go-minesweeper/tests/performance/main.go (0.0%)</option>
+				<option value="file17">github.com/heathcliff26/go-minesweeper/pkg/utils/utils.go (100.0%)</option>
+				
+				<option value="file18">github.com/heathcliff26/go-minesweeper/tests/performance/main.go (0.0%)</option>
 				
 				</select>
 			</div>
@@ -219,8 +221,8 @@ import (
         "fyne.io/fyne/v2/container"
         "fyne.io/fyne/v2/data/binding"
         "fyne.io/fyne/v2/dialog"
-        "fyne.io/fyne/v2/storage"
         "fyne.io/fyne/v2/widget"
+        "github.com/heathcliff26/go-minesweeper/pkg/app/filedialog"
         "github.com/heathcliff26/go-minesweeper/pkg/minesweeper"
 )
 
@@ -381,35 +383,27 @@ func (a *App) customDifficultyDialog() <span class="cov0" title="0">{
 }
 
 func (a *App) loadSave() <span class="cov0" title="0">{
-        d := dialog.NewFileOpen(func(uri fyne.URIReadCloser, err error) </span><span class="cov0" title="0">{
-                if err != nil </span><span class="cov0" title="0">{
-                        dialog.ShowError(err, a.main)
-                        return
-                }</span>
-                <span class="cov0" title="0">if uri == nil </span><span class="cov0" title="0">{
-                        return
-                }</span>
-
-                <span class="cov0" title="0">save, err := minesweeper.LoadSave(uri.URI().Path())
-                if err != nil </span><span class="cov0" title="0">{
-                        dialog.ShowError(err, a.main)
-                        return
-                }</span>
-
-                <span class="cov0" title="0">for _, i := range a.difficulties </span><span class="cov0" title="0">{
-                        i.Checked = (i.Label == save.Data.Difficulty.Name)
-                }</span>
-                <span class="cov0" title="0">a.NewGrid(save.Data.Difficulty)
-
-                a.grid.Game = save.Game()</span>
-        }, a.main)
-        <span class="cov0" title="0">d.SetFilter(storage.NewExtensionFileFilter([]string{minesweeper.SaveFileExtension}))
-
-        if !setDialogLocationToPWD(d, a.main) </span><span class="cov0" title="0">{
+        path, err := filedialog.FileOpen("Open Savegame", "", []string{minesweeper.SaveFileExtension})
+        if err != nil </span><span class="cov0" title="0">{
+                dialog.ShowError(err, a.main)
+                return
+        }</span>
+        <span class="cov0" title="0">if path == "" </span><span class="cov0" title="0">{
                 return
         }</span>
 
-        <span class="cov0" title="0">d.Show()</span>
+        <span class="cov0" title="0">save, err := minesweeper.LoadSave(path)
+        if err != nil </span><span class="cov0" title="0">{
+                dialog.ShowError(err, a.main)
+                return
+        }</span>
+
+        <span class="cov0" title="0">for _, i := range a.difficulties </span><span class="cov0" title="0">{
+                i.Checked = (i.Label == save.Data.Difficulty.Name)
+        }</span>
+        <span class="cov0" title="0">a.NewGrid(save.Data.Difficulty)
+
+        a.grid.Game = save.Game()</span>
 }
 
 func (a *App) saveGame() <span class="cov0" title="0">{
@@ -418,42 +412,32 @@ func (a *App) saveGame() <span class="cov0" title="0">{
                 d.Show()
                 return
         }</span>
-        <span class="cov0" title="0">d := dialog.NewFileSave(func(uri fyne.URIWriteCloser, err error) </span><span class="cov0" title="0">{
-                if err != nil </span><span class="cov0" title="0">{
-                        dialog.ShowError(err, a.main)
-                        return
-                }</span>
-                <span class="cov0" title="0">if uri == nil </span><span class="cov0" title="0">{
-                        return
-                }</span>
-                <span class="cov0" title="0">path := uri.URI().Path()
-                _ = uri.Close()
-
-                err = os.Remove(path)
-                if err != nil </span><span class="cov0" title="0">{
-                        dialog.ShowError(err, a.main)
-                        return
-                }</span>
-
-                <span class="cov0" title="0">save, err := a.grid.Game.ToSave()
-                if err != nil </span><span class="cov0" title="0">{
-                        dialog.ShowError(err, a.main)
-                        return
-                }</span>
-
-                <span class="cov0" title="0">err = save.Save(uri.URI().Path())
-                if err != nil </span><span class="cov0" title="0">{
-                        dialog.ShowError(err, a.main)
-                        return
-                }</span>
-        }, a.main)
-        <span class="cov0" title="0">d.SetFilter(storage.NewExtensionFileFilter([]string{minesweeper.SaveFileExtension}))
-
-        if !setDialogLocationToPWD(d, a.main) </span><span class="cov0" title="0">{
+        <span class="cov0" title="0">path, err := filedialog.FileSave("Save Game", "", []string{minesweeper.SaveFileExtension})
+        if err != nil </span><span class="cov0" title="0">{
+                dialog.ShowError(err, a.main)
+                return
+        }</span>
+        <span class="cov0" title="0">if path == "" </span><span class="cov0" title="0">{
                 return
         }</span>
 
-        <span class="cov0" title="0">d.Show()</span>
+        <span class="cov0" title="0">err = os.Remove(path)
+        if err != nil </span><span class="cov0" title="0">{
+                dialog.ShowError(err, a.main)
+                return
+        }</span>
+
+        <span class="cov0" title="0">save, err := a.grid.Game.ToSave()
+        if err != nil </span><span class="cov0" title="0">{
+                dialog.ShowError(err, a.main)
+                return
+        }</span>
+
+        <span class="cov0" title="0">err = save.Save(path)
+        if err != nil </span><span class="cov0" title="0">{
+                dialog.ShowError(err, a.main)
+                return
+        }</span>
 }
 
 func (a *App) NewGrid(d minesweeper.Difficulty) <span class="cov8" title="1">{
@@ -575,7 +559,144 @@ func (m *Counter) Dec() <span class="cov8" title="1">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file6" style="display: none">package app
+		<pre class="file" id="file6" style="display: none">package filedialog
+
+import (
+        "os"
+
+        "fyne.io/fyne/v2"
+        "fyne.io/fyne/v2/dialog"
+        "fyne.io/fyne/v2/storage"
+)
+
+const (
+        DialogHeight = 800
+        DialogWidth  = 600
+)
+
+type FileDialogResult struct {
+        Path  string
+        Error error
+}
+
+// Show a file open dialog in a new window and return path
+func FileOpen(name string, startLocation string, extensions []string) (string, error) <span class="cov0" title="0">{
+        var called bool
+        w := fyne.CurrentApp().NewWindow(name)
+        ch := make(chan FileDialogResult)
+        d := dialog.NewFileOpen(func(uri fyne.URIReadCloser, err error) </span><span class="cov0" title="0">{
+                called = true
+                if err != nil </span><span class="cov0" title="0">{
+                        ch &lt;- FileDialogResult{"", err}
+                        return
+                }</span>
+                <span class="cov0" title="0">if uri == nil </span><span class="cov0" title="0">{
+                        ch &lt;- FileDialogResult{"", err}
+                        return
+                }</span>
+
+                <span class="cov0" title="0">ch &lt;- FileDialogResult{uri.URI().Path(), nil}</span>
+        }, w)
+
+        <span class="cov0" title="0">err := showFileDialog(startLocation, extensions, d, w)
+        if err != nil </span><span class="cov0" title="0">{
+                return "", err
+        }</span>
+
+        <span class="cov0" title="0">w.SetOnClosed(func() </span><span class="cov0" title="0">{
+                if called </span><span class="cov0" title="0">{
+                        return
+                }</span>
+                <span class="cov0" title="0">ch &lt;- FileDialogResult{}</span>
+        })
+
+        <span class="cov0" title="0">result := &lt;-ch
+        return result.Path, result.Error</span>
+}
+
+// Show a file save dialog in a new window and return path
+func FileSave(name string, startLocation string, extensions []string) (string, error) <span class="cov0" title="0">{
+        var called bool
+        w := fyne.CurrentApp().NewWindow(name)
+        ch := make(chan FileDialogResult)
+        d := dialog.NewFileSave(func(uri fyne.URIWriteCloser, err error) </span><span class="cov0" title="0">{
+                called = true
+                if err != nil </span><span class="cov0" title="0">{
+                        ch &lt;- FileDialogResult{"", err}
+                        return
+                }</span>
+                <span class="cov0" title="0">if uri == nil </span><span class="cov0" title="0">{
+                        ch &lt;- FileDialogResult{"", err}
+                        return
+                }</span>
+
+                <span class="cov0" title="0">ch &lt;- FileDialogResult{uri.URI().Path(), nil}
+                uri.Close()</span>
+        }, w)
+
+        <span class="cov0" title="0">err := showFileDialog(startLocation, extensions, d, w)
+        if err != nil </span><span class="cov0" title="0">{
+                return "", err
+        }</span>
+
+        <span class="cov0" title="0">w.SetOnClosed(func() </span><span class="cov0" title="0">{
+                if called </span><span class="cov0" title="0">{
+                        return
+                }</span>
+                <span class="cov0" title="0">ch &lt;- FileDialogResult{}</span>
+        })
+
+        <span class="cov0" title="0">result := &lt;-ch
+        return result.Path, result.Error</span>
+}
+
+// Set a file dialogs location to the given directory.
+// When dir is empty, uses current directory.
+// Returns error on failure.
+func setDialogLocationToDir(dir string, d *dialog.FileDialog) error <span class="cov0" title="0">{
+        uri, err := storage.ParseURI("file://" + dir)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov0" title="0">listURI, err := storage.ListerForURI(uri)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov0" title="0">d.SetLocation(listURI)
+
+        return nil</span>
+}
+
+func showFileDialog(startLocation string, extensions []string, d *dialog.FileDialog, w fyne.Window) error <span class="cov0" title="0">{
+        d.SetFilter(storage.NewExtensionFileFilter(extensions))
+
+        if startLocation == "" </span><span class="cov0" title="0">{
+                pwd, err := os.Getwd()
+                if err != nil </span><span class="cov0" title="0">{
+                        return err
+                }</span>
+                <span class="cov0" title="0">startLocation = pwd</span>
+        }
+        <span class="cov0" title="0">err := setDialogLocationToDir(startLocation, d)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov0" title="0">d.SetOnClosed(func() </span><span class="cov0" title="0">{
+                w.Close()
+        }</span>)
+
+        <span class="cov0" title="0">w.Resize(fyne.NewSize(DialogHeight, DialogWidth))
+        w.SetFixedSize(true)
+        d.Resize(fyne.NewSize(DialogHeight, DialogWidth))
+        w.Show()
+        d.Show()
+
+        return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file7" style="display: none">package app
 
 import (
         "image/color"
@@ -857,7 +978,7 @@ func (g *MinesweeperGrid) Hint() bool <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file7" style="display: none">//go:generate fyne bundle --package assets --prefix Resource -o ../../assets/bundle_generated.go ../../img/mine.png
+		<pre class="file" id="file8" style="display: none">//go:generate fyne bundle --package assets --prefix Resource -o ../../assets/bundle_generated.go ../../img/mine.png
 //go:generate fyne bundle --prefix Resource -o ../../assets/bundle_generated.go -append ../../img/flag.png
 //go:generate fyne bundle --prefix Resource -o ../../assets/bundle_generated.go -append ../../img/flag-success.png
 package app
@@ -1081,7 +1202,7 @@ func (t *Tile) gameFinished() bool <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file8" style="display: none">package app
+		<pre class="file" id="file9" style="display: none">package app
 
 import (
         "fmt"
@@ -1175,7 +1296,7 @@ func (t *Timer) refresh() <span class="cov8" title="1">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file9" style="display: none">package app
+		<pre class="file" id="file10" style="display: none">package app
 
 import (
         "image/color"
@@ -1188,8 +1309,6 @@ import (
         "fyne.io/fyne/v2"
         "fyne.io/fyne/v2/canvas"
         "fyne.io/fyne/v2/container"
-        "fyne.io/fyne/v2/dialog"
-        "fyne.io/fyne/v2/storage"
 )
 
 // Struct for containing the current version of the app
@@ -1267,33 +1386,9 @@ func newGridLabel(text string) *canvas.Text <span class="cov8" title="1">{
         label.TextStyle.Bold = true
         return label
 }</span>
-
-// Set a file dialogs location to the current directory.
-// Return indicates if the operation was successfull.
-// Shows error dialog on failure.
-func setDialogLocationToPWD(d *dialog.FileDialog, window fyne.Window) bool <span class="cov0" title="0">{
-        dir, err := os.Getwd()
-        if err != nil </span><span class="cov0" title="0">{
-                dialog.ShowError(err, window)
-                return false
-        }</span>
-        <span class="cov0" title="0">uri, err := storage.ParseURI("file://" + dir)
-        if err != nil </span><span class="cov0" title="0">{
-                dialog.ShowError(err, window)
-                return false
-        }</span>
-        <span class="cov0" title="0">listURI, err := storage.ListerForURI(uri)
-        if err != nil </span><span class="cov0" title="0">{
-                dialog.ShowError(err, window)
-                return false
-        }</span>
-        <span class="cov0" title="0">d.SetLocation(listURI)
-
-        return true</span>
-}
 </pre>
 		
-		<pre class="file" id="file10" style="display: none">package minesweeper
+		<pre class="file" id="file11" style="display: none">package minesweeper
 
 const (
         DifficultyClassic      = iota
@@ -1367,7 +1462,7 @@ func NewCustomDifficulty(mines, row, col int) (Difficulty, error) <span class="c
 }
 </pre>
 		
-		<pre class="file" id="file11" style="display: none">package minesweeper
+		<pre class="file" id="file12" style="display: none">package minesweeper
 
 import "fmt"
 
@@ -1397,7 +1492,7 @@ func (e *ErrDifficultyMineCount) Error() string <span class="cov0" title="0">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file12" style="display: none">package minesweeper
+		<pre class="file" id="file13" style="display: none">package minesweeper
 
 import (
         "log/slog"
@@ -1680,7 +1775,7 @@ func (g *LocalGame) calculateFieldContent() <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file13" style="display: none">package minesweeper
+		<pre class="file" id="file14" style="display: none">package minesweeper
 
 import (
         "crypto/sha512"
@@ -1771,7 +1866,7 @@ func (s *Save) Game() *LocalGame <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file14" style="display: none">package minesweeper
+		<pre class="file" id="file15" style="display: none">package minesweeper
 
 import (
         "log/slog"
@@ -1919,7 +2014,7 @@ func (s *Status) updateActions() <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file15" style="display: none">package minesweeper
+		<pre class="file" id="file16" style="display: none">package minesweeper
 
 import (
         "fmt"
@@ -1994,7 +2089,7 @@ func walkField(f func(x, y int), limitX, limitY int) <span class="cov8" title="1
 }
 </pre>
 		
-		<pre class="file" id="file16" style="display: none">package utils
+		<pre class="file" id="file17" style="display: none">package utils
 
 // Create a new, empty 2 dimensional array of the given type and dimensions.
 func Make2D[T any](x, y int) [][]T <span class="cov8" title="1">{
@@ -2012,7 +2107,7 @@ func Make2D[T any](x, y int) [][]T <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file17" style="display: none">package main
+		<pre class="file" id="file18" style="display: none">package main
 
 import (
         "encoding/json"
