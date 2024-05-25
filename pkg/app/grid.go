@@ -3,6 +3,7 @@ package app
 import (
 	"image/color"
 	"log/slog"
+	"sync"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
@@ -27,6 +28,10 @@ const (
 const (
 	GameAlgorithmSafePos = iota
 	GameAlgorithmSafeArea
+)
+
+const (
+	ChunkSize = 10
 )
 
 // Graphical display for a minesweeper game
@@ -118,6 +123,8 @@ func (g *MinesweeperGrid) updateFromStatus(s *minesweeper.Status) {
 		return
 	}
 
+	var wg sync.WaitGroup
+
 	if s.GameOver() || s.GameWon() {
 		switch {
 		case s.GameWon():
@@ -129,21 +136,63 @@ func (g *MinesweeperGrid) updateFromStatus(s *minesweeper.Status) {
 		}
 		g.Timer.Stop()
 	} else if g.AssistedMode {
+		wg.Add(2)
 		slog.Debug("Creating Markers for Assisted Mode")
-		for _, p := range s.ObviousMines() {
-			t := g.Tiles[p.X][p.Y]
-			t.Marker = HelpMarkingMine
-			t.UpdateContent()
+		go func() {
+			defer wg.Done()
+			for _, p := range s.ObviousMines() {
+				t := g.Tiles[p.X][p.Y]
+				t.Marker = HelpMarkingMine
+				t.UpdateContent()
+			}
+		}()
+		go func() {
+			defer wg.Done()
+			for _, p := range s.ObviousSafePos() {
+				t := g.Tiles[p.X][p.Y]
+				t.Marker = HelpMarkingSafe
+				t.UpdateContent()
+			}
+		}()
+	}
+
+	for x := 0; x <= g.Row()/ChunkSize; x++ {
+		chunkSizeX := ChunkSize
+		if x == g.Row()/ChunkSize {
+			if g.Row()%ChunkSize == 0 {
+				continue
+			} else {
+				chunkSizeX = g.Row() % ChunkSize
+			}
 		}
-		for _, p := range s.ObviousSafePos() {
-			t := g.Tiles[p.X][p.Y]
-			t.Marker = HelpMarkingSafe
-			t.UpdateContent()
+		startX := x * ChunkSize
+
+		for y := 0; y <= g.Col()/ChunkSize; y++ {
+			chunkSizeY := ChunkSize
+			if y == g.Col()/ChunkSize {
+				if g.Col()%ChunkSize == 0 {
+					continue
+				} else {
+					chunkSizeY = g.Col() % ChunkSize
+				}
+			}
+
+			startY := y * ChunkSize
+
+			wg.Add(1)
+			go g.updateChunk(startX, startY, startX+chunkSizeX, startY+chunkSizeY, s, &wg)
 		}
 	}
 
-	for x := 0; x < g.Row(); x++ {
-		for y := 0; y < g.Col(); y++ {
+	wg.Wait()
+	slog.Debug("Finished Update")
+}
+
+// Update a single chunk defined by the given dimensions
+func (g *MinesweeperGrid) updateChunk(startX, startY, endX, endY int, s *minesweeper.Status, wg *sync.WaitGroup) {
+	defer wg.Done()
+	for x := startX; x < endX; x++ {
+		for y := startY; y < endY; y++ {
 			t := g.Tiles[x][y]
 			if s.Field[x][y].Content == minesweeper.Unknown {
 				continue
@@ -152,7 +201,6 @@ func (g *MinesweeperGrid) updateFromStatus(s *minesweeper.Status) {
 			t.UpdateContent()
 		}
 	}
-	slog.Debug("Finished Update")
 }
 
 // Return the number of rows in the grid
