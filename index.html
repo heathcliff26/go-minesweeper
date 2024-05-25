@@ -67,7 +67,7 @@
 				
 				<option value="file5">github.com/heathcliff26/go-minesweeper/pkg/app/counter.go (100.0%)</option>
 				
-				<option value="file6">github.com/heathcliff26/go-minesweeper/pkg/app/grid.go (99.0%)</option>
+				<option value="file6">github.com/heathcliff26/go-minesweeper/pkg/app/grid.go (98.3%)</option>
 				
 				<option value="file7">github.com/heathcliff26/go-minesweeper/pkg/app/tile.go (100.0%)</option>
 				
@@ -580,6 +580,7 @@ func (m *Counter) Dec() <span class="cov8" title="1">{
 import (
         "image/color"
         "log/slog"
+        "sync"
 
         "fyne.io/fyne/v2"
         "fyne.io/fyne/v2/container"
@@ -604,6 +605,10 @@ const (
 const (
         GameAlgorithmSafePos = iota
         GameAlgorithmSafeArea
+)
+
+const (
+        ChunkSize = 10
 )
 
 // Graphical display for a minesweeper game
@@ -695,7 +700,9 @@ func (g *MinesweeperGrid) updateFromStatus(s *minesweeper.Status) <span class="c
                 return
         }</span>
 
-        <span class="cov8" title="1">if s.GameOver() || s.GameWon() </span><span class="cov8" title="1">{
+        <span class="cov8" title="1">var wg sync.WaitGroup
+
+        if s.GameOver() || s.GameWon() </span><span class="cov8" title="1">{
                 switch </span>{
                 case s.GameWon():<span class="cov8" title="1">
                         slog.Info("Win")
@@ -706,21 +713,63 @@ func (g *MinesweeperGrid) updateFromStatus(s *minesweeper.Status) <span class="c
                 }
                 <span class="cov8" title="1">g.Timer.Stop()</span>
         } else<span class="cov8" title="1"> if g.AssistedMode </span><span class="cov8" title="1">{
+                wg.Add(2)
                 slog.Debug("Creating Markers for Assisted Mode")
-                for _, p := range s.ObviousMines() </span><span class="cov8" title="1">{
-                        t := g.Tiles[p.X][p.Y]
-                        t.Marker = HelpMarkingMine
-                        t.UpdateContent()
-                }</span>
-                <span class="cov8" title="1">for _, p := range s.ObviousSafePos() </span><span class="cov8" title="1">{
-                        t := g.Tiles[p.X][p.Y]
-                        t.Marker = HelpMarkingSafe
-                        t.UpdateContent()
-                }</span>
+                go func() </span><span class="cov8" title="1">{
+                        defer wg.Done()
+                        for _, p := range s.ObviousMines() </span><span class="cov8" title="1">{
+                                t := g.Tiles[p.X][p.Y]
+                                t.Marker = HelpMarkingMine
+                                t.UpdateContent()
+                        }</span>
+                }()
+                <span class="cov8" title="1">go func() </span><span class="cov8" title="1">{
+                        defer wg.Done()
+                        for _, p := range s.ObviousSafePos() </span><span class="cov8" title="1">{
+                                t := g.Tiles[p.X][p.Y]
+                                t.Marker = HelpMarkingSafe
+                                t.UpdateContent()
+                        }</span>
+                }()
         }
 
-        <span class="cov8" title="1">for x := 0; x &lt; g.Row(); x++ </span><span class="cov8" title="1">{
-                for y := 0; y &lt; g.Col(); y++ </span><span class="cov8" title="1">{
+        <span class="cov8" title="1">for x := 0; x &lt;= g.Row()/ChunkSize; x++ </span><span class="cov8" title="1">{
+                chunkSizeX := ChunkSize
+                if x == g.Row()/ChunkSize </span><span class="cov8" title="1">{
+                        if g.Row()%ChunkSize == 0 </span><span class="cov0" title="0">{
+                                continue</span>
+                        } else<span class="cov8" title="1"> {
+                                chunkSizeX = g.Row() % ChunkSize
+                        }</span>
+                }
+                <span class="cov8" title="1">startX := x * ChunkSize
+
+                for y := 0; y &lt;= g.Col()/ChunkSize; y++ </span><span class="cov8" title="1">{
+                        chunkSizeY := ChunkSize
+                        if y == g.Col()/ChunkSize </span><span class="cov8" title="1">{
+                                if g.Col()%ChunkSize == 0 </span><span class="cov8" title="1">{
+                                        continue</span>
+                                } else<span class="cov8" title="1"> {
+                                        chunkSizeY = g.Col() % ChunkSize
+                                }</span>
+                        }
+
+                        <span class="cov8" title="1">startY := y * ChunkSize
+
+                        wg.Add(1)
+                        go g.updateChunk(startX, startY, startX+chunkSizeX, startY+chunkSizeY, s, &amp;wg)</span>
+                }
+        }
+
+        <span class="cov8" title="1">wg.Wait()
+        slog.Debug("Finished Update")</span>
+}
+
+// Update a single chunk defined by the given dimensions
+func (g *MinesweeperGrid) updateChunk(startX, startY, endX, endY int, s *minesweeper.Status, wg *sync.WaitGroup) <span class="cov8" title="1">{
+        defer wg.Done()
+        for x := startX; x &lt; endX; x++ </span><span class="cov8" title="1">{
+                for y := startY; y &lt; endY; y++ </span><span class="cov8" title="1">{
                         t := g.Tiles[x][y]
                         if s.Field[x][y].Content == minesweeper.Unknown </span><span class="cov8" title="1">{
                                 continue</span>
@@ -729,7 +778,6 @@ func (g *MinesweeperGrid) updateFromStatus(s *minesweeper.Status) <span class="c
                         t.UpdateContent()</span>
                 }
         }
-        <span class="cov8" title="1">slog.Debug("Finished Update")</span>
 }
 
 // Return the number of rows in the grid
@@ -1728,6 +1776,7 @@ func (s *Save) Game() *LocalGame <span class="cov8" title="1">{
 import (
         "log/slog"
         "slices"
+        "sync"
 )
 
 // Status contains the current state of the game known to the player.
@@ -1743,6 +1792,10 @@ type Status struct {
 
         actionsUpdated bool
         actions        Actions
+        mutex          sync.Mutex
+
+        // Used only for unit-tests
+        updateActionsCalled func()
 }
 
 type Actions struct {
@@ -1762,6 +1815,9 @@ func (s *Status) GameWon() bool <span class="cov8" title="1">{
 
 // Returns the position of all obvious mines
 func (s *Status) ObviousMines() []Pos <span class="cov8" title="1">{
+        s.mutex.Lock()
+        defer s.mutex.Unlock()
+
         if !s.actionsUpdated </span><span class="cov8" title="1">{
                 s.updateActions()
         }</span>
@@ -1770,6 +1826,9 @@ func (s *Status) ObviousMines() []Pos <span class="cov8" title="1">{
 
 // Returns the position of all obvious safe positions
 func (s *Status) ObviousSafePos() []Pos <span class="cov8" title="1">{
+        s.mutex.Lock()
+        defer s.mutex.Unlock()
+
         if !s.actionsUpdated </span><span class="cov8" title="1">{
                 s.updateActions()
         }</span>
@@ -1778,7 +1837,11 @@ func (s *Status) ObviousSafePos() []Pos <span class="cov8" title="1">{
 
 // Calculate the next actions based on the current status
 func (s *Status) updateActions() <span class="cov8" title="1">{
-        s.actionsUpdated = true
+        if s.updateActionsCalled != nil </span><span class="cov8" title="1">{
+                s.updateActionsCalled()
+        }</span>
+
+        <span class="cov8" title="1">s.actionsUpdated = true
         if len(s.Field) == 0 || s.GameOver() || s.GameWon() </span><span class="cov8" title="1">{
                 return
         }</span>
