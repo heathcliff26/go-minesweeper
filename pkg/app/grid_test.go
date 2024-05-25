@@ -138,9 +138,44 @@ func TestReplay(t *testing.T) {
 }
 
 func TestUpdateFromStatus(t *testing.T) {
-	g := NewMinesweeperGrid(DEFAULT_DIFFICULTY, false)
-	// Should not panic
-	g.updateFromStatus(nil)
+	t.Run("NilPointer", func(t *testing.T) {
+		g := NewMinesweeperGrid(DEFAULT_DIFFICULTY, false)
+		// Should not panic
+		g.updateFromStatus(nil)
+	})
+	for _, d := range minesweeper.Difficulties() {
+		t.Run(d.Name, func(t *testing.T) {
+			g := NewMinesweeperGrid(d, false)
+			for _, row := range g.Tiles {
+				for _, tile := range row {
+					tile.CreateRenderer()
+				}
+			}
+			// Should not panic
+			g.updateFromStatus(nil)
+
+			s := minesweeper.NewGameWithSafePos(g.Difficulty, minesweeper.NewPos(0, 0)).UpdateStatus()
+
+			for x := 0; x < g.Row(); x++ {
+				for y := 0; y < g.Col(); y++ {
+					s.Field[x][y] = minesweeper.Field{
+						Checked: true,
+						Content: minesweeper.Mine,
+					}
+				}
+			}
+
+			g.updateFromStatus(s)
+
+			assert := assert.New(t)
+
+			for x := 0; x < g.Row(); x++ {
+				for y := 0; y < g.Col(); y++ {
+					assert.Truef(g.Tiles[x][y].Field.Checked, "Field should be checked for tile=(%d, %d)", x, y)
+				}
+			}
+		})
+	}
 }
 
 func TestAssistedMode(t *testing.T) {
