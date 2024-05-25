@@ -71,7 +71,7 @@
 				
 				<option value="file7">github.com/heathcliff26/go-minesweeper/pkg/app/tile.go (100.0%)</option>
 				
-				<option value="file8">github.com/heathcliff26/go-minesweeper/pkg/app/timer.go (100.0%)</option>
+				<option value="file8">github.com/heathcliff26/go-minesweeper/pkg/app/timer.go (96.7%)</option>
 				
 				<option value="file9">github.com/heathcliff26/go-minesweeper/pkg/app/utils.go (43.1%)</option>
 				
@@ -1038,6 +1038,7 @@ func (t *Tile) gameFinished() bool <span class="cov8" title="1">{
 import (
         "fmt"
         "log/slog"
+        "sync"
         "time"
 
         "fyne.io/fyne/v2/canvas"
@@ -1045,32 +1046,39 @@ import (
 
 // Timer to display an upwards countdown in a fyne app.
 type Timer struct {
-        Label   *canvas.Text
-        Seconds int
-        stop    chan bool
-        running bool
+        Label      *canvas.Text
+        Seconds    int
+        stopSignal chan bool
+        running    bool
+        lock       sync.Mutex
 }
 
 // Create new timer
 func NewTimer() *Timer <span class="cov8" title="1">{
         return &amp;Timer{
-                Label:   newGridLabel("0000"),
-                Seconds: 0,
-                stop:    make(chan bool),
+                Label:      newGridLabel("0000"),
+                Seconds:    0,
+                stopSignal: make(chan bool),
         }
 }</span>
 
 // Start the timer, runs concurrently
 func (t *Timer) Start() <span class="cov8" title="1">{
+        if t.running </span><span class="cov0" title="0">{
+                return
+        }</span>
+
+        <span class="cov8" title="1">t.lock.Lock()
+        defer t.lock.Unlock()
+
         ticker := time.NewTicker(time.Second)
         t.running = true
         go func() </span><span class="cov8" title="1">{
                 slog.Debug("Started timer")
                 for </span><span class="cov8" title="1">{
                         select </span>{
-                        case &lt;-t.stop:<span class="cov8" title="1">
+                        case &lt;-t.stopSignal:<span class="cov8" title="1">
                                 ticker.Stop()
-                                slog.Info("Stopped timer", slog.Int("seconds", t.Seconds))
                                 return</span>
                         case &lt;-ticker.C:<span class="cov8" title="1">
                                 t.Seconds++
@@ -1082,18 +1090,30 @@ func (t *Timer) Start() <span class="cov8" title="1">{
 
 // Stop the timer
 func (t *Timer) Stop() <span class="cov8" title="1">{
-        if t.Running() </span><span class="cov8" title="1">{
-                t.stop &lt;- true
-                t.running = false
-        }</span>
-}
+        t.lock.Lock()
+        defer t.lock.Unlock()
+
+        t.stop()
+}</span>
 
 // Reset the timer back to zero
 func (t *Timer) Reset() <span class="cov8" title="1">{
-        t.Stop()
+        t.lock.Lock()
+        defer t.lock.Unlock()
+
+        t.stop()
         t.Seconds = 0
         t.refresh()
 }</span>
+
+// Actual stop logic, put here so lock can be aquired first by caller
+func (t *Timer) stop() <span class="cov8" title="1">{
+        if t.Running() </span><span class="cov8" title="1">{
+                t.stopSignal &lt;- true
+                t.running = false
+                slog.Info("Stopped timer", slog.Int("seconds", t.Seconds))
+        }</span>
+}
 
 // Check if the timer is running
 func (t *Timer) Running() bool <span class="cov8" title="1">{
