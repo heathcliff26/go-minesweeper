@@ -71,7 +71,7 @@
 				
 				<option value="file7">github.com/heathcliff26/go-minesweeper/pkg/app/tile.go (100.0%)</option>
 				
-				<option value="file8">github.com/heathcliff26/go-minesweeper/pkg/app/timer.go (96.7%)</option>
+				<option value="file8">github.com/heathcliff26/go-minesweeper/pkg/app/timer.go (100.0%)</option>
 				
 				<option value="file9">github.com/heathcliff26/go-minesweeper/pkg/app/utils.go (43.1%)</option>
 				
@@ -1112,14 +1112,14 @@ func NewTimer() *Timer <span class="cov8" title="1">{
 
 // Start the timer, runs concurrently
 func (t *Timer) Start() <span class="cov8" title="1">{
-        if t.running </span><span class="cov0" title="0">{
+        t.lock.Lock()
+        defer t.lock.Unlock()
+
+        if t.running </span><span class="cov8" title="1">{
                 return
         }</span>
 
-        <span class="cov8" title="1">t.lock.Lock()
-        defer t.lock.Unlock()
-
-        ticker := time.NewTicker(time.Second)
+        <span class="cov8" title="1">ticker := time.NewTicker(time.Second)
         t.running = true
         go func() </span><span class="cov8" title="1">{
                 slog.Debug("Started timer")

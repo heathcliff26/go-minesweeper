@@ -412,9 +412,9 @@ github.com/heathcliff26/go-minesweeper/pkg/app/tile.go:217.36,218.24 1 1
 github.com/heathcliff26/go-minesweeper/pkg/app/tile.go:218.24,220.3 1 1
 github.com/heathcliff26/go-minesweeper/pkg/app/tile.go:221.2,221.14 1 1
 github.com/heathcliff26/go-minesweeper/pkg/app/timer.go:22.24,28.2 1 1
-github.com/heathcliff26/go-minesweeper/pkg/app/timer.go:31.25,32.15 1 1
-github.com/heathcliff26/go-minesweeper/pkg/app/timer.go:32.15,34.3 1 0
-github.com/heathcliff26/go-minesweeper/pkg/app/timer.go:36.2,41.12 5 1
+github.com/heathcliff26/go-minesweeper/pkg/app/timer.go:31.25,35.15 3 1
+github.com/heathcliff26/go-minesweeper/pkg/app/timer.go:35.15,37.3 1 1
+github.com/heathcliff26/go-minesweeper/pkg/app/timer.go:39.2,41.12 3 1
 github.com/heathcliff26/go-minesweeper/pkg/app/timer.go:41.12,43.7 2 1
 github.com/heathcliff26/go-minesweeper/pkg/app/timer.go:43.7,44.11 1 1
 github.com/heathcliff26/go-minesweeper/pkg/app/timer.go:45.24,47.11 2 1
