@@ -3,6 +3,7 @@ package app
 import (
 	"fmt"
 	"log/slog"
+	"sync"
 	"time"
 
 	"fyne.io/fyne/v2/canvas"
@@ -10,32 +11,39 @@ import (
 
 // Timer to display an upwards countdown in a fyne app.
 type Timer struct {
-	Label   *canvas.Text
-	Seconds int
-	stop    chan bool
-	running bool
+	Label      *canvas.Text
+	Seconds    int
+	stopSignal chan bool
+	running    bool
+	lock       sync.Mutex
 }
 
 // Create new timer
 func NewTimer() *Timer {
 	return &Timer{
-		Label:   newGridLabel("0000"),
-		Seconds: 0,
-		stop:    make(chan bool),
+		Label:      newGridLabel("0000"),
+		Seconds:    0,
+		stopSignal: make(chan bool),
 	}
 }
 
 // Start the timer, runs concurrently
 func (t *Timer) Start() {
+	if t.running {
+		return
+	}
+
+	t.lock.Lock()
+	defer t.lock.Unlock()
+
 	ticker := time.NewTicker(time.Second)
 	t.running = true
 	go func() {
 		slog.Debug("Started timer")
 		for {
 			select {
-			case <-t.stop:
+			case <-t.stopSignal:
 				ticker.Stop()
-				slog.Info("Stopped timer", slog.Int("seconds", t.Seconds))
 				return
 			case <-ticker.C:
 				t.Seconds++
@@ -47,17 +55,29 @@ func (t *Timer) Start() {
 
 // Stop the timer
 func (t *Timer) Stop() {
-	if t.Running() {
-		t.stop <- true
-		t.running = false
-	}
+	t.lock.Lock()
+	defer t.lock.Unlock()
+
+	t.stop()
 }
 
 // Reset the timer back to zero
 func (t *Timer) Reset() {
-	t.Stop()
+	t.lock.Lock()
+	defer t.lock.Unlock()
+
+	t.stop()
 	t.Seconds = 0
 	t.refresh()
+}
+
+// Actual stop logic, put here so lock can be aquired first by caller
+func (t *Timer) stop() {
+	if t.Running() {
+		t.stopSignal <- true
+		t.running = false
+		slog.Info("Stopped timer", slog.Int("seconds", t.Seconds))
+	}
 }
 
 // Check if the timer is running

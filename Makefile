@@ -8,7 +8,7 @@ lint:
 	golangci-lint run -v --timeout 300s
 
 test:
-	go test -v ./...
+	go test -v -race ./...
 
 build:
 	( GOOS="$(GOOS)" GOARCH="$(GOARCH)" GO_BUILD_FLAGS=$(GO_BUILD_FLAGS) hack/build.sh )
