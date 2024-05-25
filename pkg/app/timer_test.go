@@ -33,4 +33,14 @@ func TestTimer(t *testing.T) {
 	assert.False(timer.running)
 	assert.Equal(0, timer.Seconds)
 	assert.Equal("0000", timer.Label.Text)
+
+	timer.Start()
+	assert.True(timer.running)
+	timer.Start()
+	assert.True(timer.running)
+
+	time.Sleep(10 * time.Second)
+	timer.Stop()
+
+	assert.Equal(10, timer.Seconds)
 }

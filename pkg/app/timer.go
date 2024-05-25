@@ -29,12 +29,12 @@ func NewTimer() *Timer {
 
 // Start the timer, runs concurrently
 func (t *Timer) Start() {
+	t.lock.Lock()
+	defer t.lock.Unlock()
+
 	if t.running {
 		return
 	}
-
-	t.lock.Lock()
-	defer t.lock.Unlock()
 
 	ticker := time.NewTicker(time.Second)
 	t.running = true
