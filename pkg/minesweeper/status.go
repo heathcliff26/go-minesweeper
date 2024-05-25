@@ -3,6 +3,7 @@ package minesweeper
 import (
 	"log/slog"
 	"slices"
+	"sync"
 )
 
 // Status contains the current state of the game known to the player.
@@ -18,6 +19,10 @@ type Status struct {
 
 	actionsUpdated bool
 	actions        Actions
+	mutex          sync.Mutex
+
+	// Used only for unit-tests
+	updateActionsCalled func()
 }
 
 type Actions struct {
@@ -37,6 +42,9 @@ func (s *Status) GameWon() bool {
 
 // Returns the position of all obvious mines
 func (s *Status) ObviousMines() []Pos {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
 	if !s.actionsUpdated {
 		s.updateActions()
 	}
@@ -45,6 +53,9 @@ func (s *Status) ObviousMines() []Pos {
 
 // Returns the position of all obvious safe positions
 func (s *Status) ObviousSafePos() []Pos {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
 	if !s.actionsUpdated {
 		s.updateActions()
 	}
@@ -53,6 +64,10 @@ func (s *Status) ObviousSafePos() []Pos {
 
 // Calculate the next actions based on the current status
 func (s *Status) updateActions() {
+	if s.updateActionsCalled != nil {
+		s.updateActionsCalled()
+	}
+
 	s.actionsUpdated = true
 	if len(s.Field) == 0 || s.GameOver() || s.GameWon() {
 		return
