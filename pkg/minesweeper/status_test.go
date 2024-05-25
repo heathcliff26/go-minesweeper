@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/heathcliff26/go-minesweeper/pkg/utils"
 	"github.com/stretchr/testify/assert"
@@ -88,30 +89,30 @@ func TestAssistedMode(t *testing.T) {
 func TestUpdateActionsEarlyReturn(t *testing.T) {
 	tMatrix := []struct {
 		Name   string
-		Status Status
+		Status *Status
 	}{
 		{
 			Name: "FieldNil",
-			Status: Status{
+			Status: &Status{
 				Field: nil,
 			},
 		},
 		{
 			Name: "FieldEmpty",
-			Status: Status{
+			Status: &Status{
 				Field: make([][]Field, 0),
 			},
 		},
 		{
 			Name: "FieldGameOver",
-			Status: Status{
+			Status: &Status{
 				Field:    utils.Make2D[Field](1, 1),
 				gameOver: true,
 			},
 		},
 		{
 			Name: "FieldGameWon",
-			Status: Status{
+			Status: &Status{
 				Field:   utils.Make2D[Field](1, 1),
 				gameWon: true,
 			},
@@ -130,4 +131,29 @@ func TestUpdateActionsEarlyReturn(t *testing.T) {
 			assert.Empty(tCase.Status.actions.SafePos, "SafePos should be empty")
 		})
 	}
+}
+
+func TestStatusConcurrencySafe(t *testing.T) {
+	s := NewGameWithSafePos(Difficulties()[0], NewPos(0, 0)).UpdateStatus()
+
+	done := make(chan struct{})
+	s.updateActionsCalled = func() {
+		done <- struct{}{}
+	}
+
+	go s.ObviousMines()
+	go s.ObviousSafePos()
+
+	count := 0
+	timeout := false
+	for !timeout {
+		select {
+		case <-done:
+			count++
+		case <-time.After(time.Second):
+			timeout = true
+		}
+	}
+
+	assert.Equal(t, 1, count, "Should have called updateActions once")
 }
