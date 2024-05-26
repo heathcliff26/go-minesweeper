@@ -8,39 +8,63 @@ import (
 )
 
 func TestTimer(t *testing.T) {
-	timer := NewTimer()
+	t.Parallel()
+	t.Run("New", func(t *testing.T) {
+		t.Parallel()
+		assert := assert.New(t)
 
-	assert := assert.New(t)
+		timer := NewTimer()
 
-	assert.Equal(0, timer.Seconds)
-	assert.Equal("0000", timer.Label.Text)
+		assert.Equal(0, timer.Seconds)
+		assert.Equal("0000", timer.Label.Text)
+	})
+	t.Run("Counting", func(t *testing.T) {
+		t.Parallel()
+		assert := assert.New(t)
 
-	timer.Start()
-	assert.True(timer.running)
+		timer := NewTimer()
 
-	time.Sleep(10 * time.Second)
+		timer.Start()
+		assert.True(timer.running)
 
-	timer.Stop()
+		time.Sleep(10 * time.Second)
 
-	assert.False(timer.running)
-	assert.Equal(10, timer.Seconds)
-	assert.Equal("0010", timer.Label.Text)
+		timer.Stop()
 
-	timer.Start()
-	assert.True(timer.running)
+		assert.False(timer.running)
+		assert.Equal(10, timer.Seconds)
+		assert.Equal("0010", timer.Label.Text)
+	})
+	t.Run("Reset", func(t *testing.T) {
+		t.Parallel()
+		assert := assert.New(t)
 
-	timer.Reset()
-	assert.False(timer.running)
-	assert.Equal(0, timer.Seconds)
-	assert.Equal("0000", timer.Label.Text)
+		timer := NewTimer()
 
-	timer.Start()
-	assert.True(timer.running)
-	timer.Start()
-	assert.True(timer.running)
+		timer.Start()
+		assert.True(timer.running)
 
-	time.Sleep(10 * time.Second)
-	timer.Stop()
+		time.Sleep(2 * time.Second)
 
-	assert.Equal(10, timer.Seconds)
+		timer.Reset()
+		assert.False(timer.running)
+		assert.Equal(0, timer.Seconds)
+		assert.Equal("0000", timer.Label.Text)
+	})
+	t.Run("MultipleCallsToStart", func(t *testing.T) {
+		t.Parallel()
+		assert := assert.New(t)
+
+		timer := NewTimer()
+
+		timer.Start()
+		assert.True(timer.running)
+		timer.Start()
+		assert.True(timer.running)
+
+		time.Sleep(10 * time.Second)
+		timer.Stop()
+
+		assert.Equal(10, timer.Seconds)
+	})
 }
