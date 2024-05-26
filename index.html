@@ -69,7 +69,7 @@
 				
 				<option value="file6">github.com/heathcliff26/go-minesweeper/pkg/app/filedialog/dialog.go (0.0%)</option>
 				
-				<option value="file7">github.com/heathcliff26/go-minesweeper/pkg/app/grid.go (98.0%)</option>
+				<option value="file7">github.com/heathcliff26/go-minesweeper/pkg/app/grid.go (100.0%)</option>
 				
 				<option value="file8">github.com/heathcliff26/go-minesweeper/pkg/app/tile.go (100.0%)</option>
 				
@@ -898,7 +898,7 @@ func (g *MinesweeperGrid) updateFromStatus(s *minesweeper.Status) <span class="c
         <span class="cov8" title="1">for x := 0; x &lt;= g.Row()/ChunkSize; x++ </span><span class="cov8" title="1">{
                 chunkSizeX := ChunkSize
                 if x == g.Row()/ChunkSize </span><span class="cov8" title="1">{
-                        if g.Row()%ChunkSize == 0 </span><span class="cov0" title="0">{
+                        if g.Row()%ChunkSize == 0 </span><span class="cov8" title="1">{
                                 continue</span>
                         } else<span class="cov8" title="1"> {
                                 chunkSizeX = g.Row() % ChunkSize
@@ -1015,7 +1015,7 @@ func (g *MinesweeperGrid) Hint() bool <span class="cov8" title="1">{
                 tile.UpdateContent()
                 return true
         }</span>
-        <span class="cov0" title="0">return false</span>
+        <span class="cov8" title="1">return false</span>
 }
 
 // Autosolve the current running game, delay is the time between steps
@@ -1059,7 +1059,7 @@ func (g *MinesweeperGrid) Autosolve(delay time.Duration) bool <span class="cov8"
                 slog.Info("Autosolve: Flagging mines")
                 for _, mine := range s.ObviousMines() </span><span class="cov8" title="1">{
                         tile := g.Tiles[mine.X][mine.Y]
-                        if tile.Flagged </span><span class="cov0" title="0">{
+                        if tile.Flagged </span><span class="cov8" title="1">{
                                 continue</span>
                         }
                         <span class="cov8" title="1">tile.TappedSecondary(nil)
