@@ -108,26 +108,52 @@
 		<pre class="file" id="file0" style="display: none">package main
 
 import (
+        "flag"
         "log/slog"
         "os"
 )
 
-const logLevel = slog.LevelError
+var (
+        logDebug bool
+        logInfo  bool
+)
 
 func init() <span class="cov0" title="0">{
-        opts := slog.HandlerOptions{
+        flag.BoolVar(&amp;logDebug, "vv", false, "Enable more verbose logging")
+        flag.BoolVar(&amp;logInfo, "v", false, "Enable more verbose logging")
+}</span>
+
+func initializeLogger() <span class="cov0" title="0">{
+        var logLevel slog.Level
+        switch </span>{
+        case logDebug:<span class="cov0" title="0">
+                logLevel = slog.LevelDebug</span>
+        case logInfo:<span class="cov0" title="0">
+                logLevel = slog.LevelInfo</span>
+        default:<span class="cov0" title="0">
+                logLevel = slog.LevelError</span>
+        }
+
+        <span class="cov0" title="0">opts := slog.HandlerOptions{
                 Level: logLevel,
         }
         logger := slog.New(slog.NewTextHandler(os.Stdout, &amp;opts))
-        slog.SetDefault(logger)
-}</span>
+        slog.SetDefault(logger)</span>
+}
 </pre>
 		
 		<pre class="file" id="file1" style="display: none">package main
 
-import "github.com/heathcliff26/go-minesweeper/pkg/app"
+import (
+        "flag"
+
+        "github.com/heathcliff26/go-minesweeper/pkg/app"
+)
 
 func main() <span class="cov0" title="0">{
+        flag.Parse()
+        initializeLogger()
+
         app := app.New()
         app.Run()
 }</span>
