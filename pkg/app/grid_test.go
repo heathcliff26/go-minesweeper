@@ -2,6 +2,7 @@ package app
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"testing"
 
@@ -143,7 +144,18 @@ func TestUpdateFromStatus(t *testing.T) {
 		// Should not panic
 		g.updateFromStatus(nil)
 	})
-	for _, d := range minesweeper.Difficulties() {
+
+	difficulties := minesweeper.Difficulties()
+	for _, i := range []int{10, 11, 25, 30, 50} {
+		d, err := minesweeper.NewCustomDifficulty((i*i)/2, i, i)
+		if err != nil {
+			t.Fatalf("Failed to create custom difficulty %dx%d: %v", i, i, err)
+		}
+		d.Name = fmt.Sprintf("%dx%d", i, i)
+		difficulties = append(difficulties, d)
+	}
+
+	for _, d := range difficulties {
 		t.Run(d.Name, func(t *testing.T) {
 			g := NewMinesweeperGrid(d, false)
 			for _, row := range g.Tiles {
@@ -218,52 +230,74 @@ func TestAssistedMode(t *testing.T) {
 }
 
 func TestHint(t *testing.T) {
-	assert := assert.New(t)
+	t.Run("GameNil", func(t *testing.T) {
+		g := NewMinesweeperGrid(DEFAULT_DIFFICULTY, false)
+		assert.False(t, g.Hint(), "Should not give hint when game is nil")
+	})
+	t.Run("GameOver", func(t *testing.T) {
+		assert := assert.New(t)
 
-	g := NewMinesweeperGrid(DEFAULT_DIFFICULTY, false)
-	assert.False(g.Hint(), "Should not give hint when game is nil")
+		g, err := createGridFromSave("testdata/hint.sav", false)
+		if !assert.Nil(err, "Should load savegame") {
+			t.Fatal(err)
+		}
 
-	g, testConfig, err := loadAssistedModeTest("testdata/hint", false)
-	if !assert.Nil(err, "Should have loaded the test") {
-		t.Fatal(err)
-	}
-	step := testConfig[0]
+		g.TappedTile(minesweeper.NewPos(15, 6))
+		assert.False(g.Hint(), "Should not be able to display hint on failed game")
+	})
+	t.Run("DisplayHint", func(t *testing.T) {
+		assert := assert.New(t)
 
-	g.TappedTile(step.CheckPos)
+		g, testConfig, err := loadAssistedModeTest("testdata/hint", false)
+		if !assert.Nil(err, "Should have loaded the test") {
+			t.Fatal(err)
+		}
+		step := testConfig[0]
 
-	for _, mine := range step.Mines {
+		g.TappedTile(step.CheckPos)
+
+		for _, mine := range step.Mines {
+			assert.True(g.Hint(), "Should be able to display hints")
+			tile := g.Tiles[mine.X][mine.Y]
+			assert.Equalf(HelpMarkingMine, tile.Marker, "Tile should be marked as mine, tile=%s", tile.Pos.String())
+			tile.Flagged = true
+			for x := 0; x < g.Difficulty.Row; x++ {
+				for y := 0; y < g.Difficulty.Col; y++ {
+					tile := g.Tiles[x][y]
+					if tile.Flagged || tile.Field.Checked {
+						continue
+					}
+					if !assert.Equalf(HelpMarkingNone, tile.Marker, "No other tiles should be marked, tile=%s, mine=%s", tile.Pos.String(), mine.String()) {
+						t.FailNow()
+					}
+				}
+			}
+		}
 		assert.True(g.Hint(), "Should be able to display hints")
-		tile := g.Tiles[mine.X][mine.Y]
-		assert.Equalf(HelpMarkingMine, tile.Marker, "Tile should be marked as mine, tile=%s", tile.Pos.String())
-		tile.Flagged = true
+		assert.Equal(HelpMarkingSafe, g.Tiles[step.SafePos[0].X][step.SafePos[0].Y].Marker, "Tile should be marked as safe")
 		for x := 0; x < g.Difficulty.Row; x++ {
 			for y := 0; y < g.Difficulty.Col; y++ {
 				tile := g.Tiles[x][y]
-				if tile.Flagged || tile.Field.Checked {
+				if tile.Flagged || tile.Field.Checked || tile.Pos == step.SafePos[0] {
 					continue
 				}
-				if !assert.Equalf(HelpMarkingNone, tile.Marker, "No other tiles should be marked, tile=%s, mine=%s", tile.Pos.String(), mine.String()) {
+				if !assert.Equalf(HelpMarkingNone, tile.Marker, "No other tiles should be marked, tile=%s", tile.Pos.String()) {
 					t.FailNow()
 				}
 			}
 		}
-	}
-	assert.True(g.Hint(), "Should be able to display hints")
-	assert.Equal(HelpMarkingSafe, g.Tiles[step.SafePos[0].X][step.SafePos[0].Y].Marker, "Tile should be marked as safe")
-	for x := 0; x < g.Difficulty.Row; x++ {
-		for y := 0; y < g.Difficulty.Col; y++ {
-			tile := g.Tiles[x][y]
-			if tile.Flagged || tile.Field.Checked || tile.Pos == step.SafePos[0] {
-				continue
-			}
-			if !assert.Equalf(HelpMarkingNone, tile.Marker, "No other tiles should be marked, tile=%s", tile.Pos.String()) {
-				t.FailNow()
-			}
-		}
-	}
+	})
+	t.Run("NoHints", func(t *testing.T) {
+		assert := assert.New(t)
 
-	g.TappedTile(minesweeper.NewPos(15, 6))
-	assert.False(g.Hint(), "Should not be able to display hint on failed game")
+		g, err := createGridFromSave("testdata/no-hints.sav", false)
+		if !assert.Nil(err, "Should load savegame") {
+			t.Fatal(err)
+		}
+		g.TappedTile(minesweeper.NewPos(0, 0))
+
+		assert.False(g.Hint(), "Should find no hints")
+	})
 }
 
 func TestAutosolve(t *testing.T) {
@@ -345,7 +379,7 @@ func TestAutosolve(t *testing.T) {
 			path := "testdata/autosolve_" + tCase.Name
 			g, err := createGridFromSave(path+".sav", false)
 			if !assert.Nil(err, "Should load savegame") {
-				t.FailNow()
+				t.Fatal(err)
 			}
 			g.TappedTile(minesweeper.NewPos(0, 0))
 
@@ -364,6 +398,23 @@ func TestAutosolve(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("FlaggedMines", func(t *testing.T) {
+		assert := assert.New(t)
+		g, err := createGridFromSave("testdata/autosolve_unfinished.sav", false)
+		if !assert.Nil(err, "Should load savegame") {
+			t.Fatal(err)
+		}
+		g.TappedTile(minesweeper.NewPos(0, 0))
+
+		assert.True(g.Autosolve(0), "Should run autosolve")
+		// Run twice to check that flagged fields to not get unflagged
+		assert.True(g.Autosolve(0), "Should run autosolve a second time")
+
+		for _, p := range g.Game.Status().ObviousMines() {
+			assert.True(g.Tiles[p.X][p.Y].Flagged, "Tile should be flagged, tile="+p.String())
+		}
+	})
 }
 
 func createGridFromSave(path string, assistedMode bool) (*MinesweeperGrid, error) {
