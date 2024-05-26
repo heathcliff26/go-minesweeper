@@ -1807,6 +1807,7 @@ func (g *LocalGame) Replay() <span class="cov8" title="1">{
         g.replay = true
         g.GameOver = false
         g.GameWon = false
+        g.status = nil
 
         g.walkField(func(x, y int) </span><span class="cov8" title="1">{
                 g.Field[x][y].Checked = false
