@@ -3,6 +3,7 @@ package app
 import (
 	"image/color"
 	"os"
+	"time"
 
 	"fyne.io/fyne/v2"
 	fApp "fyne.io/fyne/v2/app"
@@ -20,6 +21,8 @@ var TEXT_COLOR = color.White
 var DEFAULT_DIFFICULTY = minesweeper.Difficulties()[minesweeper.DifficultyIntermediate]
 
 const DEFAULT_GAME_ALGORITHM = GameAlgorithmSafeArea
+
+const DEFAULT_AUTOSOLVE_DELAY = 500 * time.Millisecond
 
 // Used to change the new app function for testing
 var newApp = fApp.New
@@ -115,7 +118,16 @@ func (a *App) makeMenu() {
 	})
 	gameAlgorithmSubMenu := fyne.NewMenuItem("Creation Algorithm", nil)
 	gameAlgorithmSubMenu.ChildMenu = fyne.NewMenu("Creation Algorithm", a.gameAlgorithms...)
-	optionsMenu := fyne.NewMenu("Options", a.assistedMode, gameAlgorithmSubMenu)
+	autosolve := fyne.NewMenuItem("Autosolve", func() {
+		var message string
+		if a.grid.Autosolve(DEFAULT_AUTOSOLVE_DELAY) {
+			message = "Finished autosolve"
+		} else {
+			message = "Failed to run autosolve, please ensure that a game is currently running."
+		}
+		dialog.ShowInformation("Autosolve", message, a.main)
+	})
+	optionsMenu := fyne.NewMenu("Options", a.assistedMode, gameAlgorithmSubMenu, autosolve)
 
 	hint := fyne.NewMenuItem("Hint", func() {
 		if !a.grid.Hint() {
