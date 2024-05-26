@@ -61,7 +61,7 @@
 				
 				<option value="file2">github.com/heathcliff26/go-minesweeper/cmd/log-parser/main.go (0.0%)</option>
 				
-				<option value="file3">github.com/heathcliff26/go-minesweeper/pkg/app/app.go (49.6%)</option>
+				<option value="file3">github.com/heathcliff26/go-minesweeper/pkg/app/app.go (48.1%)</option>
 				
 				<option value="file4">github.com/heathcliff26/go-minesweeper/pkg/app/button.go (100.0%)</option>
 				
@@ -69,7 +69,7 @@
 				
 				<option value="file6">github.com/heathcliff26/go-minesweeper/pkg/app/filedialog/dialog.go (0.0%)</option>
 				
-				<option value="file7">github.com/heathcliff26/go-minesweeper/pkg/app/grid.go (98.3%)</option>
+				<option value="file7">github.com/heathcliff26/go-minesweeper/pkg/app/grid.go (98.0%)</option>
 				
 				<option value="file8">github.com/heathcliff26/go-minesweeper/pkg/app/tile.go (100.0%)</option>
 				
@@ -240,6 +240,7 @@ func main() <span class="cov0" title="0">{
 import (
         "image/color"
         "os"
+        "time"
 
         "fyne.io/fyne/v2"
         fApp "fyne.io/fyne/v2/app"
@@ -257,6 +258,8 @@ var TEXT_COLOR = color.White
 var DEFAULT_DIFFICULTY = minesweeper.Difficulties()[minesweeper.DifficultyIntermediate]
 
 const DEFAULT_GAME_ALGORITHM = GameAlgorithmSafeArea
+
+const DEFAULT_AUTOSOLVE_DELAY = 500 * time.Millisecond
 
 // Used to change the new app function for testing
 var newApp = fApp.New
@@ -352,7 +355,16 @@ func (a *App) makeMenu() <span class="cov8" title="1">{
         }</span>)
         <span class="cov8" title="1">gameAlgorithmSubMenu := fyne.NewMenuItem("Creation Algorithm", nil)
         gameAlgorithmSubMenu.ChildMenu = fyne.NewMenu("Creation Algorithm", a.gameAlgorithms...)
-        optionsMenu := fyne.NewMenu("Options", a.assistedMode, gameAlgorithmSubMenu)
+        autosolve := fyne.NewMenuItem("Autosolve", func() </span><span class="cov0" title="0">{
+                var message string
+                if a.grid.Autosolve(DEFAULT_AUTOSOLVE_DELAY) </span><span class="cov0" title="0">{
+                        message = "Finished autosolve"
+                }</span> else<span class="cov0" title="0"> {
+                        message = "Failed to run autosolve, please ensure that a game is currently running."
+                }</span>
+                <span class="cov0" title="0">dialog.ShowInformation("Autosolve", message, a.main)</span>
+        })
+        <span class="cov8" title="1">optionsMenu := fyne.NewMenu("Options", a.assistedMode, gameAlgorithmSubMenu, autosolve)
 
         hint := fyne.NewMenuItem("Hint", func() </span><span class="cov0" title="0">{
                 if !a.grid.Hint() </span><span class="cov0" title="0">{
@@ -728,6 +740,7 @@ import (
         "image/color"
         "log/slog"
         "sync"
+        "time"
 
         "fyne.io/fyne/v2"
         "fyne.io/fyne/v2/container"
@@ -757,6 +770,8 @@ const (
 const (
         ChunkSize = 10
 )
+
+const autosolveFlagMineDelay = 150 * time.Millisecond
 
 // Graphical display for a minesweeper game
 type MinesweeperGrid struct {
@@ -1001,6 +1016,59 @@ func (g *MinesweeperGrid) Hint() bool <span class="cov8" title="1">{
                 return true
         }</span>
         <span class="cov0" title="0">return false</span>
+}
+
+// Autosolve the current running game, delay is the time between steps
+// Returns false if it can't run autosolve, otherwise true.
+// If there are no steps to be taken, still
+func (g *MinesweeperGrid) Autosolve(delay time.Duration) bool <span class="cov8" title="1">{
+        if g.Game == nil </span><span class="cov8" title="1">{
+                slog.Info("Autosolve failed because no game is running")
+                return false
+        }</span>
+        <span class="cov8" title="1">s := g.Game.Status()
+        if s == nil </span><span class="cov8" title="1">{
+                slog.Info("Autosolve failed because game does not have a status yet")
+                return false
+        }</span>
+        <span class="cov8" title="1">if s.GameWon() || s.GameOver() </span><span class="cov8" title="1">{
+                slog.Info("Not running autosolve because the game is already over")
+                return false
+        }</span>
+
+        <span class="cov8" title="1">oldAssistedModeStatus := g.AssistedMode
+        g.AssistedMode = true
+        defer func() </span><span class="cov8" title="1">{
+                g.AssistedMode = oldAssistedModeStatus
+        }</span>()
+        <span class="cov8" title="1">g.updateFromStatus(s)
+
+        for i, safePos := 0, s.ObviousSafePos(); len(safePos) &gt; 0 &amp;&amp; !(s.GameOver() || s.GameWon()); safePos = s.ObviousSafePos() </span><span class="cov8" title="1">{
+                slog.Debug("Autosolve: Checking safe positions", slog.Int("iteration", i))
+                for _, p := range safePos </span><span class="cov8" title="1">{
+                        if g.Tiles[p.X][p.Y].Field.Checked </span><span class="cov8" title="1">{
+                                continue</span>
+                        }
+                        <span class="cov8" title="1">g.TappedTile(p)
+                        time.Sleep(delay)</span>
+                }
+                <span class="cov8" title="1">i++</span>
+        }
+
+        <span class="cov8" title="1">if !(s.GameOver() || s.GameWon()) </span><span class="cov8" title="1">{
+                slog.Info("Autosolve: Flagging mines")
+                for _, mine := range s.ObviousMines() </span><span class="cov8" title="1">{
+                        tile := g.Tiles[mine.X][mine.Y]
+                        if tile.Flagged </span><span class="cov0" title="0">{
+                                continue</span>
+                        }
+                        <span class="cov8" title="1">tile.TappedSecondary(nil)
+                        time.Sleep(autosolveFlagMineDelay)</span>
+                }
+        }
+
+        <span class="cov8" title="1">slog.Debug("Autosolve finished")
+        return true</span>
 }
 </pre>
 		
