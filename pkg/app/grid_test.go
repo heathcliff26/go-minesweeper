@@ -139,7 +139,10 @@ func TestReplay(t *testing.T) {
 }
 
 func TestUpdateFromStatus(t *testing.T) {
+	t.Parallel()
 	t.Run("NilPointer", func(t *testing.T) {
+		t.Parallel()
+
 		g := NewMinesweeperGrid(DEFAULT_DIFFICULTY, false)
 		// Should not panic
 		g.updateFromStatus(nil)
@@ -157,6 +160,9 @@ func TestUpdateFromStatus(t *testing.T) {
 
 	for _, d := range difficulties {
 		t.Run(d.Name, func(t *testing.T) {
+			if d.Row*d.Col < 1000 {
+				t.Parallel()
+			}
 			g := NewMinesweeperGrid(d, false)
 			for _, row := range g.Tiles {
 				for _, tile := range row {
@@ -311,12 +317,17 @@ func TestHint(t *testing.T) {
 }
 
 func TestAutosolve(t *testing.T) {
+	t.Parallel()
 	t.Run("GameNil", func(t *testing.T) {
+		t.Parallel()
+
 		g := NewMinesweeperGrid(DEFAULT_DIFFICULTY, false)
 
 		assert.False(t, g.Autosolve(0), "Should not run autosolve")
 	})
 	t.Run("StatusNil", func(t *testing.T) {
+		t.Parallel()
+
 		g := NewMinesweeperGrid(DEFAULT_DIFFICULTY, false)
 		for _, row := range g.Tiles {
 			for _, tile := range row {
@@ -328,6 +339,8 @@ func TestAutosolve(t *testing.T) {
 		assert.False(t, g.Autosolve(0), "Should not run autosolve")
 	})
 	t.Run("GameWon", func(t *testing.T) {
+		t.Parallel()
+
 		g := NewMinesweeperGrid(DEFAULT_DIFFICULTY, false)
 		for _, row := range g.Tiles {
 			for _, tile := range row {
@@ -343,6 +356,8 @@ func TestAutosolve(t *testing.T) {
 		assert.False(t, g.Autosolve(0), "Should not run autosolve")
 	})
 	t.Run("GameOver", func(t *testing.T) {
+		t.Parallel()
+
 		g := NewMinesweeperGrid(DEFAULT_DIFFICULTY, false)
 		for _, row := range g.Tiles {
 			for _, tile := range row {
@@ -358,6 +373,7 @@ func TestAutosolve(t *testing.T) {
 		assert.False(t, g.Autosolve(0), "Should not run autosolve")
 	})
 	t.Run("RestoresAssistedModeSetting", func(t *testing.T) {
+		t.Parallel()
 		assert := assert.New(t)
 
 		for _, value := range []bool{true, false} {
@@ -385,7 +401,9 @@ func TestAutosolve(t *testing.T) {
 	}
 	for _, tCase := range tMatrix {
 		t.Run("Solve_"+tCase.Name, func(t *testing.T) {
+			t.Parallel()
 			assert := assert.New(t)
+
 			path := "testdata/autosolve_" + tCase.Name
 			g, err := createGridFromSave(path+".sav", false)
 			if !assert.Nil(err, "Should load savegame") {
@@ -410,7 +428,9 @@ func TestAutosolve(t *testing.T) {
 	}
 
 	t.Run("FlaggedMines", func(t *testing.T) {
+		t.Parallel()
 		assert := assert.New(t)
+
 		g, err := createGridFromSave("testdata/autosolve_unfinished.sav", false)
 		if !assert.Nil(err, "Should load savegame") {
 			t.Fatal(err)
