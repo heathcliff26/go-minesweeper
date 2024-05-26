@@ -259,7 +259,7 @@ func (g *MinesweeperGrid) Hint() bool {
 		return false
 	}
 	s := g.Game.Status()
-	if s.GameOver() || s.GameWon() {
+	if s == nil || s.GameOver() || s.GameWon() {
 		return false
 	}
 

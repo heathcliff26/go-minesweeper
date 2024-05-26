@@ -234,6 +234,16 @@ func TestHint(t *testing.T) {
 		g := NewMinesweeperGrid(DEFAULT_DIFFICULTY, false)
 		assert.False(t, g.Hint(), "Should not give hint when game is nil")
 	})
+	t.Run("StatusNil", func(t *testing.T) {
+		assert := assert.New(t)
+
+		g, err := createGridFromSave("testdata/hint.sav", false)
+		if !assert.Nil(err, "Should load savegame") {
+			t.Fatal(err)
+		}
+
+		assert.False(g.Hint(), "Should not be able to display hint on game without status")
+	})
 	t.Run("GameOver", func(t *testing.T) {
 		assert := assert.New(t)
 
