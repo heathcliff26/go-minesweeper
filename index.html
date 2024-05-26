@@ -995,7 +995,7 @@ func (g *MinesweeperGrid) Hint() bool <span class="cov8" title="1">{
                 return false
         }</span>
         <span class="cov8" title="1">s := g.Game.Status()
-        if s.GameOver() || s.GameWon() </span><span class="cov8" title="1">{
+        if s == nil || s.GameOver() || s.GameWon() </span><span class="cov8" title="1">{
                 return false
         }</span>
 
