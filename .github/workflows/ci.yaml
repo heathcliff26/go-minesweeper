@@ -110,5 +110,5 @@ jobs:
         with:
           name: "go-minesweeper_${{ matrix.os }}-${{ matrix.arch }}.${{ steps.artifact-file-ending.outputs.file-ending }}"
           path: "fyne-cross/dist/go-minesweeper_${{ matrix.os }}-${{ matrix.arch }}.${{ steps.artifact-file-ending.outputs.file-ending }}"
-          retention-days: 1
+          retention-days: 14
           if-no-files-found: error
