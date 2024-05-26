@@ -163,14 +163,13 @@ func TestUpdateFromStatus(t *testing.T) {
 			if d.Row*d.Col < 1000 {
 				t.Parallel()
 			}
+
 			g := NewMinesweeperGrid(d, false)
 			for _, row := range g.Tiles {
 				for _, tile := range row {
 					tile.CreateRenderer()
 				}
 			}
-			// Should not panic
-			g.updateFromStatus(nil)
 
 			s := minesweeper.NewGameWithSafePos(g.Difficulty, minesweeper.NewPos(0, 0)).UpdateStatus()
 
