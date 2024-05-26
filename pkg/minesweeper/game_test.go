@@ -366,6 +366,7 @@ func TestReplay(t *testing.T) {
 	assert.False(g.GameOver, "Should not be Game Over")
 	assert.False(g.GameWon, "Game should not be won")
 	assert.NotEqual(Mine, g.Field[p.X][p.Y].Content, "Safe position should not be a mine")
+	assert.Nil(g.status, "Status should be deleted")
 	g.walkField(func(x, y int) {
 		assert.Falsef(g.Field[x][y].Checked, "(%d, %d) should not be checked", x, y)
 	})

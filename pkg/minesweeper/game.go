@@ -219,6 +219,7 @@ func (g *LocalGame) Replay() {
 	g.replay = true
 	g.GameOver = false
 	g.GameWon = false
+	g.status = nil
 
 	g.walkField(func(x, y int) {
 		g.Field[x][y].Checked = false
