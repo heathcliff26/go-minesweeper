@@ -266,10 +266,110 @@ func TestHint(t *testing.T) {
 	assert.False(g.Hint(), "Should not be able to display hint on failed game")
 }
 
-func loadAssistedModeTest(path string, assistedMode bool) (*MinesweeperGrid, []assistedModeTestConfig, error) {
-	save, err := minesweeper.LoadSave(path + ".sav")
+func TestAutosolve(t *testing.T) {
+	t.Run("GameNil", func(t *testing.T) {
+		g := NewMinesweeperGrid(DEFAULT_DIFFICULTY, false)
+
+		assert.False(t, g.Autosolve(0), "Should not run autosolve")
+	})
+	t.Run("StatusNil", func(t *testing.T) {
+		g := NewMinesweeperGrid(DEFAULT_DIFFICULTY, false)
+		for _, row := range g.Tiles {
+			for _, tile := range row {
+				tile.CreateRenderer()
+			}
+		}
+		g.Game = minesweeper.NewGameWithSafePos(g.Difficulty, minesweeper.NewPos(0, 0))
+
+		assert.False(t, g.Autosolve(0), "Should not run autosolve")
+	})
+	t.Run("GameWon", func(t *testing.T) {
+		g := NewMinesweeperGrid(DEFAULT_DIFFICULTY, false)
+		for _, row := range g.Tiles {
+			for _, tile := range row {
+				tile.CreateRenderer()
+			}
+		}
+		game := minesweeper.NewGameWithSafePos(g.Difficulty, minesweeper.NewPos(0, 0))
+		g.Game = game
+
+		game.GameWon = true
+		game.UpdateStatus()
+
+		assert.False(t, g.Autosolve(0), "Should not run autosolve")
+	})
+	t.Run("GameOver", func(t *testing.T) {
+		g := NewMinesweeperGrid(DEFAULT_DIFFICULTY, false)
+		for _, row := range g.Tiles {
+			for _, tile := range row {
+				tile.CreateRenderer()
+			}
+		}
+		game := minesweeper.NewGameWithSafePos(g.Difficulty, minesweeper.NewPos(0, 0))
+		g.Game = game
+
+		game.GameOver = true
+		game.UpdateStatus()
+
+		assert.False(t, g.Autosolve(0), "Should not run autosolve")
+	})
+	t.Run("RestoresAssistedModeSetting", func(t *testing.T) {
+		assert := assert.New(t)
+
+		for _, value := range []bool{true, false} {
+			g := NewMinesweeperGrid(DEFAULT_DIFFICULTY, false)
+			for _, row := range g.Tiles {
+				for _, tile := range row {
+					tile.CreateRenderer()
+				}
+			}
+			g.TappedTile(minesweeper.NewPos(0, 0))
+
+			g.AssistedMode = value
+
+			assert.True(g.Autosolve(0), "Should run autosolve")
+			assert.Equal(value, g.AssistedMode, "Assisted mode setting should be restored")
+		}
+	})
+
+	tMatrix := []struct {
+		Name string
+		Won  bool
+	}{
+		{"win", true},
+		{"unfinished", false},
+	}
+	for _, tCase := range tMatrix {
+		t.Run("Solve_"+tCase.Name, func(t *testing.T) {
+			assert := assert.New(t)
+			path := "testdata/autosolve_" + tCase.Name
+			g, err := createGridFromSave(path+".sav", false)
+			if !assert.Nil(err, "Should load savegame") {
+				t.FailNow()
+			}
+			g.TappedTile(minesweeper.NewPos(0, 0))
+
+			assert.True(g.Autosolve(0), "Should run autosolve")
+
+			msg1 := "unfinished"
+			msg2 := "not be flagged"
+			if tCase.Won {
+				msg1 = "won"
+				msg2 = "be flagged"
+			}
+			assert.Equal(tCase.Won, g.Game.Status().GameWon(), "Game should be "+msg1)
+
+			for _, p := range g.Game.Status().ObviousMines() {
+				assert.Equal(!tCase.Won, g.Tiles[p.X][p.Y].Flagged, "Tile should "+msg2+", tile="+p.String())
+			}
+		})
+	}
+}
+
+func createGridFromSave(path string, assistedMode bool) (*MinesweeperGrid, error) {
+	save, err := minesweeper.LoadSave(path)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 	g := NewMinesweeperGrid(save.Data.Difficulty, assistedMode)
 	for _, row := range g.Tiles {
@@ -278,6 +378,15 @@ func loadAssistedModeTest(path string, assistedMode bool) (*MinesweeperGrid, []a
 		}
 	}
 	g.Game = save.Game()
+
+	return g, nil
+}
+
+func loadAssistedModeTest(path string, assistedMode bool) (*MinesweeperGrid, []assistedModeTestConfig, error) {
+	g, err := createGridFromSave(path+".sav", assistedMode)
+	if err != nil {
+		return nil, nil, err
+	}
 
 	buf, err := os.ReadFile(path + ".json")
 	if err != nil {

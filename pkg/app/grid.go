@@ -4,6 +4,7 @@ import (
 	"image/color"
 	"log/slog"
 	"sync"
+	"time"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
@@ -33,6 +34,8 @@ const (
 const (
 	ChunkSize = 10
 )
+
+const autosolveFlagMineDelay = 150 * time.Millisecond
 
 // Graphical display for a minesweeper game
 type MinesweeperGrid struct {
@@ -277,4 +280,57 @@ func (g *MinesweeperGrid) Hint() bool {
 		return true
 	}
 	return false
+}
+
+// Autosolve the current running game, delay is the time between steps
+// Returns false if it can't run autosolve, otherwise true.
+// If there are no steps to be taken, still
+func (g *MinesweeperGrid) Autosolve(delay time.Duration) bool {
+	if g.Game == nil {
+		slog.Info("Autosolve failed because no game is running")
+		return false
+	}
+	s := g.Game.Status()
+	if s == nil {
+		slog.Info("Autosolve failed because game does not have a status yet")
+		return false
+	}
+	if s.GameWon() || s.GameOver() {
+		slog.Info("Not running autosolve because the game is already over")
+		return false
+	}
+
+	oldAssistedModeStatus := g.AssistedMode
+	g.AssistedMode = true
+	defer func() {
+		g.AssistedMode = oldAssistedModeStatus
+	}()
+	g.updateFromStatus(s)
+
+	for i, safePos := 0, s.ObviousSafePos(); len(safePos) > 0 && !(s.GameOver() || s.GameWon()); safePos = s.ObviousSafePos() {
+		slog.Debug("Autosolve: Checking safe positions", slog.Int("iteration", i))
+		for _, p := range safePos {
+			if g.Tiles[p.X][p.Y].Field.Checked {
+				continue
+			}
+			g.TappedTile(p)
+			time.Sleep(delay)
+		}
+		i++
+	}
+
+	if !(s.GameOver() || s.GameWon()) {
+		slog.Info("Autosolve: Flagging mines")
+		for _, mine := range s.ObviousMines() {
+			tile := g.Tiles[mine.X][mine.Y]
+			if tile.Flagged {
+				continue
+			}
+			tile.TappedSecondary(nil)
+			time.Sleep(autosolveFlagMineDelay)
+		}
+	}
+
+	slog.Debug("Autosolve finished")
+	return true
 }
