@@ -12,4 +12,4 @@ podman run -t \
     -v "${base_dir}":/app:z \
     -v "${HOME}/.cache":/root/.cache \
     ghcr.io/heathcliff26/go-fyne-ci:latest \
-    go test -v -race -timeout 10m ./...
+    make test
