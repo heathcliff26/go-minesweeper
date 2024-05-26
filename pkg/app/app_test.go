@@ -1,12 +1,22 @@
 package app
 
 import (
+	"log/slog"
+	"os"
 	"testing"
 
 	"fyne.io/fyne/v2/test"
 	"github.com/heathcliff26/go-minesweeper/pkg/minesweeper"
 	"github.com/stretchr/testify/assert"
 )
+
+func init() {
+	opts := slog.HandlerOptions{
+		Level: slog.LevelError,
+	}
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &opts))
+	slog.SetDefault(logger)
+}
 
 func TestApp(t *testing.T) {
 	newApp = test.NewApp
