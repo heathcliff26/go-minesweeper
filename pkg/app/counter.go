@@ -3,6 +3,7 @@ package app
 import (
 	"fmt"
 	"strconv"
+	"sync"
 
 	"fyne.io/fyne/v2/canvas"
 )
@@ -11,6 +12,8 @@ import (
 type Counter struct {
 	Label *canvas.Text
 	Count int
+
+	lock sync.Mutex
 }
 
 // Create new counter
@@ -23,6 +26,9 @@ func NewCounter(count int) *Counter {
 
 // Set the count to a specific number
 func (m *Counter) SetCount(c int) {
+	m.lock.Lock()
+	defer m.lock.Unlock()
+
 	m.Count = c
 	m.refresh()
 }
@@ -39,12 +45,18 @@ func (m *Counter) refresh() {
 
 // Increase the counter
 func (m *Counter) Inc() {
+	m.lock.Lock()
+	defer m.lock.Unlock()
+
 	m.Count++
 	m.refresh()
 }
 
 // Decrease the counter
 func (m *Counter) Dec() {
+	m.lock.Lock()
+	defer m.lock.Unlock()
+
 	m.Count--
 	m.refresh()
 }

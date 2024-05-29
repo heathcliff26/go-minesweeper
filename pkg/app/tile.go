@@ -5,6 +5,7 @@ package app
 
 import (
 	"image/color"
+	"sync"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
@@ -64,6 +65,9 @@ type Tile struct {
 
 	pos  minesweeper.Pos
 	grid *MinesweeperGrid
+
+	lFlag   sync.Mutex
+	lUpdate sync.Mutex
 
 	field   minesweeper.Field
 	flagged bool
@@ -129,37 +133,14 @@ func (t *Tile) DoubleTapped(_ *fyne.PointEvent) {
 		return
 	}
 
-	flags := minesweeper.FieldContent(0)
-	posToCheck := make([]minesweeper.Pos, 0, 8)
-	for m := -1; m < 2; m++ {
-		for n := -1; n < 2; n++ {
-			p := t.pos
-			p.X += m
-			p.Y += n
-			if !t.grid.OutOfBounds(p) {
-				if t.grid.Tiles[p.X][p.Y].Flagged() {
-					flags++
-					continue
-				}
-				if t.grid.Tiles[p.X][p.Y].untappable() {
-					continue
-				}
-				posToCheck = append(posToCheck, p)
-			}
-		}
-	}
-
-	if flags == t.Content() {
-		var status *minesweeper.Status
-		for _, p := range posToCheck {
-			status = t.grid.Game.CheckField(p)
-		}
-		t.grid.updateFromStatus(status)
-	}
+	t.grid.TapNeighbours(t.pos)
 }
 
 // Update the tile render depending on the current state of it's backing Field
 func (t *Tile) updateContent() {
+	t.lUpdate.Lock()
+	defer t.lUpdate.Unlock()
+
 	t.icon.Hidden = true
 	t.label.Hidden = true
 	t.background.FillColor = TileDefaultColor
@@ -223,21 +204,28 @@ func (t *Tile) SetField(f minesweeper.Field) {
 
 // Returns if the tile is flagged as a suspected mine
 func (t *Tile) Flagged() bool {
+	t.lFlag.Lock()
+	defer t.lFlag.Unlock()
+
 	return t.flagged
 }
 
 // Flag the tile as a suspected mine
 func (t *Tile) Flag(v bool) {
-	if v == t.Flagged() {
+	t.lFlag.Lock()
+	if v == t.flagged {
+		t.lFlag.Unlock()
 		return
 	}
 
-	if t.Flagged() {
+	if t.flagged {
 		t.grid.MineCount.Inc()
 	} else {
 		t.grid.MineCount.Dec()
 	}
 	t.flagged = v
+
+	t.lFlag.Unlock()
 	t.updateContent()
 }
 
