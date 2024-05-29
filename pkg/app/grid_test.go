@@ -46,7 +46,7 @@ func TestTappedTile(t *testing.T) {
 
 	g.TappedTile(p)
 	assert.NotNil(g.Game)
-	assert.True(g.Tiles[0][0].Field.Checked)
+	assert.True(g.Tiles[0][0].Checked())
 
 	game := g.Game.(*minesweeper.LocalGame)
 
@@ -102,7 +102,7 @@ func TestNewGame(t *testing.T) {
 
 	for x := 0; x < g.Row(); x++ {
 		for y := 0; y < g.Col(); y++ {
-			assert.Falsef(g.Tiles[x][y].Field.Checked, "(%d, %d) All fields should be reset", x, y)
+			assert.Falsef(g.Tiles[x][y].Checked(), "(%d, %d) All fields should be reset", x, y)
 		}
 	}
 
@@ -127,7 +127,7 @@ func TestReplay(t *testing.T) {
 
 	for x := 0; x < g.Row(); x++ {
 		for y := 0; y < g.Col(); y++ {
-			assert.Falsef(g.Tiles[x][y].Field.Checked, "(%d, %d) All fields should be reset", x, y)
+			assert.Falsef(g.Tiles[x][y].Checked(), "(%d, %d) All fields should be reset", x, y)
 		}
 	}
 
@@ -188,7 +188,7 @@ func TestUpdateFromStatus(t *testing.T) {
 
 			for x := 0; x < g.Row(); x++ {
 				for y := 0; y < g.Col(); y++ {
-					assert.Truef(g.Tiles[x][y].Field.Checked, "Field should be checked for tile=(%d, %d)", x, y)
+					assert.Truef(g.Tiles[x][y].Checked(), "Field should be checked for tile=(%d, %d)", x, y)
 				}
 			}
 		})
@@ -211,10 +211,10 @@ func TestAssistedMode(t *testing.T) {
 		for x := 0; x < g.Row(); x++ {
 			for y := 0; y < g.Col(); y++ {
 				p := minesweeper.NewPos(x, y)
-				if g.Tiles[p.X][p.Y].Field.Checked {
+				if g.Tiles[p.X][p.Y].Checked() {
 					continue
 				}
-				switch g.Tiles[p.X][p.Y].Marker {
+				switch g.Tiles[p.X][p.Y].Marking() {
 				case HelpMarkingNone:
 					assert.NotContains(step.Mines, p, "Should have been marked as a mines")
 					assert.NotContains(step.SafePos, p, "Should have been marked as safe")
@@ -225,7 +225,7 @@ func TestAssistedMode(t *testing.T) {
 					safePos++
 					assert.Contains(step.SafePos, p, "Should not have been marked as safe")
 				default:
-					assert.Fail("Found unknown Marker %d at %s", g.Tiles[x][y].Marker, p.String())
+					assert.Fail("Found unknown Marker %d at %s", g.Tiles[x][y].Marking(), p.String())
 				}
 			}
 		}
@@ -274,29 +274,30 @@ func TestHint(t *testing.T) {
 		for _, mine := range step.Mines {
 			assert.True(g.Hint(), "Should be able to display hints")
 			tile := g.Tiles[mine.X][mine.Y]
-			assert.Equalf(HelpMarkingMine, tile.Marker, "Tile should be marked as mine, tile=%s", tile.Pos.String())
-			tile.Flagged = true
+			assert.Equalf(HelpMarkingMine, tile.Marking(), "Tile should be marked as mine, tile=%s", mine.String())
+			tile.Flag(true)
 			for x := 0; x < g.Difficulty.Row; x++ {
 				for y := 0; y < g.Difficulty.Col; y++ {
 					tile := g.Tiles[x][y]
-					if tile.Flagged || tile.Field.Checked {
+					if tile.Flagged() || tile.Checked() {
 						continue
 					}
-					if !assert.Equalf(HelpMarkingNone, tile.Marker, "No other tiles should be marked, tile=%s, mine=%s", tile.Pos.String(), mine.String()) {
+					if !assert.Equalf(HelpMarkingNone, tile.Marking(), "No other tiles should be marked, tile=%s, mine=%s", minesweeper.NewPos(x, y).String(), mine.String()) {
 						t.FailNow()
 					}
 				}
 			}
 		}
 		assert.True(g.Hint(), "Should be able to display hints")
-		assert.Equal(HelpMarkingSafe, g.Tiles[step.SafePos[0].X][step.SafePos[0].Y].Marker, "Tile should be marked as safe")
+		assert.Equal(HelpMarkingSafe, g.Tiles[step.SafePos[0].X][step.SafePos[0].Y].Marking(), "Tile should be marked as safe")
 		for x := 0; x < g.Difficulty.Row; x++ {
 			for y := 0; y < g.Difficulty.Col; y++ {
-				tile := g.Tiles[x][y]
-				if tile.Flagged || tile.Field.Checked || tile.Pos == step.SafePos[0] {
+				p := minesweeper.NewPos(x, y)
+				tile := g.Tiles[p.X][p.Y]
+				if tile.Flagged() || tile.Checked() || p == step.SafePos[0] {
 					continue
 				}
-				if !assert.Equalf(HelpMarkingNone, tile.Marker, "No other tiles should be marked, tile=%s", tile.Pos.String()) {
+				if !assert.Equalf(HelpMarkingNone, tile.Marking(), "No other tiles should be marked, tile=%s", p.String()) {
 					t.FailNow()
 				}
 			}
@@ -421,7 +422,7 @@ func TestAutosolve(t *testing.T) {
 			assert.Equal(tCase.Won, g.Game.Status().GameWon(), "Game should be "+msg1)
 
 			for _, p := range g.Game.Status().ObviousMines() {
-				assert.Equal(!tCase.Won, g.Tiles[p.X][p.Y].Flagged, "Tile should "+msg2+", tile="+p.String())
+				assert.Equal(!tCase.Won, g.Tiles[p.X][p.Y].Flagged(), "Tile should "+msg2+", tile="+p.String())
 			}
 		})
 	}
@@ -441,7 +442,7 @@ func TestAutosolve(t *testing.T) {
 		assert.True(g.Autosolve(0), "Should run autosolve a second time")
 
 		for _, p := range g.Game.Status().ObviousMines() {
-			assert.True(g.Tiles[p.X][p.Y].Flagged, "Tile should be flagged, tile="+p.String())
+			assert.True(g.Tiles[p.X][p.Y].Flagged(), "Tile should be flagged, tile="+p.String())
 		}
 	})
 }

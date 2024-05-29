@@ -16,7 +16,7 @@ func TestNewTile(t *testing.T) {
 	t.Run("New", func(t *testing.T) {
 		assert := assert.New(t)
 
-		assert.Equal(minesweeper.NewPos(1, 2), tile.Pos)
+		assert.Equal(minesweeper.NewPos(1, 2), tile.pos)
 
 		assert.Equal(g, tile.grid)
 
@@ -24,9 +24,9 @@ func TestNewTile(t *testing.T) {
 			Checked: false,
 			Content: minesweeper.Unknown,
 		}
-		assert.Equal(f, tile.Field)
+		assert.Equal(f, tile.field)
 
-		assert.False(tile.Flagged)
+		assert.False(tile.Flagged())
 	})
 	t.Run("CreateRender", func(t *testing.T) {
 		tile.CreateRenderer()
@@ -57,17 +57,17 @@ func TestTileTapped(t *testing.T) {
 
 	assert := assert.New(t)
 
-	tile.Flagged = true
+	tile.Flag(true)
 	tile.Tapped(nil)
 
 	assert.Nil(tile.grid.Game, "Flagged tiles should not trigger checks")
-	assert.False(tile.Field.Checked, "Flagged tiles should not trigger checks")
+	assert.False(tile.field.Checked, "Flagged tiles should not trigger checks")
 
-	tile.Flagged = false
+	tile.Flag(false)
 	tile.Tapped(nil)
 
 	assert.NotNil(tile.grid.Game, "Game should be started")
-	assert.True(tile.Field.Checked, "Tile should be checked")
+	assert.True(tile.field.Checked, "Tile should be checked")
 }
 
 func TestTileTappedSecondary(t *testing.T) {
@@ -79,22 +79,22 @@ func TestTileTappedSecondary(t *testing.T) {
 
 	count := tile.grid.MineCount.Count
 
-	tile.Field.Checked = true
+	tile.field.Checked = true
 	tile.TappedSecondary(nil)
 
 	assert.Equal(count, tile.grid.MineCount.Count, "MineCount should not have changed")
-	assert.False(tile.Flagged, "Tile should not be flagged")
+	assert.False(tile.Flagged(), "Tile should not be flagged")
 
-	tile.Field.Checked = false
+	tile.field.Checked = false
 	tile.TappedSecondary(nil)
 
 	assert.Equal(count-1, tile.grid.MineCount.Count, "MineCount should be decreased")
-	assert.True(tile.Flagged, "Tile should be flagged")
+	assert.True(tile.Flagged(), "Tile should be flagged")
 
 	tile.TappedSecondary(nil)
 
 	assert.Equal(count, tile.grid.MineCount.Count, "MineCount should be back to original value")
-	assert.False(tile.Flagged, "Tile should not be flagged")
+	assert.False(tile.Flagged(), "Tile should not be flagged")
 }
 
 func TestDoubleTapped(t *testing.T) {
@@ -115,24 +115,24 @@ func TestDoubleTapped(t *testing.T) {
 				}
 			}
 			tile := g.Tiles[0][0]
-			g.Game = minesweeper.NewGameWithSafePos(g.Difficulty, tile.Pos)
+			g.Game = minesweeper.NewGameWithSafePos(g.Difficulty, tile.pos)
 
-			tile.Flagged = tCase.Flagged
+			tile.Flag(tCase.Flagged)
 			t.Cleanup(func() {
-				tile.Flagged = false
+				tile.Flag(false)
 			})
 			tile.DoubleTapped(nil)
 
 			for m := -1; m < 2; m++ {
 				for n := -1; n < 2; n++ {
-					p := tile.Pos
+					p := tile.pos
 					p.X += m
 					p.Y += n
 					if g.OutOfBounds(p) {
 						continue
 					}
 
-					assert.Falsef(t, g.Tiles[p.X][p.Y].Field.Checked, p.String())
+					assert.Falsef(t, g.Tiles[p.X][p.Y].Checked(), p.String())
 				}
 			}
 		})
@@ -156,20 +156,20 @@ func TestDoubleTapped(t *testing.T) {
 		tile := g.Tiles[1][1]
 		g.Game = game
 		tile.Tapped(nil)
-		g.Tiles[0][0].Flagged = true
+		g.Tiles[0][0].Flag(true)
 
 		tile.DoubleTapped(nil)
 
 		assert.False(g.Game.Status().GameOver(), "Game should not be lost")
 		assert.True(g.Game.Status().GameWon(), "Game should be won")
-		assert.False(g.Tiles[0][0].Field.Checked, "Flagged field should not be checked")
+		assert.False(g.Tiles[0][0].Checked(), "Flagged field should not be checked")
 
 		for x := 0; x < 2; x++ {
 			for y := 0; y < 2; y++ {
 				if x == 0 && y == 0 {
 					continue
 				}
-				assert.Truef(g.Tiles[x][y].Field.Checked, "Field should be checked, tile=(%d, %d)", x, y)
+				assert.Truef(g.Tiles[x][y].Checked(), "Field should be checked, tile=(%d, %d)", x, y)
 			}
 		}
 	})
@@ -180,7 +180,7 @@ func TestTileUpdateContent(t *testing.T) {
 	tile := g.Tiles[1][2]
 	tile.CreateRenderer()
 
-	tile.UpdateContent()
+	tile.updateContent()
 
 	t.Run("Default", func(t *testing.T) {
 		assert := assert.New(t)
@@ -190,20 +190,21 @@ func TestTileUpdateContent(t *testing.T) {
 		assert.Equal(TileDefaultColor, tile.background.FillColor)
 	})
 	t.Run("Checked", func(t *testing.T) {
-		tile.Field.Checked = true
+		tile.field.Checked = true
 		t.Cleanup(func() {
-			tile.Field.Checked = false
+			tile.field.Checked = false
 		})
-		tile.UpdateContent()
+		tile.updateContent()
 
 		assert.Equal(t, TileBackgroundColor, tile.background.FillColor)
 	})
 	t.Run("Flagged", func(t *testing.T) {
-		tile.Flagged = true
+
+		tile.Flag(true)
 		t.Cleanup(func() {
-			tile.Flagged = false
+			tile.Flag(false)
 		})
-		tile.UpdateContent()
+		tile.updateContent()
 
 		assert := assert.New(t)
 
@@ -212,13 +213,13 @@ func TestTileUpdateContent(t *testing.T) {
 		assert.Equal(TileDefaultColor, tile.background.FillColor)
 	})
 	t.Run("FlaggedSuccess", func(t *testing.T) {
-		tile.Flagged = true
-		tile.Field.Content = minesweeper.Mine
+		tile.Flag(true)
+		tile.field.Content = minesweeper.Mine
 		t.Cleanup(func() {
-			tile.Flagged = false
-			tile.Field.Content = minesweeper.Unknown
+			tile.Flag(false)
+			tile.field.Content = minesweeper.Unknown
 		})
-		tile.UpdateContent()
+		tile.updateContent()
 
 		assert := assert.New(t)
 
@@ -227,11 +228,11 @@ func TestTileUpdateContent(t *testing.T) {
 		assert.Equal(TileDefaultColor, tile.background.FillColor)
 	})
 	t.Run("Mine", func(t *testing.T) {
-		tile.Field.Content = minesweeper.Mine
+		tile.field.Content = minesweeper.Mine
 		t.Cleanup(func() {
-			tile.Field.Content = minesweeper.Unknown
+			tile.field.Content = minesweeper.Unknown
 		})
-		tile.UpdateContent()
+		tile.updateContent()
 
 		assert := assert.New(t)
 
@@ -239,11 +240,11 @@ func TestTileUpdateContent(t *testing.T) {
 		assert.Equal(assets.ResourceMinePng, tile.icon.Resource)
 		assert.Equal(TileDefaultColor, tile.background.FillColor)
 
-		tile.Field.Checked = true
+		tile.field.Checked = true
 		t.Cleanup(func() {
-			tile.Field.Checked = false
+			tile.field.Checked = false
 		})
-		tile.UpdateContent()
+		tile.updateContent()
 
 		assert.False(tile.icon.Hidden)
 		assert.Equal(assets.ResourceMinePng, tile.icon.Resource)
@@ -251,37 +252,37 @@ func TestTileUpdateContent(t *testing.T) {
 	})
 	t.Run("Numbers", func(t *testing.T) {
 		t.Cleanup(func() {
-			tile.Field.Content = minesweeper.Unknown
-			tile.Field.Checked = false
+			tile.field.Content = minesweeper.Unknown
+			tile.field.Checked = false
 		})
 
 		assert := assert.New(t)
 
 		for i := 0; i < 10; i++ {
-			tile.Field.Content = minesweeper.FieldContent(i)
-			tile.UpdateContent()
+			tile.field.Content = minesweeper.FieldContent(i)
+			tile.updateContent()
 
 			assert.True(tile.label.Hidden)
 		}
 
-		tile.Field.Checked = true
+		tile.field.Checked = true
 
 		for i := 1; i < 9; i++ {
-			tile.Field.Content = minesweeper.FieldContent(i)
-			tile.UpdateContent()
+			tile.field.Content = minesweeper.FieldContent(i)
+			tile.updateContent()
 
 			assert.False(tile.label.Hidden)
 			assert.Equal(strconv.Itoa(i), tile.label.Text)
 			assert.Equal(TileTextColor[i], tile.label.Color)
 		}
 
-		tile.Field.Content = minesweeper.FieldContent(0)
-		tile.UpdateContent()
+		tile.field.Content = minesweeper.FieldContent(0)
+		tile.updateContent()
 
 		assert.True(tile.label.Hidden)
 
-		tile.Field.Content = minesweeper.FieldContent(9)
-		tile.UpdateContent()
+		tile.field.Content = minesweeper.FieldContent(9)
+		tile.updateContent()
 
 		assert.True(tile.label.Hidden)
 	})
@@ -292,19 +293,19 @@ func TestTileReset(t *testing.T) {
 	tile := g.Tiles[1][2]
 	tile.CreateRenderer()
 
-	tile.Flagged = true
-	tile.Field.Checked = true
-	tile.Field.Content = minesweeper.Mine
-	tile.Marker = HelpMarkingMine
+	tile.Flag(true)
+	tile.field.Checked = true
+	tile.field.Content = minesweeper.Mine
+	tile.Mark(HelpMarkingMine)
 
-	tile.UpdateContent()
+	tile.updateContent()
 	tile.Reset()
 
 	assert := assert.New(t)
 
-	assert.False(tile.Flagged)
-	assert.False(tile.Field.Checked)
-	assert.Equal(minesweeper.Unknown, tile.Field.Content)
+	assert.False(tile.Flagged())
+	assert.False(tile.field.Checked)
+	assert.Equal(minesweeper.Unknown, tile.field.Content)
 
 	assert.Equal(TileDefaultColor, tile.background.FillColor)
 	assert.Equal(TileSize, tile.background.MinSize())
@@ -316,7 +317,7 @@ func TestTileReset(t *testing.T) {
 
 	assert.True(tile.icon.Hidden)
 
-	assert.Equal(HelpMarkingNone, tile.Marker)
+	assert.Equal(HelpMarkingNone, tile.Marking())
 }
 
 func TestTileUntappable(t *testing.T) {
@@ -332,12 +333,12 @@ func TestTileUntappable(t *testing.T) {
 
 	assert.False(tile.untappable())
 
-	tile.Field.Checked = true
+	tile.field.Checked = true
 	assert.True(tile.untappable())
-	tile.Field.Checked = false
+	tile.field.Checked = false
 
 	tile.Tapped(nil)
-	tile.Field.Checked = false
+	tile.field.Checked = false
 	assert.False(tile.untappable())
 
 	game := tile.grid.Game.(*minesweeper.LocalGame)

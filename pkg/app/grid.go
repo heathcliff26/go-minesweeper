@@ -144,17 +144,13 @@ func (g *MinesweeperGrid) updateFromStatus(s *minesweeper.Status) {
 		go func() {
 			defer wg.Done()
 			for _, p := range s.ObviousMines() {
-				t := g.Tiles[p.X][p.Y]
-				t.Marker = HelpMarkingMine
-				t.UpdateContent()
+				g.Tiles[p.X][p.Y].Mark(HelpMarkingMine)
 			}
 		}()
 		go func() {
 			defer wg.Done()
 			for _, p := range s.ObviousSafePos() {
-				t := g.Tiles[p.X][p.Y]
-				t.Marker = HelpMarkingSafe
-				t.UpdateContent()
+				g.Tiles[p.X][p.Y].Mark(HelpMarkingSafe)
 			}
 		}()
 	}
@@ -196,12 +192,10 @@ func (g *MinesweeperGrid) updateChunk(startX, startY, endX, endY int, s *mineswe
 	defer wg.Done()
 	for x := startX; x < endX; x++ {
 		for y := startY; y < endY; y++ {
-			t := g.Tiles[x][y]
 			if s.Field[x][y].Content == minesweeper.Unknown {
 				continue
 			}
-			t.Field = s.Field[x][y]
-			t.UpdateContent()
+			g.Tiles[x][y].SetField(s.Field[x][y])
 		}
 	}
 }
@@ -265,18 +259,15 @@ func (g *MinesweeperGrid) Hint() bool {
 
 	for _, mine := range s.ObviousMines() {
 		tile := g.Tiles[mine.X][mine.Y]
-		if tile.Flagged {
+		if tile.Flagged() {
 			continue
 		}
-		tile.Marker = HelpMarkingMine
-		tile.UpdateContent()
+		tile.Mark(HelpMarkingMine)
 		return true
 	}
 	safePos := s.ObviousSafePos()
 	if len(safePos) > 0 {
-		tile := g.Tiles[safePos[0].X][safePos[0].Y]
-		tile.Marker = HelpMarkingSafe
-		tile.UpdateContent()
+		g.Tiles[safePos[0].X][safePos[0].Y].Mark(HelpMarkingSafe)
 		return true
 	}
 	return false
@@ -310,7 +301,7 @@ func (g *MinesweeperGrid) Autosolve(delay time.Duration) bool {
 	for i, safePos := 0, s.ObviousSafePos(); len(safePos) > 0 && !(s.GameOver() || s.GameWon()); safePos = s.ObviousSafePos() {
 		slog.Debug("Autosolve: Checking safe positions", slog.Int("iteration", i))
 		for _, p := range safePos {
-			if g.Tiles[p.X][p.Y].Field.Checked {
+			if g.Tiles[p.X][p.Y].Checked() {
 				continue
 			}
 			g.TappedTile(p)
@@ -323,7 +314,7 @@ func (g *MinesweeperGrid) Autosolve(delay time.Duration) bool {
 		slog.Info("Autosolve: Flagging mines")
 		for _, mine := range s.ObviousMines() {
 			tile := g.Tiles[mine.X][mine.Y]
-			if tile.Flagged {
+			if tile.Flagged() {
 				continue
 			}
 			tile.TappedSecondary(nil)
