@@ -48,6 +48,9 @@ type MinesweeperGrid struct {
 	Timer       *Timer
 	MineCount   *Counter
 	ResetButton *Button
+
+	lUpdate sync.Mutex
+	lGame   sync.Mutex
 }
 
 // Create a new grid suitable for the give difficulty
@@ -98,6 +101,9 @@ func (g *MinesweeperGrid) GetCanvasObject() fyne.CanvasObject {
 // Checks the given tile and then updates the display according to the new state.
 // Starts a new game when no game is currently running.
 func (g *MinesweeperGrid) TappedTile(pos minesweeper.Pos) {
+	g.lGame.Lock()
+	defer g.lGame.Unlock()
+
 	if g.Game == nil {
 		switch g.GameAlgorithm {
 		case GameAlgorithmSafePos:
@@ -115,9 +121,44 @@ func (g *MinesweeperGrid) TappedTile(pos minesweeper.Pos) {
 
 	slog.Info("Checking field", slog.String("pos", pos.String()))
 
-	s := g.Game.CheckField(pos)
-	slog.Debug("Checked field, updating tiles")
-	g.updateFromStatus(s)
+	s, changed := g.Game.CheckField(pos)
+	if changed {
+		slog.Debug("Checked field, updating tiles")
+		g.updateFromStatus(s)
+	}
+}
+
+// Called by the child tiles to reveal all neighbours when they have been double tapped
+func (g *MinesweeperGrid) TapNeighbours(pos minesweeper.Pos) {
+	g.lGame.Lock()
+	defer g.lGame.Unlock()
+
+	flags := minesweeper.FieldContent(0)
+	posToCheck := make([]minesweeper.Pos, 0, 8)
+	for m := -1; m < 2; m++ {
+		for n := -1; n < 2; n++ {
+			p := pos
+			p.X += m
+			p.Y += n
+			if !g.OutOfBounds(p) {
+				if g.Tiles[p.X][p.Y].Flagged() {
+					flags++
+					continue
+				}
+				if g.Tiles[p.X][p.Y].untappable() {
+					continue
+				}
+				posToCheck = append(posToCheck, p)
+			}
+		}
+	}
+
+	if flags == g.Tiles[pos.X][pos.Y].Content() {
+		for _, p := range posToCheck {
+			g.Game.CheckField(p)
+		}
+		g.updateFromStatus(g.Game.Status())
+	}
 }
 
 // Update the grid from the given status
@@ -125,6 +166,9 @@ func (g *MinesweeperGrid) updateFromStatus(s *minesweeper.Status) {
 	if s == nil {
 		return
 	}
+
+	g.lUpdate.Lock()
+	defer g.lUpdate.Unlock()
 
 	var wg sync.WaitGroup
 
@@ -212,6 +256,9 @@ func (g *MinesweeperGrid) Col() int {
 
 // Start a new game
 func (g *MinesweeperGrid) NewGame() {
+	g.lGame.Lock()
+	defer g.lGame.Unlock()
+
 	slog.Info("Preparing for new game")
 	g.Game = nil
 	g.Reset()
@@ -219,6 +266,9 @@ func (g *MinesweeperGrid) NewGame() {
 
 // Replay the current game
 func (g *MinesweeperGrid) Replay() {
+	g.lGame.Lock()
+	defer g.lGame.Unlock()
+
 	slog.Info("Preparing for replay of current game")
 	if g.Game != nil {
 		g.Game.Replay()
@@ -228,6 +278,9 @@ func (g *MinesweeperGrid) Replay() {
 
 // Reset Grid
 func (g *MinesweeperGrid) Reset() {
+	g.lUpdate.Lock()
+	defer g.lUpdate.Unlock()
+
 	for x := 0; x < g.Row(); x++ {
 		for y := 0; y < g.Col(); y++ {
 			g.Tiles[x][y].Reset()
@@ -249,13 +302,21 @@ func (g *MinesweeperGrid) OutOfBounds(p minesweeper.Pos) bool {
 // Display a single hint on the grid.
 // Returns false if no hint could be displayed.
 func (g *MinesweeperGrid) Hint() bool {
+	g.lGame.Lock()
+
 	if g.Game == nil {
 		return false
 	}
 	s := g.Game.Status()
+
+	g.lGame.Unlock()
+
 	if s == nil || s.GameOver() || s.GameWon() {
 		return false
 	}
+
+	g.lUpdate.Lock()
+	defer g.lUpdate.Unlock()
 
 	for _, mine := range s.ObviousMines() {
 		tile := g.Tiles[mine.X][mine.Y]
@@ -277,11 +338,16 @@ func (g *MinesweeperGrid) Hint() bool {
 // Returns false if it can't run autosolve, otherwise true.
 // If there are no steps to be taken, still
 func (g *MinesweeperGrid) Autosolve(delay time.Duration) bool {
+	g.lGame.Lock()
+
 	if g.Game == nil {
 		slog.Info("Autosolve failed because no game is running")
 		return false
 	}
 	s := g.Game.Status()
+
+	g.lGame.Unlock()
+
 	if s == nil {
 		slog.Info("Autosolve failed because game does not have a status yet")
 		return false
@@ -312,12 +378,10 @@ func (g *MinesweeperGrid) Autosolve(delay time.Duration) bool {
 
 	if !(s.GameOver() || s.GameWon()) {
 		slog.Info("Autosolve: Flagging mines")
+
 		for _, mine := range s.ObviousMines() {
 			tile := g.Tiles[mine.X][mine.Y]
-			if tile.Flagged() {
-				continue
-			}
-			tile.TappedSecondary(nil)
+			tile.Flag(true)
 			time.Sleep(autosolveFlagMineDelay)
 		}
 	}

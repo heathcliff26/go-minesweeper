@@ -2,6 +2,7 @@ package app
 
 import (
 	"strconv"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -52,4 +53,22 @@ func TestCounter(t *testing.T) {
 		assert.Equal("00", c.Label.Text, "Should not display negative numbers")
 		assert.Equal(-1, c.Count)
 	})
+}
+
+func TestCounterRace(t *testing.T) {
+	c := NewCounter(10)
+
+	var wg sync.WaitGroup
+	wg.Add(10)
+
+	for range 10 {
+		go func() {
+			defer wg.Done()
+			c.Inc()
+		}()
+	}
+
+	wg.Wait()
+
+	assert.Equal(t, 20, c.Count)
 }

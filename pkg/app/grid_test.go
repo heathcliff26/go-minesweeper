@@ -47,19 +47,6 @@ func TestTappedTile(t *testing.T) {
 	g.TappedTile(p)
 	assert.NotNil(g.Game)
 	assert.True(g.Tiles[0][0].Checked())
-
-	game := g.Game.(*minesweeper.LocalGame)
-
-	game.GameWon = true
-	game.UpdateStatus()
-	g.TappedTile(p)
-	assert.Equal(ResetGameWonText, g.ResetButton.Label.Text)
-	game.GameWon = false
-
-	game.GameOver = true
-	game.UpdateStatus()
-	g.TappedTile(p)
-	assert.Equal(ResetGameOverText, g.ResetButton.Label.Text)
 }
 
 func TestGameAlgorithm(t *testing.T) {
@@ -146,6 +133,30 @@ func TestUpdateFromStatus(t *testing.T) {
 		g := NewMinesweeperGrid(DEFAULT_DIFFICULTY, false)
 		// Should not panic
 		g.updateFromStatus(nil)
+	})
+	t.Run("GameFinished", func(t *testing.T) {
+		t.Parallel()
+		assert := assert.New(t)
+
+		g := NewMinesweeperGrid(DEFAULT_DIFFICULTY, false)
+		for _, row := range g.Tiles {
+			for _, tile := range row {
+				tile.CreateRenderer()
+			}
+		}
+
+		g.TappedTile(minesweeper.NewPos(0, 0))
+
+		game := g.Game.(*minesweeper.LocalGame)
+
+		game.GameWon = true
+		g.updateFromStatus(game.UpdateStatus())
+		assert.Equal(ResetGameWonText, g.ResetButton.Label.Text)
+		game.GameWon = false
+
+		game.GameOver = true
+		g.updateFromStatus(game.UpdateStatus())
+		assert.Equal(ResetGameOverText, g.ResetButton.Label.Text)
 	})
 
 	difficulties := minesweeper.Difficulties()

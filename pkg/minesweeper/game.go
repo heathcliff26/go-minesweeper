@@ -25,10 +25,7 @@ type Field struct {
 type Game interface {
 	// Check a given field and recursevly reveal all neighboring fields that should be revield.
 	// Returns the resulting new status of the game
-	CheckField(p Pos) *Status
-	// Recursive function to reveal all neighbouring fields that can be safely reveald.
-	// Stops when a field has not exactly zero neighbouring mines
-	RevealField(p Pos)
+	CheckField(p Pos) (*Status, bool)
 	// Check if the given position is out of bounds
 	OutOfBounds(p Pos) bool
 	// Returns the current status of the game. Only contains the knowledge a player should have.
@@ -44,6 +41,9 @@ type Game interface {
 	// Generate a save from the game
 	ToSave() (*Save, error)
 }
+
+// Ensure that compiler throws error if LocalGame does not implement Game interface
+var _ = Game(&LocalGame{})
 
 type LocalGame struct {
 	Field      [][]Field
@@ -106,27 +106,27 @@ func NewGameWithSafeArea(d Difficulty, p Pos) *LocalGame {
 }
 
 // Check a given field and recursevly reveal all neighboring fields that should be revield.
-// Returns the resulting new status of the game
-func (g *LocalGame) CheckField(p Pos) *Status {
-	if g.Lost() || g.Won() {
-		return g.Status()
+// Returns the resulting new status of the game and a boolean indicating if there where changes.
+func (g *LocalGame) CheckField(p Pos) (*Status, bool) {
+	if g.Lost() || g.Won() || g.Field[p.X][p.Y].Checked {
+		return g.Status(), false
 	}
 
 	g.Field[p.X][p.Y].Checked = true
 
 	if g.Field[p.X][p.Y].Content == Mine {
 		g.GameOver = true
-		return g.UpdateStatus()
+		return g.UpdateStatus(), true
 	}
 
-	g.RevealField(p)
+	g.revealField(p)
 
-	return g.UpdateStatus()
+	return g.UpdateStatus(), true
 }
 
 // Recursive function to reveal all neighbouring fields that can be safely reveald.
 // Stops when a field has not exactly zero neighbouring mines
-func (g *LocalGame) RevealField(p Pos) {
+func (g *LocalGame) revealField(p Pos) {
 	slog.Debug("Reveal field", slog.String("pos", p.String()), slog.String("content", g.Field[p.X][p.Y].Content.String()))
 
 	g.Field[p.X][p.Y].Checked = true
@@ -147,7 +147,7 @@ func (g *LocalGame) RevealField(p Pos) {
 				continue
 			}
 			if !g.Field[i.X][i.Y].Checked {
-				g.RevealField(i)
+				g.revealField(i)
 			}
 		}
 	}
@@ -155,6 +155,9 @@ func (g *LocalGame) RevealField(p Pos) {
 
 // Check if the given position is out of bounds
 func (g *LocalGame) OutOfBounds(p Pos) bool {
+	if g == nil {
+		return true
+	}
 	return OutOfBounds(p, g.Difficulty)
 }
 

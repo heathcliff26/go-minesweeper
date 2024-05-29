@@ -152,7 +152,7 @@ func measureAssistedMode(res chan time.Duration) {
 
 	start := time.Now()
 	for _, pos := range positions {
-		s := game.CheckField(pos)
+		s, _ := game.CheckField(pos)
 		s.ObviousMines()
 		s.ObviousSafePos()
 		if s.GameOver() || s.GameWon() {

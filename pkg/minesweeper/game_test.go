@@ -257,12 +257,23 @@ func TestCheckField(t *testing.T) {
 			g.GameWon = tCase.Win
 			g.GameOver = tCase.Loss
 
-			s1 := g.Status()
-			s2 := g.CheckField(NewPos(0, 0))
+			s, ok := g.CheckField(NewPos(0, 0))
 
-			assert.Equal(t, s1, s2, "Status should not change for a finished game")
+			assert.Nil(t, s, "Status should not change for a finished game")
+			assert.False(t, ok, "Should not have changed anything")
 		})
 	}
+
+	t.Run("AlreadyChecked", func(t *testing.T) {
+		g := NewGameWithSafePos(difficulties[DifficultyIntermediate], NewPos(0, 0))
+
+		g.UpdateStatus().actionsUpdated = true
+
+		g.CheckField(NewPos(0, 0))
+		_, ok := g.CheckField(NewPos(0, 0))
+
+		assert.False(t, ok, "Should not have changed anything")
+	})
 }
 
 func TestOutOfBounds(t *testing.T) {
@@ -286,6 +297,9 @@ func TestOutOfBounds(t *testing.T) {
 		p.Y = d.Col
 		assert.Truef(g.OutOfBounds(p), "%v should be out of bounds", p)
 	})
+
+	g = nil
+	assert.True(g.OutOfBounds(NewPos(0, 0)), "Should return true if game is nil")
 }
 
 func TestStatus(t *testing.T) {

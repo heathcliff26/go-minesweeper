@@ -37,7 +37,7 @@ func TestAssistedMode(t *testing.T) {
 			}
 
 			for i, step := range testConfig {
-				s := game.CheckField(step.CheckPos)
+				s, _ := game.CheckField(step.CheckPos)
 
 				fail := false
 
