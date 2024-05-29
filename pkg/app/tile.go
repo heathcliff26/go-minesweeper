@@ -5,7 +5,6 @@ package app
 
 import (
 	"image/color"
-	"strconv"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
@@ -63,18 +62,19 @@ type Tile struct {
 	label      *canvas.Text
 	icon       *widget.Icon
 
-	Pos     minesweeper.Pos
-	Field   minesweeper.Field
-	grid    *MinesweeperGrid
-	Flagged bool
-	Marker  HelpMarking
+	pos  minesweeper.Pos
+	grid *MinesweeperGrid
+
+	field   minesweeper.Field
+	flagged bool
+	marking HelpMarking
 }
 
 // Create a new Tile with a reference to it's parent grid, as well as knowledge of it's own position in the Grid
 func NewTile(x, y int, grid *MinesweeperGrid) *Tile {
 	t := &Tile{
-		Pos: minesweeper.NewPos(x, y),
-		Field: minesweeper.Field{
+		pos: minesweeper.NewPos(x, y),
+		field: minesweeper.Field{
 			Checked: false,
 			Content: minesweeper.Unknown,
 		},
@@ -108,10 +108,10 @@ func (t *Tile) CreateRenderer() fyne.WidgetRenderer {
 
 // Left mouse click on tile
 func (t *Tile) Tapped(_ *fyne.PointEvent) {
-	if t.untappable() || t.Flagged {
+	if t.untappable() || t.Flagged() {
 		return
 	}
-	t.grid.TappedTile(t.Pos)
+	t.grid.TappedTile(t.pos)
 }
 
 // Right mouse click on tile
@@ -120,18 +120,12 @@ func (t *Tile) TappedSecondary(_ *fyne.PointEvent) {
 		return
 	}
 
-	if t.Flagged {
-		t.grid.MineCount.Inc()
-	} else {
-		t.grid.MineCount.Dec()
-	}
-	t.Flagged = !t.Flagged
-	t.UpdateContent()
+	t.Flag(!t.Flagged())
 }
 
 // Double click on tile
 func (t *Tile) DoubleTapped(_ *fyne.PointEvent) {
-	if !t.Field.Checked || t.gameFinished() {
+	if !t.Checked() || t.gameFinished() {
 		return
 	}
 
@@ -139,11 +133,11 @@ func (t *Tile) DoubleTapped(_ *fyne.PointEvent) {
 	posToCheck := make([]minesweeper.Pos, 0, 8)
 	for m := -1; m < 2; m++ {
 		for n := -1; n < 2; n++ {
-			p := t.Pos
+			p := t.pos
 			p.X += m
 			p.Y += n
 			if !t.grid.OutOfBounds(p) {
-				if t.grid.Tiles[p.X][p.Y].Flagged {
+				if t.grid.Tiles[p.X][p.Y].Flagged() {
 					flags++
 					continue
 				}
@@ -155,7 +149,7 @@ func (t *Tile) DoubleTapped(_ *fyne.PointEvent) {
 		}
 	}
 
-	if flags == t.Field.Content {
+	if flags == t.Content() {
 		var status *minesweeper.Status
 		for _, p := range posToCheck {
 			status = t.grid.Game.CheckField(p)
@@ -165,52 +159,105 @@ func (t *Tile) DoubleTapped(_ *fyne.PointEvent) {
 }
 
 // Update the tile render depending on the current state of it's backing Field
-func (t *Tile) UpdateContent() {
+func (t *Tile) updateContent() {
 	t.icon.Hidden = true
 	t.label.Hidden = true
 	t.background.FillColor = TileDefaultColor
 	defer t.Refresh()
 
 	switch {
-	case t.Flagged && !t.Field.Checked:
-		if t.Field.Content == minesweeper.Mine {
+	case t.Flagged() && !t.Checked():
+		if t.Content() == minesweeper.Mine {
 			t.icon.SetResource(assets.ResourceFlagSuccessPng)
 		} else {
 			t.icon.SetResource(assets.ResourceFlagPng)
 		}
 		t.icon.Hidden = false
-	case t.Marker != HelpMarkingNone && !t.Flagged && !t.Field.Checked && t.Field.Content == minesweeper.Unknown:
-		t.label.Text = HelperMarkerSymbols[t.Marker]
-		t.label.Color = HelperMarkerColors[t.Marker]
+	case t.Marking() != HelpMarkingNone && !t.Flagged() && !t.Checked() && t.Content() == minesweeper.Unknown:
+		t.label.Text = HelperMarkerSymbols[t.Marking()]
+		t.label.Color = HelperMarkerColors[t.Marking()]
 		t.label.Hidden = false
-	case t.Field.Content == minesweeper.Mine:
+	case t.Content() == minesweeper.Mine:
 		t.icon.SetResource(assets.ResourceMinePng)
 		t.icon.Hidden = false
-		if t.Field.Checked {
+		if t.Checked() {
 			t.background.FillColor = TileExplodedColor
 		}
-	case t.Field.Checked && t.Field.Content > 0 && t.Field.Content < 9:
-		t.label.Text = strconv.Itoa(int(t.Field.Content))
-		t.label.Color = TileTextColor[t.Field.Content]
+	case t.Checked() && t.Content() > 0 && t.Content() < 9:
+		t.label.Text = t.Content().String()
+		t.label.Color = TileTextColor[t.Content()]
 		t.label.Hidden = false
 		t.background.FillColor = TileBackgroundColor
-	case t.Field.Checked:
+	case t.Checked():
 		t.background.FillColor = TileBackgroundColor
 	}
 }
 
 // Reset tile to default state, used for starting new game
 func (t *Tile) Reset() {
-	t.Flagged = false
-	t.Field.Checked = false
-	t.Field.Content = minesweeper.Unknown
-	t.Marker = HelpMarkingNone
-	t.UpdateContent()
+	t.flagged = false
+	t.field.Checked = false
+	t.field.Content = minesweeper.Unknown
+	t.marking = HelpMarkingNone
+	t.updateContent()
+}
+
+// Returns if the tiles field is checked
+func (t *Tile) Checked() bool {
+	return t.field.Checked
+}
+
+// Returns the field content
+func (t *Tile) Content() minesweeper.FieldContent {
+	return t.field.Content
+}
+
+// Set the content of the field
+func (t *Tile) SetField(f minesweeper.Field) {
+	if f == t.field {
+		return
+	}
+	t.field = f
+	t.updateContent()
+}
+
+// Returns if the tile is flagged as a suspected mine
+func (t *Tile) Flagged() bool {
+	return t.flagged
+}
+
+// Flag the tile as a suspected mine
+func (t *Tile) Flag(v bool) {
+	if v == t.Flagged() {
+		return
+	}
+
+	if t.Flagged() {
+		t.grid.MineCount.Inc()
+	} else {
+		t.grid.MineCount.Dec()
+	}
+	t.flagged = v
+	t.updateContent()
+}
+
+// Returns the marking of the tile
+func (t *Tile) Marking() HelpMarking {
+	return t.marking
+}
+
+// Mark the tile
+func (t *Tile) Mark(m HelpMarking) {
+	if m == t.Marking() {
+		return
+	}
+	t.marking = m
+	t.updateContent()
 }
 
 // Check if the tile should be clickable
 func (t *Tile) untappable() bool {
-	return t.Field.Checked || t.gameFinished()
+	return t.Checked() || t.gameFinished()
 }
 
 // Check if game is finished
