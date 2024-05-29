@@ -880,17 +880,13 @@ func (g *MinesweeperGrid) updateFromStatus(s *minesweeper.Status) <span class="c
                 go func() </span><span class="cov8" title="1">{
                         defer wg.Done()
                         for _, p := range s.ObviousMines() </span><span class="cov8" title="1">{
-                                t := g.Tiles[p.X][p.Y]
-                                t.Marker = HelpMarkingMine
-                                t.UpdateContent()
+                                g.Tiles[p.X][p.Y].Mark(HelpMarkingMine)
                         }</span>
                 }()
                 <span class="cov8" title="1">go func() </span><span class="cov8" title="1">{
                         defer wg.Done()
                         for _, p := range s.ObviousSafePos() </span><span class="cov8" title="1">{
-                                t := g.Tiles[p.X][p.Y]
-                                t.Marker = HelpMarkingSafe
-                                t.UpdateContent()
+                                g.Tiles[p.X][p.Y].Mark(HelpMarkingSafe)
                         }</span>
                 }()
         }
@@ -932,12 +928,10 @@ func (g *MinesweeperGrid) updateChunk(startX, startY, endX, endY int, s *mineswe
         defer wg.Done()
         for x := startX; x &lt; endX; x++ </span><span class="cov8" title="1">{
                 for y := startY; y &lt; endY; y++ </span><span class="cov8" title="1">{
-                        t := g.Tiles[x][y]
                         if s.Field[x][y].Content == minesweeper.Unknown </span><span class="cov8" title="1">{
                                 continue</span>
                         }
-                        <span class="cov8" title="1">t.Field = s.Field[x][y]
-                        t.UpdateContent()</span>
+                        <span class="cov8" title="1">g.Tiles[x][y].SetField(s.Field[x][y])</span>
                 }
         }
 }
@@ -1001,18 +995,15 @@ func (g *MinesweeperGrid) Hint() bool <span class="cov8" title="1">{
 
         <span class="cov8" title="1">for _, mine := range s.ObviousMines() </span><span class="cov8" title="1">{
                 tile := g.Tiles[mine.X][mine.Y]
-                if tile.Flagged </span><span class="cov8" title="1">{
+                if tile.Flagged() </span><span class="cov8" title="1">{
                         continue</span>
                 }
-                <span class="cov8" title="1">tile.Marker = HelpMarkingMine
-                tile.UpdateContent()
+                <span class="cov8" title="1">tile.Mark(HelpMarkingMine)
                 return true</span>
         }
         <span class="cov8" title="1">safePos := s.ObviousSafePos()
         if len(safePos) &gt; 0 </span><span class="cov8" title="1">{
-                tile := g.Tiles[safePos[0].X][safePos[0].Y]
-                tile.Marker = HelpMarkingSafe
-                tile.UpdateContent()
+                g.Tiles[safePos[0].X][safePos[0].Y].Mark(HelpMarkingSafe)
                 return true
         }</span>
         <span class="cov8" title="1">return false</span>
@@ -1046,7 +1037,7 @@ func (g *MinesweeperGrid) Autosolve(delay time.Duration) bool <span class="cov8"
         for i, safePos := 0, s.ObviousSafePos(); len(safePos) &gt; 0 &amp;&amp; !(s.GameOver() || s.GameWon()); safePos = s.ObviousSafePos() </span><span class="cov8" title="1">{
                 slog.Debug("Autosolve: Checking safe positions", slog.Int("iteration", i))
                 for _, p := range safePos </span><span class="cov8" title="1">{
-                        if g.Tiles[p.X][p.Y].Field.Checked </span><span class="cov8" title="1">{
+                        if g.Tiles[p.X][p.Y].Checked() </span><span class="cov8" title="1">{
                                 continue</span>
                         }
                         <span class="cov8" title="1">g.TappedTile(p)
@@ -1059,7 +1050,7 @@ func (g *MinesweeperGrid) Autosolve(delay time.Duration) bool <span class="cov8"
                 slog.Info("Autosolve: Flagging mines")
                 for _, mine := range s.ObviousMines() </span><span class="cov8" title="1">{
                         tile := g.Tiles[mine.X][mine.Y]
-                        if tile.Flagged </span><span class="cov8" title="1">{
+                        if tile.Flagged() </span><span class="cov8" title="1">{
                                 continue</span>
                         }
                         <span class="cov8" title="1">tile.TappedSecondary(nil)
@@ -1079,7 +1070,6 @@ package app
 
 import (
         "image/color"
-        "strconv"
 
         "fyne.io/fyne/v2"
         "fyne.io/fyne/v2/canvas"
@@ -1137,18 +1127,19 @@ type Tile struct {
         label      *canvas.Text
         icon       *widget.Icon
 
-        Pos     minesweeper.Pos
-        Field   minesweeper.Field
-        grid    *MinesweeperGrid
-        Flagged bool
-        Marker  HelpMarking
+        pos  minesweeper.Pos
+        grid *MinesweeperGrid
+
+        field   minesweeper.Field
+        flagged bool
+        marking HelpMarking
 }
 
 // Create a new Tile with a reference to it's parent grid, as well as knowledge of it's own position in the Grid
 func NewTile(x, y int, grid *MinesweeperGrid) *Tile <span class="cov8" title="1">{
         t := &amp;Tile{
-                Pos: minesweeper.NewPos(x, y),
-                Field: minesweeper.Field{
+                pos: minesweeper.NewPos(x, y),
+                field: minesweeper.Field{
                         Checked: false,
                         Content: minesweeper.Unknown,
                 },
@@ -1182,10 +1173,10 @@ func (t *Tile) CreateRenderer() fyne.WidgetRenderer <span class="cov8" title="1"
 
 // Left mouse click on tile
 func (t *Tile) Tapped(_ *fyne.PointEvent) <span class="cov8" title="1">{
-        if t.untappable() || t.Flagged </span><span class="cov8" title="1">{
+        if t.untappable() || t.Flagged() </span><span class="cov8" title="1">{
                 return
         }</span>
-        <span class="cov8" title="1">t.grid.TappedTile(t.Pos)</span>
+        <span class="cov8" title="1">t.grid.TappedTile(t.pos)</span>
 }
 
 // Right mouse click on tile
@@ -1194,18 +1185,12 @@ func (t *Tile) TappedSecondary(_ *fyne.PointEvent) <span class="cov8" title="1">
                 return
         }</span>
 
-        <span class="cov8" title="1">if t.Flagged </span><span class="cov8" title="1">{
-                t.grid.MineCount.Inc()
-        }</span> else<span class="cov8" title="1"> {
-                t.grid.MineCount.Dec()
-        }</span>
-        <span class="cov8" title="1">t.Flagged = !t.Flagged
-        t.UpdateContent()</span>
+        <span class="cov8" title="1">t.Flag(!t.Flagged())</span>
 }
 
 // Double click on tile
 func (t *Tile) DoubleTapped(_ *fyne.PointEvent) <span class="cov8" title="1">{
-        if !t.Field.Checked || t.gameFinished() </span><span class="cov8" title="1">{
+        if !t.Checked() || t.gameFinished() </span><span class="cov8" title="1">{
                 return
         }</span>
 
@@ -1213,11 +1198,11 @@ func (t *Tile) DoubleTapped(_ *fyne.PointEvent) <span class="cov8" title="1">{
         posToCheck := make([]minesweeper.Pos, 0, 8)
         for m := -1; m &lt; 2; m++ </span><span class="cov8" title="1">{
                 for n := -1; n &lt; 2; n++ </span><span class="cov8" title="1">{
-                        p := t.Pos
+                        p := t.pos
                         p.X += m
                         p.Y += n
                         if !t.grid.OutOfBounds(p) </span><span class="cov8" title="1">{
-                                if t.grid.Tiles[p.X][p.Y].Flagged </span><span class="cov8" title="1">{
+                                if t.grid.Tiles[p.X][p.Y].Flagged() </span><span class="cov8" title="1">{
                                         flags++
                                         continue</span>
                                 }
@@ -1229,7 +1214,7 @@ func (t *Tile) DoubleTapped(_ *fyne.PointEvent) <span class="cov8" title="1">{
                 }
         }
 
-        <span class="cov8" title="1">if flags == t.Field.Content </span><span class="cov8" title="1">{
+        <span class="cov8" title="1">if flags == t.Content() </span><span class="cov8" title="1">{
                 var status *minesweeper.Status
                 for _, p := range posToCheck </span><span class="cov8" title="1">{
                         status = t.grid.Game.CheckField(p)
@@ -1239,52 +1224,105 @@ func (t *Tile) DoubleTapped(_ *fyne.PointEvent) <span class="cov8" title="1">{
 }
 
 // Update the tile render depending on the current state of it's backing Field
-func (t *Tile) UpdateContent() <span class="cov8" title="1">{
+func (t *Tile) updateContent() <span class="cov8" title="1">{
         t.icon.Hidden = true
         t.label.Hidden = true
         t.background.FillColor = TileDefaultColor
         defer t.Refresh()
 
         switch </span>{
-        case t.Flagged &amp;&amp; !t.Field.Checked:<span class="cov8" title="1">
-                if t.Field.Content == minesweeper.Mine </span><span class="cov8" title="1">{
+        case t.Flagged() &amp;&amp; !t.Checked():<span class="cov8" title="1">
+                if t.Content() == minesweeper.Mine </span><span class="cov8" title="1">{
                         t.icon.SetResource(assets.ResourceFlagSuccessPng)
                 }</span> else<span class="cov8" title="1"> {
                         t.icon.SetResource(assets.ResourceFlagPng)
                 }</span>
                 <span class="cov8" title="1">t.icon.Hidden = false</span>
-        case t.Marker != HelpMarkingNone &amp;&amp; !t.Flagged &amp;&amp; !t.Field.Checked &amp;&amp; t.Field.Content == minesweeper.Unknown:<span class="cov8" title="1">
-                t.label.Text = HelperMarkerSymbols[t.Marker]
-                t.label.Color = HelperMarkerColors[t.Marker]
+        case t.Marking() != HelpMarkingNone &amp;&amp; !t.Flagged() &amp;&amp; !t.Checked() &amp;&amp; t.Content() == minesweeper.Unknown:<span class="cov8" title="1">
+                t.label.Text = HelperMarkerSymbols[t.Marking()]
+                t.label.Color = HelperMarkerColors[t.Marking()]
                 t.label.Hidden = false</span>
-        case t.Field.Content == minesweeper.Mine:<span class="cov8" title="1">
+        case t.Content() == minesweeper.Mine:<span class="cov8" title="1">
                 t.icon.SetResource(assets.ResourceMinePng)
                 t.icon.Hidden = false
-                if t.Field.Checked </span><span class="cov8" title="1">{
+                if t.Checked() </span><span class="cov8" title="1">{
                         t.background.FillColor = TileExplodedColor
                 }</span>
-        case t.Field.Checked &amp;&amp; t.Field.Content &gt; 0 &amp;&amp; t.Field.Content &lt; 9:<span class="cov8" title="1">
-                t.label.Text = strconv.Itoa(int(t.Field.Content))
-                t.label.Color = TileTextColor[t.Field.Content]
+        case t.Checked() &amp;&amp; t.Content() &gt; 0 &amp;&amp; t.Content() &lt; 9:<span class="cov8" title="1">
+                t.label.Text = t.Content().String()
+                t.label.Color = TileTextColor[t.Content()]
                 t.label.Hidden = false
                 t.background.FillColor = TileBackgroundColor</span>
-        case t.Field.Checked:<span class="cov8" title="1">
+        case t.Checked():<span class="cov8" title="1">
                 t.background.FillColor = TileBackgroundColor</span>
         }
 }
 
 // Reset tile to default state, used for starting new game
 func (t *Tile) Reset() <span class="cov8" title="1">{
-        t.Flagged = false
-        t.Field.Checked = false
-        t.Field.Content = minesweeper.Unknown
-        t.Marker = HelpMarkingNone
-        t.UpdateContent()
+        t.flagged = false
+        t.field.Checked = false
+        t.field.Content = minesweeper.Unknown
+        t.marking = HelpMarkingNone
+        t.updateContent()
 }</span>
+
+// Returns if the tiles field is checked
+func (t *Tile) Checked() bool <span class="cov8" title="1">{
+        return t.field.Checked
+}</span>
+
+// Returns the field content
+func (t *Tile) Content() minesweeper.FieldContent <span class="cov8" title="1">{
+        return t.field.Content
+}</span>
+
+// Set the content of the field
+func (t *Tile) SetField(f minesweeper.Field) <span class="cov8" title="1">{
+        if f == t.field </span><span class="cov8" title="1">{
+                return
+        }</span>
+        <span class="cov8" title="1">t.field = f
+        t.updateContent()</span>
+}
+
+// Returns if the tile is flagged as a suspected mine
+func (t *Tile) Flagged() bool <span class="cov8" title="1">{
+        return t.flagged
+}</span>
+
+// Flag the tile as a suspected mine
+func (t *Tile) Flag(v bool) <span class="cov8" title="1">{
+        if v == t.Flagged() </span><span class="cov8" title="1">{
+                return
+        }</span>
+
+        <span class="cov8" title="1">if t.Flagged() </span><span class="cov8" title="1">{
+                t.grid.MineCount.Inc()
+        }</span> else<span class="cov8" title="1"> {
+                t.grid.MineCount.Dec()
+        }</span>
+        <span class="cov8" title="1">t.flagged = v
+        t.updateContent()</span>
+}
+
+// Returns the marking of the tile
+func (t *Tile) Marking() HelpMarking <span class="cov8" title="1">{
+        return t.marking
+}</span>
+
+// Mark the tile
+func (t *Tile) Mark(m HelpMarking) <span class="cov8" title="1">{
+        if m == t.Marking() </span><span class="cov8" title="1">{
+                return
+        }</span>
+        <span class="cov8" title="1">t.marking = m
+        t.updateContent()</span>
+}
 
 // Check if the tile should be clickable
 func (t *Tile) untappable() bool <span class="cov8" title="1">{
-        return t.Field.Checked || t.gameFinished()
+        return t.Checked() || t.gameFinished()
 }</span>
 
 // Check if game is finished
