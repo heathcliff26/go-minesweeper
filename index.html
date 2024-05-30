@@ -550,6 +550,7 @@ func (b *Button) SetText(text string) <span class="cov8" title="1">{
 import (
         "fmt"
         "strconv"
+        "sync"
 
         "fyne.io/fyne/v2/canvas"
 )
@@ -558,6 +559,8 @@ import (
 type Counter struct {
         Label *canvas.Text
         Count int
+
+        lock sync.Mutex
 }
 
 // Create new counter
@@ -570,6 +573,9 @@ func NewCounter(count int) *Counter <span class="cov8" title="1">{
 
 // Set the count to a specific number
 func (m *Counter) SetCount(c int) <span class="cov8" title="1">{
+        m.lock.Lock()
+        defer m.lock.Unlock()
+
         m.Count = c
         m.refresh()
 }</span>
@@ -586,12 +592,18 @@ func (m *Counter) refresh() <span class="cov8" title="1">{
 
 // Increase the counter
 func (m *Counter) Inc() <span class="cov8" title="1">{
+        m.lock.Lock()
+        defer m.lock.Unlock()
+
         m.Count++
         m.refresh()
 }</span>
 
 // Decrease the counter
 func (m *Counter) Dec() <span class="cov8" title="1">{
+        m.lock.Lock()
+        defer m.lock.Unlock()
+
         m.Count--
         m.refresh()
 }</span>
@@ -784,6 +796,9 @@ type MinesweeperGrid struct {
         Timer       *Timer
         MineCount   *Counter
         ResetButton *Button
+
+        lUpdate sync.Mutex
+        lGame   sync.Mutex
 }
 
 // Create a new grid suitable for the give difficulty
@@ -834,6 +849,9 @@ func (g *MinesweeperGrid) GetCanvasObject() fyne.CanvasObject <span class="cov8"
 // Checks the given tile and then updates the display according to the new state.
 // Starts a new game when no game is currently running.
 func (g *MinesweeperGrid) TappedTile(pos minesweeper.Pos) <span class="cov8" title="1">{
+        g.lGame.Lock()
+        defer g.lGame.Unlock()
+
         if g.Game == nil </span><span class="cov8" title="1">{
                 switch g.GameAlgorithm </span>{
                 case GameAlgorithmSafePos:<span class="cov8" title="1">
@@ -851,9 +869,44 @@ func (g *MinesweeperGrid) TappedTile(pos minesweeper.Pos) <span class="cov8" tit
 
         <span class="cov8" title="1">slog.Info("Checking field", slog.String("pos", pos.String()))
 
-        s := g.Game.CheckField(pos)
-        slog.Debug("Checked field, updating tiles")
-        g.updateFromStatus(s)</span>
+        s, changed := g.Game.CheckField(pos)
+        if changed </span><span class="cov8" title="1">{
+                slog.Debug("Checked field, updating tiles")
+                g.updateFromStatus(s)
+        }</span>
+}
+
+// Called by the child tiles to reveal all neighbours when they have been double tapped
+func (g *MinesweeperGrid) TapNeighbours(pos minesweeper.Pos) <span class="cov8" title="1">{
+        g.lGame.Lock()
+        defer g.lGame.Unlock()
+
+        flags := minesweeper.FieldContent(0)
+        posToCheck := make([]minesweeper.Pos, 0, 8)
+        for m := -1; m &lt; 2; m++ </span><span class="cov8" title="1">{
+                for n := -1; n &lt; 2; n++ </span><span class="cov8" title="1">{
+                        p := pos
+                        p.X += m
+                        p.Y += n
+                        if !g.OutOfBounds(p) </span><span class="cov8" title="1">{
+                                if g.Tiles[p.X][p.Y].Flagged() </span><span class="cov8" title="1">{
+                                        flags++
+                                        continue</span>
+                                }
+                                <span class="cov8" title="1">if g.Tiles[p.X][p.Y].untappable() </span><span class="cov8" title="1">{
+                                        continue</span>
+                                }
+                                <span class="cov8" title="1">posToCheck = append(posToCheck, p)</span>
+                        }
+                }
+        }
+
+        <span class="cov8" title="1">if flags == g.Tiles[pos.X][pos.Y].Content() </span><span class="cov8" title="1">{
+                for _, p := range posToCheck </span><span class="cov8" title="1">{
+                        g.Game.CheckField(p)
+                }</span>
+                <span class="cov8" title="1">g.updateFromStatus(g.Game.Status())</span>
+        }
 }
 
 // Update the grid from the given status
@@ -862,7 +915,10 @@ func (g *MinesweeperGrid) updateFromStatus(s *minesweeper.Status) <span class="c
                 return
         }</span>
 
-        <span class="cov8" title="1">var wg sync.WaitGroup
+        <span class="cov8" title="1">g.lUpdate.Lock()
+        defer g.lUpdate.Unlock()
+
+        var wg sync.WaitGroup
 
         if s.GameOver() || s.GameWon() </span><span class="cov8" title="1">{
                 switch </span>{
@@ -948,6 +1004,9 @@ func (g *MinesweeperGrid) Col() int <span class="cov8" title="1">{
 
 // Start a new game
 func (g *MinesweeperGrid) NewGame() <span class="cov8" title="1">{
+        g.lGame.Lock()
+        defer g.lGame.Unlock()
+
         slog.Info("Preparing for new game")
         g.Game = nil
         g.Reset()
@@ -955,6 +1014,9 @@ func (g *MinesweeperGrid) NewGame() <span class="cov8" title="1">{
 
 // Replay the current game
 func (g *MinesweeperGrid) Replay() <span class="cov8" title="1">{
+        g.lGame.Lock()
+        defer g.lGame.Unlock()
+
         slog.Info("Preparing for replay of current game")
         if g.Game != nil </span><span class="cov8" title="1">{
                 g.Game.Replay()
@@ -964,6 +1026,9 @@ func (g *MinesweeperGrid) Replay() <span class="cov8" title="1">{
 
 // Reset Grid
 func (g *MinesweeperGrid) Reset() <span class="cov8" title="1">{
+        g.lUpdate.Lock()
+        defer g.lUpdate.Unlock()
+
         for x := 0; x &lt; g.Row(); x++ </span><span class="cov8" title="1">{
                 for y := 0; y &lt; g.Col(); y++ </span><span class="cov8" title="1">{
                         g.Tiles[x][y].Reset()
@@ -985,15 +1050,23 @@ func (g *MinesweeperGrid) OutOfBounds(p minesweeper.Pos) bool <span class="cov8"
 // Display a single hint on the grid.
 // Returns false if no hint could be displayed.
 func (g *MinesweeperGrid) Hint() bool <span class="cov8" title="1">{
+        g.lGame.Lock()
+
         if g.Game == nil </span><span class="cov8" title="1">{
                 return false
         }</span>
         <span class="cov8" title="1">s := g.Game.Status()
+
+        g.lGame.Unlock()
+
         if s == nil || s.GameOver() || s.GameWon() </span><span class="cov8" title="1">{
                 return false
         }</span>
 
-        <span class="cov8" title="1">for _, mine := range s.ObviousMines() </span><span class="cov8" title="1">{
+        <span class="cov8" title="1">g.lUpdate.Lock()
+        defer g.lUpdate.Unlock()
+
+        for _, mine := range s.ObviousMines() </span><span class="cov8" title="1">{
                 tile := g.Tiles[mine.X][mine.Y]
                 if tile.Flagged() </span><span class="cov8" title="1">{
                         continue</span>
@@ -1013,11 +1086,16 @@ func (g *MinesweeperGrid) Hint() bool <span class="cov8" title="1">{
 // Returns false if it can't run autosolve, otherwise true.
 // If there are no steps to be taken, still
 func (g *MinesweeperGrid) Autosolve(delay time.Duration) bool <span class="cov8" title="1">{
+        g.lGame.Lock()
+
         if g.Game == nil </span><span class="cov8" title="1">{
                 slog.Info("Autosolve failed because no game is running")
                 return false
         }</span>
         <span class="cov8" title="1">s := g.Game.Status()
+
+        g.lGame.Unlock()
+
         if s == nil </span><span class="cov8" title="1">{
                 slog.Info("Autosolve failed because game does not have a status yet")
                 return false
@@ -1048,14 +1126,12 @@ func (g *MinesweeperGrid) Autosolve(delay time.Duration) bool <span class="cov8"
 
         <span class="cov8" title="1">if !(s.GameOver() || s.GameWon()) </span><span class="cov8" title="1">{
                 slog.Info("Autosolve: Flagging mines")
+
                 for _, mine := range s.ObviousMines() </span><span class="cov8" title="1">{
                         tile := g.Tiles[mine.X][mine.Y]
-                        if tile.Flagged() </span><span class="cov8" title="1">{
-                                continue</span>
-                        }
-                        <span class="cov8" title="1">tile.TappedSecondary(nil)
-                        time.Sleep(autosolveFlagMineDelay)</span>
-                }
+                        tile.Flag(true)
+                        time.Sleep(autosolveFlagMineDelay)
+                }</span>
         }
 
         <span class="cov8" title="1">slog.Debug("Autosolve finished")
@@ -1070,6 +1146,7 @@ package app
 
 import (
         "image/color"
+        "sync"
 
         "fyne.io/fyne/v2"
         "fyne.io/fyne/v2/canvas"
@@ -1129,6 +1206,9 @@ type Tile struct {
 
         pos  minesweeper.Pos
         grid *MinesweeperGrid
+
+        lFlag   sync.Mutex
+        lUpdate sync.Mutex
 
         field   minesweeper.Field
         flagged bool
@@ -1194,37 +1274,14 @@ func (t *Tile) DoubleTapped(_ *fyne.PointEvent) <span class="cov8" title="1">{
                 return
         }</span>
 
-        <span class="cov8" title="1">flags := minesweeper.FieldContent(0)
-        posToCheck := make([]minesweeper.Pos, 0, 8)
-        for m := -1; m &lt; 2; m++ </span><span class="cov8" title="1">{
-                for n := -1; n &lt; 2; n++ </span><span class="cov8" title="1">{
-                        p := t.pos
-                        p.X += m
-                        p.Y += n
-                        if !t.grid.OutOfBounds(p) </span><span class="cov8" title="1">{
-                                if t.grid.Tiles[p.X][p.Y].Flagged() </span><span class="cov8" title="1">{
-                                        flags++
-                                        continue</span>
-                                }
-                                <span class="cov8" title="1">if t.grid.Tiles[p.X][p.Y].untappable() </span><span class="cov8" title="1">{
-                                        continue</span>
-                                }
-                                <span class="cov8" title="1">posToCheck = append(posToCheck, p)</span>
-                        }
-                }
-        }
-
-        <span class="cov8" title="1">if flags == t.Content() </span><span class="cov8" title="1">{
-                var status *minesweeper.Status
-                for _, p := range posToCheck </span><span class="cov8" title="1">{
-                        status = t.grid.Game.CheckField(p)
-                }</span>
-                <span class="cov8" title="1">t.grid.updateFromStatus(status)</span>
-        }
+        <span class="cov8" title="1">t.grid.TapNeighbours(t.pos)</span>
 }
 
 // Update the tile render depending on the current state of it's backing Field
 func (t *Tile) updateContent() <span class="cov8" title="1">{
+        t.lUpdate.Lock()
+        defer t.lUpdate.Unlock()
+
         t.icon.Hidden = true
         t.label.Hidden = true
         t.background.FillColor = TileDefaultColor
@@ -1288,21 +1345,28 @@ func (t *Tile) SetField(f minesweeper.Field) <span class="cov8" title="1">{
 
 // Returns if the tile is flagged as a suspected mine
 func (t *Tile) Flagged() bool <span class="cov8" title="1">{
+        t.lFlag.Lock()
+        defer t.lFlag.Unlock()
+
         return t.flagged
 }</span>
 
 // Flag the tile as a suspected mine
 func (t *Tile) Flag(v bool) <span class="cov8" title="1">{
-        if v == t.Flagged() </span><span class="cov8" title="1">{
+        t.lFlag.Lock()
+        if v == t.flagged </span><span class="cov8" title="1">{
+                t.lFlag.Unlock()
                 return
         }</span>
 
-        <span class="cov8" title="1">if t.Flagged() </span><span class="cov8" title="1">{
+        <span class="cov8" title="1">if t.flagged </span><span class="cov8" title="1">{
                 t.grid.MineCount.Inc()
         }</span> else<span class="cov8" title="1"> {
                 t.grid.MineCount.Dec()
         }</span>
         <span class="cov8" title="1">t.flagged = v
+
+        t.lFlag.Unlock()
         t.updateContent()</span>
 }
 
@@ -1651,10 +1715,7 @@ type Field struct {
 type Game interface {
         // Check a given field and recursevly reveal all neighboring fields that should be revield.
         // Returns the resulting new status of the game
-        CheckField(p Pos) *Status
-        // Recursive function to reveal all neighbouring fields that can be safely reveald.
-        // Stops when a field has not exactly zero neighbouring mines
-        RevealField(p Pos)
+        CheckField(p Pos) (*Status, bool)
         // Check if the given position is out of bounds
         OutOfBounds(p Pos) bool
         // Returns the current status of the game. Only contains the knowledge a player should have.
@@ -1670,6 +1731,9 @@ type Game interface {
         // Generate a save from the game
         ToSave() (*Save, error)
 }
+
+// Ensure that compiler throws error if LocalGame does not implement Game interface
+var _ = Game(&amp;LocalGame{})
 
 type LocalGame struct {
         Field      [][]Field
@@ -1732,27 +1796,27 @@ func NewGameWithSafeArea(d Difficulty, p Pos) *LocalGame <span class="cov8" titl
 }
 
 // Check a given field and recursevly reveal all neighboring fields that should be revield.
-// Returns the resulting new status of the game
-func (g *LocalGame) CheckField(p Pos) *Status <span class="cov8" title="1">{
-        if g.Lost() || g.Won() </span><span class="cov8" title="1">{
-                return g.Status()
+// Returns the resulting new status of the game and a boolean indicating if there where changes.
+func (g *LocalGame) CheckField(p Pos) (*Status, bool) <span class="cov8" title="1">{
+        if g.Lost() || g.Won() || g.Field[p.X][p.Y].Checked </span><span class="cov8" title="1">{
+                return g.Status(), false
         }</span>
 
         <span class="cov8" title="1">g.Field[p.X][p.Y].Checked = true
 
         if g.Field[p.X][p.Y].Content == Mine </span><span class="cov8" title="1">{
                 g.GameOver = true
-                return g.UpdateStatus()
+                return g.UpdateStatus(), true
         }</span>
 
-        <span class="cov8" title="1">g.RevealField(p)
+        <span class="cov8" title="1">g.revealField(p)
 
-        return g.UpdateStatus()</span>
+        return g.UpdateStatus(), true</span>
 }
 
 // Recursive function to reveal all neighbouring fields that can be safely reveald.
 // Stops when a field has not exactly zero neighbouring mines
-func (g *LocalGame) RevealField(p Pos) <span class="cov8" title="1">{
+func (g *LocalGame) revealField(p Pos) <span class="cov8" title="1">{
         slog.Debug("Reveal field", slog.String("pos", p.String()), slog.String("content", g.Field[p.X][p.Y].Content.String()))
 
         g.Field[p.X][p.Y].Checked = true
@@ -1773,7 +1837,7 @@ func (g *LocalGame) RevealField(p Pos) <span class="cov8" title="1">{
                                 continue</span>
                         }
                         <span class="cov8" title="1">if !g.Field[i.X][i.Y].Checked </span><span class="cov8" title="1">{
-                                g.RevealField(i)
+                                g.revealField(i)
                         }</span>
                 }
         }
@@ -1781,8 +1845,11 @@ func (g *LocalGame) RevealField(p Pos) <span class="cov8" title="1">{
 
 // Check if the given position is out of bounds
 func (g *LocalGame) OutOfBounds(p Pos) bool <span class="cov8" title="1">{
-        return OutOfBounds(p, g.Difficulty)
-}</span>
+        if g == nil </span><span class="cov8" title="1">{
+                return true
+        }</span>
+        <span class="cov8" title="1">return OutOfBounds(p, g.Difficulty)</span>
+}
 
 // Returns the current status of the game. Only contains the knowledge a player should have.
 func (g *LocalGame) Status() *Status <span class="cov8" title="1">{
@@ -2394,7 +2461,7 @@ func measureAssistedMode(res chan time.Duration) <span class="cov0" title="0">{
 
         <span class="cov0" title="0">start := time.Now()
         for _, pos := range positions </span><span class="cov0" title="0">{
-                s := game.CheckField(pos)
+                s, _ := game.CheckField(pos)
                 s.ObviousMines()
                 s.ObviousSafePos()
                 if s.GameOver() || s.GameWon() </span><span class="cov0" title="0">{
