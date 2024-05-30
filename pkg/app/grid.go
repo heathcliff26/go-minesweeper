@@ -51,6 +51,8 @@ type MinesweeperGrid struct {
 
 	lUpdate sync.Mutex
 	lGame   sync.Mutex
+
+	testChannel chan string
 }
 
 // Create a new grid suitable for the give difficulty
@@ -126,6 +128,10 @@ func (g *MinesweeperGrid) TappedTile(pos minesweeper.Pos) {
 		slog.Debug("Checked field, updating tiles")
 		g.updateFromStatus(s)
 	}
+
+	if g.testChannel != nil {
+		g.testChannel <- "TappedTile"
+	}
 }
 
 // Called by the child tiles to reveal all neighbours when they have been double tapped
@@ -153,11 +159,17 @@ func (g *MinesweeperGrid) TapNeighbours(pos minesweeper.Pos) {
 		}
 	}
 
-	if flags == g.Tiles[pos.X][pos.Y].Content() {
-		for _, p := range posToCheck {
-			g.Game.CheckField(p)
-		}
-		g.updateFromStatus(g.Game.Status())
+	if flags != g.Tiles[pos.X][pos.Y].Content() {
+		return
+	}
+
+	for _, p := range posToCheck {
+		g.Game.CheckField(p)
+	}
+	g.updateFromStatus(g.Game.Status())
+
+	if g.testChannel != nil {
+		g.testChannel <- "TapNeighbours"
 	}
 }
 

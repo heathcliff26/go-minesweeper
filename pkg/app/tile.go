@@ -115,7 +115,7 @@ func (t *Tile) Tapped(_ *fyne.PointEvent) {
 	if t.untappable() || t.Flagged() {
 		return
 	}
-	t.grid.TappedTile(t.pos)
+	go t.grid.TappedTile(t.pos)
 }
 
 // Right mouse click on tile
@@ -124,7 +124,7 @@ func (t *Tile) TappedSecondary(_ *fyne.PointEvent) {
 		return
 	}
 
-	t.Flag(!t.Flagged())
+	go t.Flag(!t.Flagged())
 }
 
 // Double click on tile
@@ -133,7 +133,7 @@ func (t *Tile) DoubleTapped(_ *fyne.PointEvent) {
 		return
 	}
 
-	t.grid.TapNeighbours(t.pos)
+	go t.grid.TapNeighbours(t.pos)
 }
 
 // Update the tile render depending on the current state of it's backing Field

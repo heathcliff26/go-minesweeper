@@ -106,7 +106,7 @@ func (a *App) makeMenu() {
 		a.assistedMode.Checked = !a.assistedMode.Checked
 		a.grid.AssistedMode = a.assistedMode.Checked
 		if a.grid.AssistedMode && a.grid.Game != nil {
-			a.grid.updateFromStatus(a.grid.Game.Status())
+			go a.grid.updateFromStatus(a.grid.Game.Status())
 		}
 	})
 	a.gameAlgorithms = make([]*fyne.MenuItem, 2)
@@ -119,20 +119,24 @@ func (a *App) makeMenu() {
 	gameAlgorithmSubMenu := fyne.NewMenuItem("Creation Algorithm", nil)
 	gameAlgorithmSubMenu.ChildMenu = fyne.NewMenu("Creation Algorithm", a.gameAlgorithms...)
 	autosolve := fyne.NewMenuItem("Autosolve", func() {
-		var message string
-		if a.grid.Autosolve(DEFAULT_AUTOSOLVE_DELAY) {
-			message = "Finished autosolve"
-		} else {
-			message = "Failed to run autosolve, please ensure that a game is currently running."
-		}
-		dialog.ShowInformation("Autosolve", message, a.main)
+		go func() {
+			var message string
+			if a.grid.Autosolve(DEFAULT_AUTOSOLVE_DELAY) {
+				message = "Finished autosolve"
+			} else {
+				message = "Failed to run autosolve, please ensure that a game is currently running."
+			}
+			dialog.ShowInformation("Autosolve", message, a.main)
+		}()
 	})
 	optionsMenu := fyne.NewMenu("Options", a.assistedMode, gameAlgorithmSubMenu, autosolve)
 
 	hint := fyne.NewMenuItem("Hint", func() {
-		if !a.grid.Hint() {
-			dialog.NewInformation("No hint found", "Could not find any hints to give.", a.main).Show()
-		}
+		go func() {
+			if !a.grid.Hint() {
+				dialog.NewInformation("No hint found", "Could not find any hints to give.", a.main).Show()
+			}
+		}()
 	})
 	about := fyne.NewMenuItem("About", func() {
 		vInfo := dialog.NewCustom(a.Version.Name, "close", getVersionContent(a.Version), a.main)
