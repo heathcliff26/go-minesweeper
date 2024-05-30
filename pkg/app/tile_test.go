@@ -3,6 +3,7 @@ package app
 import (
 	"strconv"
 	"testing"
+	"time"
 
 	"github.com/heathcliff26/go-minesweeper/assets"
 	"github.com/heathcliff26/go-minesweeper/pkg/minesweeper"
@@ -47,6 +48,9 @@ func TestNewTile(t *testing.T) {
 }
 
 func TestTileTapped(t *testing.T) {
+	t.Parallel()
+	assert := assert.New(t)
+
 	g := NewMinesweeperGrid(DEFAULT_DIFFICULTY, false)
 	for _, row := range g.Tiles {
 		for _, tile := range row {
@@ -55,49 +59,55 @@ func TestTileTapped(t *testing.T) {
 	}
 	tile := g.Tiles[0][0]
 
-	assert := assert.New(t)
-
 	tile.Flag(true)
 	tile.Tapped(nil)
+	time.Sleep(time.Second)
 
 	assert.Nil(tile.grid.Game, "Flagged tiles should not trigger checks")
 	assert.False(tile.field.Checked, "Flagged tiles should not trigger checks")
 
 	tile.Flag(false)
 	tile.Tapped(nil)
+	time.Sleep(time.Second)
 
 	assert.NotNil(tile.grid.Game, "Game should be started")
 	assert.True(tile.field.Checked, "Tile should be checked")
 }
 
 func TestTileTappedSecondary(t *testing.T) {
+	t.Parallel()
+	assert := assert.New(t)
+
 	g := NewMinesweeperGrid(DEFAULT_DIFFICULTY, false)
 	tile := g.Tiles[1][2]
 	tile.CreateRenderer()
-
-	assert := assert.New(t)
 
 	count := tile.grid.MineCount.Count
 
 	tile.field.Checked = true
 	tile.TappedSecondary(nil)
+	time.Sleep(time.Second)
 
 	assert.Equal(count, tile.grid.MineCount.Count, "MineCount should not have changed")
 	assert.False(tile.Flagged(), "Tile should not be flagged")
 
 	tile.field.Checked = false
 	tile.TappedSecondary(nil)
+	time.Sleep(time.Second)
 
 	assert.Equal(count-1, tile.grid.MineCount.Count, "MineCount should be decreased")
 	assert.True(tile.Flagged(), "Tile should be flagged")
 
 	tile.TappedSecondary(nil)
+	time.Sleep(time.Second)
 
 	assert.Equal(count, tile.grid.MineCount.Count, "MineCount should be back to original value")
 	assert.False(tile.Flagged(), "Tile should not be flagged")
 }
 
 func TestDoubleTapped(t *testing.T) {
+	t.Parallel()
+
 	tMatrix := []struct {
 		Name    string
 		Flagged bool
@@ -108,6 +118,8 @@ func TestDoubleTapped(t *testing.T) {
 
 	for _, tCase := range tMatrix {
 		t.Run(tCase.Name, func(t *testing.T) {
+			t.Parallel()
+
 			g := NewMinesweeperGrid(DEFAULT_DIFFICULTY, false)
 			for _, row := range g.Tiles {
 				for _, tile := range row {
@@ -122,6 +134,7 @@ func TestDoubleTapped(t *testing.T) {
 				tile.Flag(false)
 			})
 			tile.DoubleTapped(nil)
+			time.Sleep(time.Second)
 
 			for m := -1; m < 2; m++ {
 				for n := -1; n < 2; n++ {
@@ -139,6 +152,7 @@ func TestDoubleTapped(t *testing.T) {
 	}
 
 	t.Run("Checked", func(t *testing.T) {
+		t.Parallel()
 		assert := assert.New(t)
 
 		save, err := minesweeper.LoadSave("testdata/double-tapped_checked.sav")
@@ -155,10 +169,15 @@ func TestDoubleTapped(t *testing.T) {
 		}
 		tile := g.Tiles[1][1]
 		g.Game = game
+		g.testChannel = make(chan string, 2)
+
 		tile.Tapped(nil)
+		<-g.testChannel
+
 		g.Tiles[0][0].Flag(true)
 
 		tile.DoubleTapped(nil)
+		<-g.testChannel
 
 		assert.False(g.Game.Status().GameOver(), "Game should not be lost")
 		assert.True(g.Game.Status().GameWon(), "Game should be won")
@@ -321,6 +340,8 @@ func TestTileReset(t *testing.T) {
 }
 
 func TestTileUntappable(t *testing.T) {
+	t.Parallel()
+
 	g := NewMinesweeperGrid(DEFAULT_DIFFICULTY, false)
 	for _, row := range g.Tiles {
 		for _, tile := range row {
@@ -338,6 +359,8 @@ func TestTileUntappable(t *testing.T) {
 	tile.field.Checked = false
 
 	tile.Tapped(nil)
+	time.Sleep(time.Second)
+
 	tile.field.Checked = false
 	assert.False(tile.untappable())
 
