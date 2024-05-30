@@ -61,7 +61,7 @@
 				
 				<option value="file2">github.com/heathcliff26/go-minesweeper/cmd/log-parser/main.go (0.0%)</option>
 				
-				<option value="file3">github.com/heathcliff26/go-minesweeper/pkg/app/app.go (48.1%)</option>
+				<option value="file3">github.com/heathcliff26/go-minesweeper/pkg/app/app.go (47.4%)</option>
 				
 				<option value="file4">github.com/heathcliff26/go-minesweeper/pkg/app/button.go (100.0%)</option>
 				
@@ -69,7 +69,7 @@
 				
 				<option value="file6">github.com/heathcliff26/go-minesweeper/pkg/app/filedialog/dialog.go (0.0%)</option>
 				
-				<option value="file7">github.com/heathcliff26/go-minesweeper/pkg/app/grid.go (100.0%)</option>
+				<option value="file7">github.com/heathcliff26/go-minesweeper/pkg/app/grid.go (99.5%)</option>
 				
 				<option value="file8">github.com/heathcliff26/go-minesweeper/pkg/app/tile.go (100.0%)</option>
 				
@@ -343,7 +343,7 @@ func (a *App) makeMenu() <span class="cov8" title="1">{
                 a.assistedMode.Checked = !a.assistedMode.Checked
                 a.grid.AssistedMode = a.assistedMode.Checked
                 if a.grid.AssistedMode &amp;&amp; a.grid.Game != nil </span><span class="cov0" title="0">{
-                        a.grid.updateFromStatus(a.grid.Game.Status())
+                        go a.grid.updateFromStatus(a.grid.Game.Status())
                 }</span>
         })
         <span class="cov8" title="1">a.gameAlgorithms = make([]*fyne.MenuItem, 2)
@@ -356,20 +356,24 @@ func (a *App) makeMenu() <span class="cov8" title="1">{
         <span class="cov8" title="1">gameAlgorithmSubMenu := fyne.NewMenuItem("Creation Algorithm", nil)
         gameAlgorithmSubMenu.ChildMenu = fyne.NewMenu("Creation Algorithm", a.gameAlgorithms...)
         autosolve := fyne.NewMenuItem("Autosolve", func() </span><span class="cov0" title="0">{
-                var message string
-                if a.grid.Autosolve(DEFAULT_AUTOSOLVE_DELAY) </span><span class="cov0" title="0">{
-                        message = "Finished autosolve"
-                }</span> else<span class="cov0" title="0"> {
-                        message = "Failed to run autosolve, please ensure that a game is currently running."
-                }</span>
-                <span class="cov0" title="0">dialog.ShowInformation("Autosolve", message, a.main)</span>
+                go func() </span><span class="cov0" title="0">{
+                        var message string
+                        if a.grid.Autosolve(DEFAULT_AUTOSOLVE_DELAY) </span><span class="cov0" title="0">{
+                                message = "Finished autosolve"
+                        }</span> else<span class="cov0" title="0"> {
+                                message = "Failed to run autosolve, please ensure that a game is currently running."
+                        }</span>
+                        <span class="cov0" title="0">dialog.ShowInformation("Autosolve", message, a.main)</span>
+                }()
         })
         <span class="cov8" title="1">optionsMenu := fyne.NewMenu("Options", a.assistedMode, gameAlgorithmSubMenu, autosolve)
 
         hint := fyne.NewMenuItem("Hint", func() </span><span class="cov0" title="0">{
-                if !a.grid.Hint() </span><span class="cov0" title="0">{
-                        dialog.NewInformation("No hint found", "Could not find any hints to give.", a.main).Show()
-                }</span>
+                go func() </span><span class="cov0" title="0">{
+                        if !a.grid.Hint() </span><span class="cov0" title="0">{
+                                dialog.NewInformation("No hint found", "Could not find any hints to give.", a.main).Show()
+                        }</span>
+                }()
         })
         <span class="cov8" title="1">about := fyne.NewMenuItem("About", func() </span><span class="cov0" title="0">{
                 vInfo := dialog.NewCustom(a.Version.Name, "close", getVersionContent(a.Version), a.main)
@@ -799,6 +803,8 @@ type MinesweeperGrid struct {
 
         lUpdate sync.Mutex
         lGame   sync.Mutex
+
+        testChannel chan string
 }
 
 // Create a new grid suitable for the give difficulty
@@ -874,6 +880,10 @@ func (g *MinesweeperGrid) TappedTile(pos minesweeper.Pos) <span class="cov8" tit
                 slog.Debug("Checked field, updating tiles")
                 g.updateFromStatus(s)
         }</span>
+
+        <span class="cov8" title="1">if g.testChannel != nil </span><span class="cov8" title="1">{
+                g.testChannel &lt;- "TappedTile"
+        }</span>
 }
 
 // Called by the child tiles to reveal all neighbours when they have been double tapped
@@ -901,12 +911,18 @@ func (g *MinesweeperGrid) TapNeighbours(pos minesweeper.Pos) <span class="cov8" 
                 }
         }
 
-        <span class="cov8" title="1">if flags == g.Tiles[pos.X][pos.Y].Content() </span><span class="cov8" title="1">{
-                for _, p := range posToCheck </span><span class="cov8" title="1">{
-                        g.Game.CheckField(p)
-                }</span>
-                <span class="cov8" title="1">g.updateFromStatus(g.Game.Status())</span>
-        }
+        <span class="cov8" title="1">if flags != g.Tiles[pos.X][pos.Y].Content() </span><span class="cov0" title="0">{
+                return
+        }</span>
+
+        <span class="cov8" title="1">for _, p := range posToCheck </span><span class="cov8" title="1">{
+                g.Game.CheckField(p)
+        }</span>
+        <span class="cov8" title="1">g.updateFromStatus(g.Game.Status())
+
+        if g.testChannel != nil </span><span class="cov8" title="1">{
+                g.testChannel &lt;- "TapNeighbours"
+        }</span>
 }
 
 // Update the grid from the given status
@@ -1256,7 +1272,7 @@ func (t *Tile) Tapped(_ *fyne.PointEvent) <span class="cov8" title="1">{
         if t.untappable() || t.Flagged() </span><span class="cov8" title="1">{
                 return
         }</span>
-        <span class="cov8" title="1">t.grid.TappedTile(t.pos)</span>
+        <span class="cov8" title="1">go t.grid.TappedTile(t.pos)</span>
 }
 
 // Right mouse click on tile
@@ -1265,7 +1281,7 @@ func (t *Tile) TappedSecondary(_ *fyne.PointEvent) <span class="cov8" title="1">
                 return
         }</span>
 
-        <span class="cov8" title="1">t.Flag(!t.Flagged())</span>
+        <span class="cov8" title="1">go t.Flag(!t.Flagged())</span>
 }
 
 // Double click on tile
@@ -1274,7 +1290,7 @@ func (t *Tile) DoubleTapped(_ *fyne.PointEvent) <span class="cov8" title="1">{
                 return
         }</span>
 
-        <span class="cov8" title="1">t.grid.TapNeighbours(t.pos)</span>
+        <span class="cov8" title="1">go t.grid.TapNeighbours(t.pos)</span>
 }
 
 // Update the tile render depending on the current state of it's backing Field
