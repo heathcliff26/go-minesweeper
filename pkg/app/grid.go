@@ -393,8 +393,10 @@ func (g *MinesweeperGrid) Autosolve(delay time.Duration) bool {
 
 		for _, mine := range s.ObviousMines() {
 			tile := g.Tiles[mine.X][mine.Y]
-			tile.Flag(true)
-			time.Sleep(autosolveFlagMineDelay)
+			if !tile.Flagged() {
+				tile.Flag(true)
+				time.Sleep(autosolveFlagMineDelay)
+			}
 		}
 	}
 
