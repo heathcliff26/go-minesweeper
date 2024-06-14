@@ -379,6 +379,10 @@ func (g *MinesweeperGrid) Autosolve(delay time.Duration) bool {
 	for i, safePos := 0, s.ObviousSafePos(); len(safePos) > 0 && !(s.GameOver() || s.GameWon()); safePos = s.ObviousSafePos() {
 		slog.Debug("Autosolve: Checking safe positions", slog.Int("iteration", i))
 		for _, p := range safePos {
+			if s.GameOver() || s.GameWon() {
+				break
+			}
+
 			if g.Tiles[p.X][p.Y].Checked() {
 				continue
 			}
