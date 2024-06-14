@@ -29,6 +29,7 @@ const (
 const (
 	GameAlgorithmSafePos = iota
 	GameAlgorithmSafeArea
+	GameAlgorithmSolvable
 )
 
 const (
@@ -112,6 +113,8 @@ func (g *MinesweeperGrid) TappedTile(pos minesweeper.Pos) {
 			g.Game = minesweeper.NewGameWithSafePos(g.Difficulty, pos)
 		case GameAlgorithmSafeArea:
 			g.Game = minesweeper.NewGameWithSafeArea(g.Difficulty, pos)
+		case GameAlgorithmSolvable:
+			g.Game = minesweeper.NewGameSolvable(g.Difficulty, pos)
 		default:
 			slog.Error("Unkown Algorithm for creating a new game", slog.Int("algorithm", g.GameAlgorithm))
 			return
