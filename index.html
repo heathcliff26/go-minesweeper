@@ -787,8 +787,6 @@ const (
         ChunkSize = 10
 )
 
-const autosolveFlagMineDelay = 150 * time.Millisecond
-
 // Graphical display for a minesweeper game
 type MinesweeperGrid struct {
         Tiles         [][]*Tile
@@ -1132,6 +1130,8 @@ func (g *MinesweeperGrid) Autosolve(delay time.Duration) bool <span class="cov8"
         <span class="cov8" title="1">g.updateFromStatus(s)
 
         for i, safePos := 0, s.ObviousSafePos(); len(safePos) &gt; 0 &amp;&amp; !(s.GameOver() || s.GameWon()); safePos = s.ObviousSafePos() </span><span class="cov8" title="1">{
+                mines := s.ObviousMines()
+
                 slog.Debug("Autosolve: Checking safe positions", slog.Int("iteration", i))
                 for _, p := range safePos </span><span class="cov8" title="1">{
                         if s.GameOver() || s.GameWon() </span><span class="cov0" title="0">{
@@ -1144,19 +1144,17 @@ func (g *MinesweeperGrid) Autosolve(delay time.Duration) bool <span class="cov8"
                         <span class="cov8" title="1">g.TappedTile(p)
                         time.Sleep(delay)</span>
                 }
-                <span class="cov8" title="1">i++</span>
-        }
 
-        <span class="cov8" title="1">if !(s.GameOver() || s.GameWon()) </span><span class="cov8" title="1">{
-                slog.Info("Autosolve: Flagging mines")
-
-                for _, mine := range s.ObviousMines() </span><span class="cov8" title="1">{
-                        tile := g.Tiles[mine.X][mine.Y]
-                        if !tile.Flagged() </span><span class="cov8" title="1">{
-                                tile.Flag(true)
-                                time.Sleep(autosolveFlagMineDelay)
-                        }</span>
+                <span class="cov8" title="1">slog.Info("Autosolve: Flagging mines", slog.Int("iteration", i))
+                for _, mine := range mines </span><span class="cov8" title="1">{
+                        if s.GameOver() || s.GameWon() </span><span class="cov8" title="1">{
+                                break</span>
+                        }
+                        <span class="cov8" title="1">tile := g.Tiles[mine.X][mine.Y]
+                        tile.Flag(true)</span>
                 }
+
+                <span class="cov8" title="1">i++</span>
         }
 
         <span class="cov8" title="1">slog.Debug("Autosolve finished")
