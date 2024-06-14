@@ -120,13 +120,9 @@ func (a *App) makeMenu() {
 	gameAlgorithmSubMenu.ChildMenu = fyne.NewMenu("Creation Algorithm", a.gameAlgorithms...)
 	autosolve := fyne.NewMenuItem("Autosolve", func() {
 		go func() {
-			var message string
-			if a.grid.Autosolve(DEFAULT_AUTOSOLVE_DELAY) {
-				message = "Finished autosolve"
-			} else {
-				message = "Failed to run autosolve, please ensure that a game is currently running."
+			if !a.grid.Autosolve(DEFAULT_AUTOSOLVE_DELAY) {
+				dialog.ShowInformation("Autosolve", "Failed to run autosolve, please ensure that a game is currently running.", a.main)
 			}
-			dialog.ShowInformation("Autosolve", message, a.main)
 		}()
 	})
 	optionsMenu := fyne.NewMenu("Options", a.assistedMode, gameAlgorithmSubMenu, autosolve)
