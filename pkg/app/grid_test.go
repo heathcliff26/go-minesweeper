@@ -57,7 +57,7 @@ func TestGameAlgorithm(t *testing.T) {
 		}
 	}
 
-	tMatrix := []string{"SafePos", "safeArea"}
+	tMatrix := []string{"SafePos", "SafeArea", "Solvable"}
 	for i, tCase := range tMatrix {
 		t.Run(tCase, func(t *testing.T) {
 			t.Cleanup(g.NewGame)

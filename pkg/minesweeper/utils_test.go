@@ -88,3 +88,28 @@ func TestFieldContentString(t *testing.T) {
 		})
 	}
 }
+
+func TestAutosolve(t *testing.T) {
+	for i := 1; i < 6; i++ {
+		t.Run("Solvable-"+strconv.Itoa(i), func(t *testing.T) {
+			s, err := LoadSave("testdata/autosolve-solvable-" + strconv.Itoa(i) + ".sav")
+			if err != nil {
+				t.Fatalf("Failed to load savegame: %v", err)
+			}
+			g := s.Game()
+			assert.True(t, autosolve(g, NewPos(0, 0)))
+			assert.True(t, g.Won())
+		})
+	}
+	for i := 1; i < 6; i++ {
+		t.Run("Unsolvable-"+strconv.Itoa(i), func(t *testing.T) {
+			s, err := LoadSave("testdata/autosolve-unsolvable-" + strconv.Itoa(i) + ".sav")
+			if err != nil {
+				t.Fatalf("Failed to load savegame: %v", err)
+			}
+			g := s.Game()
+			assert.False(t, autosolve(g, NewPos(0, 0)))
+			assert.False(t, g.Won())
+		})
+	}
+}

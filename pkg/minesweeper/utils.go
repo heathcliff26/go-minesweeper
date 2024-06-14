@@ -71,3 +71,31 @@ func walkField(f func(x, y int), limitX, limitY int) {
 		}
 	}
 }
+
+// Autosolve the given Game
+// Returns if the game can be autosolved
+func autosolve(g *LocalGame, startPos Pos) bool {
+	g.CheckField(startPos)
+
+	for safePos := g.Status().ObviousSafePos(); len(safePos) > 0 && !g.Won(); safePos = g.Status().ObviousSafePos() {
+		for _, p := range safePos {
+			g.CheckField(p)
+		}
+	}
+
+	return g.Won()
+}
+
+// Create an array of positions with 3x3, centered around the given position
+func areaAroundPos(d Difficulty, p Pos) []Pos {
+	area := make([]Pos, 0, 9)
+	for x := -1; x < 2; x++ {
+		for y := -1; y < 2; y++ {
+			p := NewPos(p.X+x, p.Y+y)
+			if !OutOfBounds(p, d) {
+				area = append(area, p)
+			}
+		}
+	}
+	return area
+}

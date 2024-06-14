@@ -91,16 +91,30 @@ func NewGameWithSafePos(d Difficulty, p Pos) *LocalGame {
 
 // Create a new game with mines seeded randomly in the map, with the exception of a 3x3 area around the given position.
 func NewGameWithSafeArea(d Difficulty, p Pos) *LocalGame {
-	area := make([]Pos, 0, 9)
-	for x := -1; x < 2; x++ {
-		for y := -1; y < 2; y++ {
-			p := NewPos(p.X+x, p.Y+y)
-			if !OutOfBounds(p, d) {
-				area = append(area, p)
-			}
+	mines := CreateMines(d, areaAroundPos(d, p))
+
+	return newGame(d, mines)
+}
+
+// Create a new game that is solvable without random guesses.
+func NewGameSolvable(d Difficulty, p Pos) *LocalGame {
+	area := areaAroundPos(d, p)
+
+	var mines []Pos
+	var success bool
+	for i := 0; i < 10000; i++ {
+		mines = CreateMines(d, area)
+		g := newGame(d, mines)
+
+		if success = autosolve(g, p); success {
+			break
 		}
 	}
-	mines := CreateMines(d, area)
+	if success {
+		slog.Info("Created solvable minesweeper game")
+	} else {
+		slog.Error("Failed to create a solvable minesweeper game")
+	}
 
 	return newGame(d, mines)
 }

@@ -109,12 +109,15 @@ func (a *App) makeMenu() {
 			go a.grid.updateFromStatus(a.grid.Game.Status())
 		}
 	})
-	a.gameAlgorithms = make([]*fyne.MenuItem, 2)
+	a.gameAlgorithms = make([]*fyne.MenuItem, 3)
 	a.gameAlgorithms[0] = fyne.NewMenuItem("Safe Position", func() {
 		a.setGameAlgorithm(GameAlgorithmSafePos)
 	})
 	a.gameAlgorithms[1] = fyne.NewMenuItem("Safe Area", func() {
 		a.setGameAlgorithm(GameAlgorithmSafeArea)
+	})
+	a.gameAlgorithms[2] = fyne.NewMenuItem("Solvable", func() {
+		a.setGameAlgorithm(GameAlgorithmSolvable)
 	})
 	gameAlgorithmSubMenu := fyne.NewMenuItem("Creation Algorithm", nil)
 	gameAlgorithmSubMenu.ChildMenu = fyne.NewMenu("Creation Algorithm", a.gameAlgorithms...)
