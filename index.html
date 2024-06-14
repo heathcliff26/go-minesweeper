@@ -69,7 +69,7 @@
 				
 				<option value="file6">github.com/heathcliff26/go-minesweeper/pkg/app/filedialog/dialog.go (0.0%)</option>
 				
-				<option value="file7">github.com/heathcliff26/go-minesweeper/pkg/app/grid.go (99.5%)</option>
+				<option value="file7">github.com/heathcliff26/go-minesweeper/pkg/app/grid.go (98.9%)</option>
 				
 				<option value="file8">github.com/heathcliff26/go-minesweeper/pkg/app/tile.go (100.0%)</option>
 				
@@ -1131,7 +1131,11 @@ func (g *MinesweeperGrid) Autosolve(delay time.Duration) bool <span class="cov8"
         for i, safePos := 0, s.ObviousSafePos(); len(safePos) &gt; 0 &amp;&amp; !(s.GameOver() || s.GameWon()); safePos = s.ObviousSafePos() </span><span class="cov8" title="1">{
                 slog.Debug("Autosolve: Checking safe positions", slog.Int("iteration", i))
                 for _, p := range safePos </span><span class="cov8" title="1">{
-                        if g.Tiles[p.X][p.Y].Checked() </span><span class="cov8" title="1">{
+                        if s.GameOver() || s.GameWon() </span><span class="cov0" title="0">{
+                                break</span>
+                        }
+
+                        <span class="cov8" title="1">if g.Tiles[p.X][p.Y].Checked() </span><span class="cov8" title="1">{
                                 continue</span>
                         }
                         <span class="cov8" title="1">g.TappedTile(p)
