@@ -61,7 +61,7 @@
 				
 				<option value="file2">github.com/heathcliff26/go-minesweeper/cmd/log-parser/main.go (0.0%)</option>
 				
-				<option value="file3">github.com/heathcliff26/go-minesweeper/pkg/app/app.go (48.5%)</option>
+				<option value="file3">github.com/heathcliff26/go-minesweeper/pkg/app/app.go (49.2%)</option>
 				
 				<option value="file4">github.com/heathcliff26/go-minesweeper/pkg/app/button.go (100.0%)</option>
 				
@@ -81,7 +81,7 @@
 				
 				<option value="file12">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/errors.go (50.0%)</option>
 				
-				<option value="file13">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/game.go (100.0%)</option>
+				<option value="file13">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/game.go (99.0%)</option>
 				
 				<option value="file14">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/save.go (84.6%)</option>
 				
@@ -346,12 +346,15 @@ func (a *App) makeMenu() <span class="cov8" title="1">{
                         go a.grid.updateFromStatus(a.grid.Game.Status())
                 }</span>
         })
-        <span class="cov8" title="1">a.gameAlgorithms = make([]*fyne.MenuItem, 2)
+        <span class="cov8" title="1">a.gameAlgorithms = make([]*fyne.MenuItem, 3)
         a.gameAlgorithms[0] = fyne.NewMenuItem("Safe Position", func() </span><span class="cov8" title="1">{
                 a.setGameAlgorithm(GameAlgorithmSafePos)
         }</span>)
         <span class="cov8" title="1">a.gameAlgorithms[1] = fyne.NewMenuItem("Safe Area", func() </span><span class="cov8" title="1">{
                 a.setGameAlgorithm(GameAlgorithmSafeArea)
+        }</span>)
+        <span class="cov8" title="1">a.gameAlgorithms[2] = fyne.NewMenuItem("Solvable", func() </span><span class="cov8" title="1">{
+                a.setGameAlgorithm(GameAlgorithmSolvable)
         }</span>)
         <span class="cov8" title="1">gameAlgorithmSubMenu := fyne.NewMenuItem("Creation Algorithm", nil)
         gameAlgorithmSubMenu.ChildMenu = fyne.NewMenu("Creation Algorithm", a.gameAlgorithms...)
@@ -777,6 +780,7 @@ const (
 const (
         GameAlgorithmSafePos = iota
         GameAlgorithmSafeArea
+        GameAlgorithmSolvable
 )
 
 const (
@@ -860,6 +864,8 @@ func (g *MinesweeperGrid) TappedTile(pos minesweeper.Pos) <span class="cov8" tit
                         g.Game = minesweeper.NewGameWithSafePos(g.Difficulty, pos)</span>
                 case GameAlgorithmSafeArea:<span class="cov8" title="1">
                         g.Game = minesweeper.NewGameWithSafeArea(g.Difficulty, pos)</span>
+                case GameAlgorithmSolvable:<span class="cov8" title="1">
+                        g.Game = minesweeper.NewGameSolvable(g.Difficulty, pos)</span>
                 default:<span class="cov8" title="1">
                         slog.Error("Unkown Algorithm for creating a new game", slog.Int("algorithm", g.GameAlgorithm))
                         return</span>
@@ -1800,18 +1806,32 @@ func NewGameWithSafePos(d Difficulty, p Pos) *LocalGame <span class="cov8" title
 
 // Create a new game with mines seeded randomly in the map, with the exception of a 3x3 area around the given position.
 func NewGameWithSafeArea(d Difficulty, p Pos) *LocalGame <span class="cov8" title="1">{
-        area := make([]Pos, 0, 9)
-        for x := -1; x &lt; 2; x++ </span><span class="cov8" title="1">{
-                for y := -1; y &lt; 2; y++ </span><span class="cov8" title="1">{
-                        p := NewPos(p.X+x, p.Y+y)
-                        if !OutOfBounds(p, d) </span><span class="cov8" title="1">{
-                                area = append(area, p)
-                        }</span>
+        mines := CreateMines(d, areaAroundPos(d, p))
+
+        return newGame(d, mines)
+}</span>
+
+// Create a new game that is solvable without random guesses.
+func NewGameSolvable(d Difficulty, p Pos) *LocalGame <span class="cov8" title="1">{
+        area := areaAroundPos(d, p)
+
+        var mines []Pos
+        var success bool
+        for i := 0; i &lt; 10000; i++ </span><span class="cov8" title="1">{
+                mines = CreateMines(d, area)
+                g := newGame(d, mines)
+
+                if success = autosolve(g, p); success </span><span class="cov8" title="1">{
+                        break</span>
                 }
         }
-        <span class="cov8" title="1">mines := CreateMines(d, area)
+        <span class="cov8" title="1">if success </span><span class="cov8" title="1">{
+                slog.Info("Created solvable minesweeper game")
+        }</span> else<span class="cov0" title="0"> {
+                slog.Error("Failed to create a solvable minesweeper game")
+        }</span>
 
-        return newGame(d, mines)</span>
+        <span class="cov8" title="1">return newGame(d, mines)</span>
 }
 
 // Check a given field and recursevly reveal all neighboring fields that should be revield.
@@ -2305,6 +2325,34 @@ func walkField(f func(x, y int), limitX, limitY int) <span class="cov8" title="1
                         f(x, y)
                 }</span>
         }
+}
+
+// Autosolve the given Game
+// Returns if the game can be autosolved
+func autosolve(g *LocalGame, startPos Pos) bool <span class="cov8" title="1">{
+        g.CheckField(startPos)
+
+        for safePos := g.Status().ObviousSafePos(); len(safePos) &gt; 0 &amp;&amp; !g.Won(); safePos = g.Status().ObviousSafePos() </span><span class="cov8" title="1">{
+                for _, p := range safePos </span><span class="cov8" title="1">{
+                        g.CheckField(p)
+                }</span>
+        }
+
+        <span class="cov8" title="1">return g.Won()</span>
+}
+
+// Create an array of positions with 3x3, centered around the given position
+func areaAroundPos(d Difficulty, p Pos) []Pos <span class="cov8" title="1">{
+        area := make([]Pos, 0, 9)
+        for x := -1; x &lt; 2; x++ </span><span class="cov8" title="1">{
+                for y := -1; y &lt; 2; y++ </span><span class="cov8" title="1">{
+                        p := NewPos(p.X+x, p.Y+y)
+                        if !OutOfBounds(p, d) </span><span class="cov8" title="1">{
+                                area = append(area, p)
+                        }</span>
+                }
+        }
+        <span class="cov8" title="1">return area</span>
 }
 </pre>
 		
