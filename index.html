@@ -61,7 +61,7 @@
 				
 				<option value="file2">github.com/heathcliff26/go-minesweeper/cmd/log-parser/main.go (0.0%)</option>
 				
-				<option value="file3">github.com/heathcliff26/go-minesweeper/pkg/app/app.go (47.4%)</option>
+				<option value="file3">github.com/heathcliff26/go-minesweeper/pkg/app/app.go (48.5%)</option>
 				
 				<option value="file4">github.com/heathcliff26/go-minesweeper/pkg/app/button.go (100.0%)</option>
 				
@@ -357,13 +357,9 @@ func (a *App) makeMenu() <span class="cov8" title="1">{
         gameAlgorithmSubMenu.ChildMenu = fyne.NewMenu("Creation Algorithm", a.gameAlgorithms...)
         autosolve := fyne.NewMenuItem("Autosolve", func() </span><span class="cov0" title="0">{
                 go func() </span><span class="cov0" title="0">{
-                        var message string
-                        if a.grid.Autosolve(DEFAULT_AUTOSOLVE_DELAY) </span><span class="cov0" title="0">{
-                                message = "Finished autosolve"
-                        }</span> else<span class="cov0" title="0"> {
-                                message = "Failed to run autosolve, please ensure that a game is currently running."
+                        if !a.grid.Autosolve(DEFAULT_AUTOSOLVE_DELAY) </span><span class="cov0" title="0">{
+                                dialog.ShowInformation("Autosolve", "Failed to run autosolve, please ensure that a game is currently running.", a.main)
                         }</span>
-                        <span class="cov0" title="0">dialog.ShowInformation("Autosolve", message, a.main)</span>
                 }()
         })
         <span class="cov8" title="1">optionsMenu := fyne.NewMenu("Options", a.assistedMode, gameAlgorithmSubMenu, autosolve)
