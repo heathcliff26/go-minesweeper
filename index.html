@@ -1106,6 +1106,7 @@ func (g *MinesweeperGrid) Autosolve(delay time.Duration) bool <span class="cov8"
 
         if g.Game == nil </span><span class="cov8" title="1">{
                 slog.Info("Autosolve failed because no game is running")
+                g.lGame.Unlock()
                 return false
         }</span>
         <span class="cov8" title="1">s := g.Game.Status()
