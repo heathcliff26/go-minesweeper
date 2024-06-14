@@ -425,15 +425,15 @@ func TestAutosolve(t *testing.T) {
 			assert.True(g.Autosolve(0), "Should run autosolve")
 
 			msg1 := "unfinished"
-			msg2 := "not be flagged"
 			if tCase.Won {
 				msg1 = "won"
-				msg2 = "be flagged"
 			}
 			assert.Equal(tCase.Won, g.Game.Status().GameWon(), "Game should be "+msg1)
 
-			for _, p := range g.Game.Status().ObviousMines() {
-				assert.Equal(!tCase.Won, g.Tiles[p.X][p.Y].Flagged(), "Tile should "+msg2+", tile="+p.String())
+			if !tCase.Won {
+				for _, p := range g.Game.Status().ObviousMines() {
+					assert.True(g.Tiles[p.X][p.Y].Flagged(), "Tile should be flagged, tile="+p.String())
+				}
 			}
 		})
 	}

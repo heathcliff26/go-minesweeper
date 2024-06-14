@@ -36,8 +36,6 @@ const (
 	ChunkSize = 10
 )
 
-const autosolveFlagMineDelay = 150 * time.Millisecond
-
 // Graphical display for a minesweeper game
 type MinesweeperGrid struct {
 	Tiles         [][]*Tile
@@ -381,6 +379,8 @@ func (g *MinesweeperGrid) Autosolve(delay time.Duration) bool {
 	g.updateFromStatus(s)
 
 	for i, safePos := 0, s.ObviousSafePos(); len(safePos) > 0 && !(s.GameOver() || s.GameWon()); safePos = s.ObviousSafePos() {
+		mines := s.ObviousMines()
+
 		slog.Debug("Autosolve: Checking safe positions", slog.Int("iteration", i))
 		for _, p := range safePos {
 			if s.GameOver() || s.GameWon() {
@@ -393,19 +393,17 @@ func (g *MinesweeperGrid) Autosolve(delay time.Duration) bool {
 			g.TappedTile(p)
 			time.Sleep(delay)
 		}
-		i++
-	}
 
-	if !(s.GameOver() || s.GameWon()) {
-		slog.Info("Autosolve: Flagging mines")
-
-		for _, mine := range s.ObviousMines() {
-			tile := g.Tiles[mine.X][mine.Y]
-			if !tile.Flagged() {
-				tile.Flag(true)
-				time.Sleep(autosolveFlagMineDelay)
+		slog.Info("Autosolve: Flagging mines", slog.Int("iteration", i))
+		for _, mine := range mines {
+			if s.GameOver() || s.GameWon() {
+				break
 			}
+			tile := g.Tiles[mine.X][mine.Y]
+			tile.Flag(true)
 		}
+
+		i++
 	}
 
 	slog.Debug("Autosolve finished")
