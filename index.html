@@ -69,7 +69,7 @@
 				
 				<option value="file6">github.com/heathcliff26/go-minesweeper/pkg/app/filedialog/dialog.go (0.0%)</option>
 				
-				<option value="file7">github.com/heathcliff26/go-minesweeper/pkg/app/grid.go (98.9%)</option>
+				<option value="file7">github.com/heathcliff26/go-minesweeper/pkg/app/grid.go (99.0%)</option>
 				
 				<option value="file8">github.com/heathcliff26/go-minesweeper/pkg/app/tile.go (100.0%)</option>
 				
@@ -1156,6 +1156,12 @@ func (g *MinesweeperGrid) Autosolve(delay time.Duration) bool <span class="cov8"
 
                 <span class="cov8" title="1">i++</span>
         }
+
+        <span class="cov8" title="1">slog.Info("Autosolve: Flagging mines a final time")
+        for _, mine := range s.ObviousMines() </span><span class="cov8" title="1">{
+                tile := g.Tiles[mine.X][mine.Y]
+                tile.Flag(true)
+        }</span>
 
         <span class="cov8" title="1">slog.Debug("Autosolve finished")
         return true</span>
