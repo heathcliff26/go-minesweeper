@@ -1157,6 +1157,11 @@ func (g *MinesweeperGrid) Autosolve(delay time.Duration) bool <span class="cov8"
                 <span class="cov8" title="1">i++</span>
         }
 
+        <span class="cov8" title="1">if s.GameOver() || s.GameWon() </span><span class="cov8" title="1">{
+                slog.Debug("Autosolve finished")
+                return true
+        }</span>
+
         <span class="cov8" title="1">slog.Info("Autosolve: Flagging mines a final time")
         for _, mine := range s.ObviousMines() </span><span class="cov8" title="1">{
                 tile := g.Tiles[mine.X][mine.Y]
