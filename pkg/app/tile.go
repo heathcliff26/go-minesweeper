@@ -126,6 +126,10 @@ func (t *Tile) TappedSecondary(_ *fyne.PointEvent) {
 		return
 	}
 
+	if t.Flagged() && t.Marking() == HelpMarkingMine {
+		return
+	}
+
 	go t.Flag(!t.Flagged())
 }
 

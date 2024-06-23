@@ -103,6 +103,19 @@ func TestTileTappedSecondary(t *testing.T) {
 
 	assert.Equal(count, tile.grid.MineCount.Count, "MineCount should be back to original value")
 	assert.False(tile.Flagged(), "Tile should not be flagged")
+
+	tile.Mark(HelpMarkingMine)
+	tile.TappedSecondary(nil)
+	time.Sleep(time.Second)
+
+	assert.Equal(count-1, tile.grid.MineCount.Count, "MineCount should be decreased")
+	assert.True(tile.Flagged(), "Tile should be flagged")
+
+	tile.TappedSecondary(nil)
+	time.Sleep(time.Second)
+
+	assert.Equal(count-1, tile.grid.MineCount.Count, "MineCount should stay decreased")
+	assert.True(tile.Flagged(), "Tile should be flagged")
 }
 
 func TestDoubleTapped(t *testing.T) {
