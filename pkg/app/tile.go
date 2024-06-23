@@ -1,6 +1,8 @@
 //go:generate fyne bundle --package assets --prefix Resource -o ../../assets/bundle_generated.go ../../img/mine.png
 //go:generate fyne bundle --prefix Resource -o ../../assets/bundle_generated.go -append ../../img/flag.png
 //go:generate fyne bundle --prefix Resource -o ../../assets/bundle_generated.go -append ../../img/flag-success.png
+//go:generate fyne bundle --prefix Resource -o ../../assets/bundle_generated.go -append ../../img/flag-assisted.png
+
 package app
 
 import (
@@ -148,9 +150,12 @@ func (t *Tile) updateContent() {
 
 	switch {
 	case t.Flagged() && !t.Checked():
-		if t.Content() == minesweeper.Mine {
+		switch {
+		case t.Content() == minesweeper.Mine && t.Marking() != HelpMarkingMine:
 			t.icon.SetResource(assets.ResourceFlagSuccessPng)
-		} else {
+		case t.Marking() == HelpMarkingMine:
+			t.icon.SetResource(assets.ResourceFlagAssistedPng)
+		default:
 			t.icon.SetResource(assets.ResourceFlagPng)
 		}
 		t.icon.Hidden = false
