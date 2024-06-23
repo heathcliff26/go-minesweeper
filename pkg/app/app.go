@@ -20,7 +20,7 @@ var TEXT_COLOR = color.White
 
 var DEFAULT_DIFFICULTY = minesweeper.Difficulties()[minesweeper.DifficultyIntermediate]
 
-const DEFAULT_GAME_ALGORITHM = GameAlgorithmSafeArea
+const DEFAULT_GAME_ALGORITHM = GameAlgorithmSolvable
 
 const DEFAULT_AUTOSOLVE_DELAY = 500 * time.Millisecond
 
