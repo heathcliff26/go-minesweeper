@@ -69,7 +69,7 @@
 				
 				<option value="file6">github.com/heathcliff26/go-minesweeper/pkg/app/filedialog/dialog.go (0.0%)</option>
 				
-				<option value="file7">github.com/heathcliff26/go-minesweeper/pkg/app/grid.go (99.0%)</option>
+				<option value="file7">github.com/heathcliff26/go-minesweeper/pkg/app/grid.go (99.5%)</option>
 				
 				<option value="file8">github.com/heathcliff26/go-minesweeper/pkg/app/tile.go (100.0%)</option>
 				
@@ -1134,7 +1134,7 @@ func (g *MinesweeperGrid) Autosolve(delay time.Duration) bool <span class="cov8"
 
                 slog.Debug("Autosolve: Checking safe positions", slog.Int("iteration", i))
                 for _, p := range safePos </span><span class="cov8" title="1">{
-                        if s.GameOver() || s.GameWon() </span><span class="cov0" title="0">{
+                        if s.GameOver() || s.GameWon() </span><span class="cov8" title="1">{
                                 break</span>
                         }
 
@@ -1176,6 +1176,8 @@ func (g *MinesweeperGrid) Autosolve(delay time.Duration) bool <span class="cov8"
 		<pre class="file" id="file8" style="display: none">//go:generate fyne bundle --package assets --prefix Resource -o ../../assets/bundle_generated.go ../../img/mine.png
 //go:generate fyne bundle --prefix Resource -o ../../assets/bundle_generated.go -append ../../img/flag.png
 //go:generate fyne bundle --prefix Resource -o ../../assets/bundle_generated.go -append ../../img/flag-success.png
+//go:generate fyne bundle --prefix Resource -o ../../assets/bundle_generated.go -append ../../img/flag-assisted.png
+
 package app
 
 import (
@@ -1323,11 +1325,14 @@ func (t *Tile) updateContent() <span class="cov8" title="1">{
 
         switch </span>{
         case t.Flagged() &amp;&amp; !t.Checked():<span class="cov8" title="1">
-                if t.Content() == minesweeper.Mine </span><span class="cov8" title="1">{
-                        t.icon.SetResource(assets.ResourceFlagSuccessPng)
-                }</span> else<span class="cov8" title="1"> {
-                        t.icon.SetResource(assets.ResourceFlagPng)
-                }</span>
+                switch </span>{
+                case t.Content() == minesweeper.Mine &amp;&amp; t.Marking() != HelpMarkingMine:<span class="cov8" title="1">
+                        t.icon.SetResource(assets.ResourceFlagSuccessPng)</span>
+                case t.Marking() == HelpMarkingMine:<span class="cov8" title="1">
+                        t.icon.SetResource(assets.ResourceFlagAssistedPng)</span>
+                default:<span class="cov8" title="1">
+                        t.icon.SetResource(assets.ResourceFlagPng)</span>
+                }
                 <span class="cov8" title="1">t.icon.Hidden = false</span>
         case t.Marking() != HelpMarkingNone &amp;&amp; !t.Flagged() &amp;&amp; !t.Checked() &amp;&amp; t.Content() == minesweeper.Unknown:<span class="cov8" title="1">
                 t.label.Text = HelperMarkerSymbols[t.Marking()]
