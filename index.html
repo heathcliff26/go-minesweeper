@@ -1069,6 +1069,7 @@ func (g *MinesweeperGrid) Hint() bool <span class="cov8" title="1">{
         g.lGame.Lock()
 
         if g.Game == nil </span><span class="cov8" title="1">{
+                g.lGame.Unlock()
                 return false
         }</span>
         <span class="cov8" title="1">s := g.Game.Status()
