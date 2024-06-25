@@ -318,6 +318,7 @@ func (g *MinesweeperGrid) Hint() bool {
 	g.lGame.Lock()
 
 	if g.Game == nil {
+		g.lGame.Unlock()
 		return false
 	}
 	s := g.Game.Status()
