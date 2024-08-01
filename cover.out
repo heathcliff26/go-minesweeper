@@ -458,7 +458,7 @@ github.com/heathcliff26/go-minesweeper/pkg/app/grid.go:377.15,379.3 1 1
 github.com/heathcliff26/go-minesweeper/pkg/app/grid.go:380.2,382.124 2 1
 github.com/heathcliff26/go-minesweeper/pkg/app/grid.go:382.124,386.29 3 1
 github.com/heathcliff26/go-minesweeper/pkg/app/grid.go:386.29,387.35 1 1
-github.com/heathcliff26/go-minesweeper/pkg/app/grid.go:387.35,388.10 1 0
+github.com/heathcliff26/go-minesweeper/pkg/app/grid.go:387.35,388.10 1 1
 github.com/heathcliff26/go-minesweeper/pkg/app/grid.go:391.4,391.35 1 1
 github.com/heathcliff26/go-minesweeper/pkg/app/grid.go:391.35,392.13 1 1
 github.com/heathcliff26/go-minesweeper/pkg/app/grid.go:394.4,395.21 2 1
