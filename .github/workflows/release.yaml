@@ -20,32 +20,10 @@ jobs:
       release: true
 
   release:
-    runs-on: ubuntu-latest
+    uses: heathcliff26/ci/.github/workflows/golang-fyne-release.yaml@main
     needs: build
     permissions:
       contents: write
-    steps:
-      - name: Checkout
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
-
-      - name: Extract Version
-        id: version
-        run: |
-          set -ex
-          version="$(cat FyneApp.toml | grep Version | grep -P -o "[0-9]+\.[0-9]+\.[0-9]+")"
-          echo "version=v${version}" >> $GITHUB_OUTPUT
-
-      - name: Download artifacts
-        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
-        with:
-          path: dist
-          merge-multiple: true
-
-      - uses: ncipollo/release-action@2c591bcc8ecdcd2db72b97d6147f871fcd833ba5 # v1.14.0
-        with:
-          allowUpdates: ${{ inputs.update }}
-          artifacts: "dist/*.tar.gz,dist/*.zip"
-          artifactErrorsFailBuild: true
-          draft: ${{ inputs.draft }}
-          generateReleaseNotes: true
-          tag: "${{ steps.version.outputs.version }}"
+    with:
+      draft: ${{ inputs.draft }}
+      update: ${{ inputs.update }}
