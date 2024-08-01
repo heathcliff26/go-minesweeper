@@ -24,40 +24,15 @@ on:
 
 jobs:
   lint:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
-
-      - name: Cache
-        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
-        with:
-          path: |
-            /home/runner/.cache/golangci-lint
-            /home/runner/.cache/go-build
-          key: golangci-lint
-
-      - name: Run golangci-lint
-        run: hack/linter.sh
+    uses: heathcliff26/ci/.github/workflows/golang-fyne-lint.yaml@main
 
   unit-tests:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
-
-      - name: Cache
-        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
-        with:
-          path: |
-            /home/runner/.cache/go-build
-          key: unit-tests
-
-      - name: Run unit-tests
-        run: hack/unit-tests.sh
+    uses: heathcliff26/ci/.github/workflows/golang-unit-tests.yaml@main
+    with:
+      cmd: hack/unit-tests.sh
 
   build:
-    runs-on: ubuntu-latest
+    uses: heathcliff26/ci/.github/workflows/golang-fyne-build.yaml@main
     needs:
       - lint
       - unit-tests
@@ -73,42 +48,8 @@ jobs:
             arch: amd64
           - os: linux
             arch: arm64
-    steps:
-      - name: Checkout
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
-
-      - name: Cache
-        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
-        with:
-          path: |
-            /home/runner/.cache/fyne-cross
-            /home/runner/.cache/go-build
-          key: "fyne-cross-${{ matrix.os }}-${{ matrix.arch }}"
-
-      - name: Setup golang
-        uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
-        with:
-          go-version: 'stable'
-          cache-dependency-path: go.sum
-
-      - name: Build Artifact
-        env:
-          BUILD_RELEASE: ${{ inputs.release }}
-        run: hack/fyne-cross.sh "${{ matrix.os }}" "${{ matrix.arch }}"
-
-      - name: Get artifact file ending
-        id: artifact-file-ending
-        run: |
-          if [ "${{ matrix.os }}" == "windows" ]; then
-            echo "file-ending=zip" >> $GITHUB_OUTPUT
-          elif [ "${{ matrix.os }}" == "linux" ]; then
-            echo "file-ending=tar.gz" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Upload Artifact
-        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # v4.3.4
-        with:
-          name: "go-minesweeper_${{ matrix.os }}-${{ matrix.arch }}.${{ steps.artifact-file-ending.outputs.file-ending }}"
-          path: "fyne-cross/dist/go-minesweeper_${{ matrix.os }}-${{ matrix.arch }}.${{ steps.artifact-file-ending.outputs.file-ending }}"
-          retention-days: 14
-          if-no-files-found: error
+    with:
+      goos: "${{ matrix.os }}"
+      goarch: "${{ matrix.arch }}"
+      name: go-minesweeper
+      release: ${{ inputs.release || false }}
