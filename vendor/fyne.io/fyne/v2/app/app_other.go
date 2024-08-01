@@ -1,5 +1,4 @@
-//go:build ci || (!linux && !darwin && !windows && !freebsd && !openbsd && !netbsd && !js && !wasm && !test_web_driver)
-// +build ci !linux,!darwin,!windows,!freebsd,!openbsd,!netbsd,!js,!wasm,!test_web_driver
+//go:build ci || (mobile && !android && !ios) || (!linux && !darwin && !windows && !freebsd && !openbsd && !netbsd && !wasm && !test_web_driver)
 
 package app
 
@@ -10,12 +9,7 @@ import (
 	"path/filepath"
 
 	"fyne.io/fyne/v2"
-	"fyne.io/fyne/v2/theme"
 )
-
-func defaultVariant() fyne.ThemeVariant {
-	return theme.VariantDark
-}
 
 func rootConfigDir() string {
 	return filepath.Join(os.TempDir(), "fyne-test")

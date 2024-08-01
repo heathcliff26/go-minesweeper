@@ -1,6 +1,7 @@
 package gl
 
 import (
+	"errors"
 	"fmt"
 	"image"
 	"image/draw"
@@ -37,7 +38,7 @@ func (p *painter) getTexture(object fyne.CanvasObject, creator func(canvasObject
 		cache.SetTexture(object, texture, p.canvas)
 	}
 	if !cache.IsValid(texture) {
-		return noTexture, fmt.Errorf("no texture available")
+		return noTexture, errors.New("no texture available")
 	}
 	return Texture(texture), nil
 }
@@ -82,13 +83,6 @@ func (p *painter) imgToTexture(img image.Image, textureFilter canvas.ImageScale)
 		draw.Draw(rgba, rgba.Rect, img, image.Point{}, draw.Over)
 		return p.imgToTexture(rgba, textureFilter)
 	}
-}
-
-func (p *painter) newGlCircleTexture(obj fyne.CanvasObject) Texture {
-	circle := obj.(*canvas.Circle)
-	raw := paint.DrawCircle(circle, paint.VectorPad(circle), p.textureScale)
-
-	return p.imgToTexture(raw, canvas.ImageScaleSmooth)
 }
 
 func (p *painter) newGlImageTexture(obj fyne.CanvasObject) Texture {
@@ -144,7 +138,7 @@ func (p *painter) newGlTextTexture(obj fyne.CanvasObject) Texture {
 	text := obj.(*canvas.Text)
 	color := text.Color
 	if color == nil {
-		color = theme.ForegroundColor()
+		color = theme.Color(theme.ColorNameForeground)
 	}
 
 	bounds := text.MinSize()
@@ -152,8 +146,8 @@ func (p *painter) newGlTextTexture(obj fyne.CanvasObject) Texture {
 	height := int(math.Ceil(float64(p.textureScale(bounds.Height))))
 	img := image.NewNRGBA(image.Rect(0, 0, width, height))
 
-	face := paint.CachedFontFace(text.TextStyle, text.TextSize*p.canvas.Scale(), p.texScale)
-	paint.DrawString(img, text.Text, color, face.Fonts, text.TextSize, p.pixScale, text.TextStyle.TabWidth)
+	face := paint.CachedFontFace(text.TextStyle, text.FontSource, text)
+	paint.DrawString(img, text.Text, color, face.Fonts, text.TextSize, p.pixScale, text.TextStyle)
 	return p.imgToTexture(img, canvas.ImageScaleSmooth)
 }
 

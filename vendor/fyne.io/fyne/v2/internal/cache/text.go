@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	fontSizeCache = map[fontSizeEntry]fontMetric{}
+	fontSizeCache = map[fontSizeEntry]*fontMetric{}
 	fontSizeLock  = sync.RWMutex{}
 )
 
@@ -19,14 +19,19 @@ type fontMetric struct {
 }
 
 type fontSizeEntry struct {
-	text  string
-	size  float32
-	style fyne.TextStyle
+	text   string
+	size   float32
+	style  fyne.TextStyle
+	custom string
 }
 
 // GetFontMetrics looks up a calculated size and baseline required for the specified text parameters.
-func GetFontMetrics(text string, fontSize float32, style fyne.TextStyle) (size fyne.Size, base float32) {
-	ent := fontSizeEntry{text, fontSize, style}
+func GetFontMetrics(text string, fontSize float32, style fyne.TextStyle, source fyne.Resource) (size fyne.Size, base float32) {
+	name := ""
+	if source != nil {
+		name = source.Name()
+	}
+	ent := fontSizeEntry{text, fontSize, style, name}
 	fontSizeLock.RLock()
 	ret, ok := fontSizeCache[ent]
 	fontSizeLock.RUnlock()
@@ -38,9 +43,13 @@ func GetFontMetrics(text string, fontSize float32, style fyne.TextStyle) (size f
 }
 
 // SetFontMetrics stores a calculated font size and baseline for parameters that were missing from the cache.
-func SetFontMetrics(text string, fontSize float32, style fyne.TextStyle, size fyne.Size, base float32) {
-	ent := fontSizeEntry{text, fontSize, style}
-	metric := fontMetric{size: size, baseLine: base}
+func SetFontMetrics(text string, fontSize float32, style fyne.TextStyle, source fyne.Resource, size fyne.Size, base float32) {
+	name := ""
+	if source != nil {
+		name = source.Name()
+	}
+	ent := fontSizeEntry{text, fontSize, style, name}
+	metric := &fontMetric{size: size, baseLine: base}
 	metric.setAlive()
 	fontSizeLock.Lock()
 	fontSizeCache[ent] = metric

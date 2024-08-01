@@ -1,5 +1,4 @@
-//go:build !ci && !js && !android && !ios && !wasm && !test_web_driver
-// +build !ci,!js,!android,!ios,!wasm,!test_web_driver
+//go:build !ci && !android && !ios && !wasm && !test_web_driver
 
 package app
 
@@ -7,52 +6,27 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"syscall"
 
-	"golang.org/x/sys/execabs"
-	"golang.org/x/sys/windows/registry"
-
 	"fyne.io/fyne/v2"
-	"fyne.io/fyne/v2/theme"
 )
 
 const notificationTemplate = `$title = "%s"
 $content = "%s"
-
+$iconPath = "file:///%s"
 [Windows.UI.Notifications.ToastNotificationManager, Windows.UI.Notifications, ContentType = WindowsRuntime] > $null
-$template = [Windows.UI.Notifications.ToastNotificationManager]::GetTemplateContent([Windows.UI.Notifications.ToastTemplateType]::ToastText02)
+$template = [Windows.UI.Notifications.ToastNotificationManager]::GetTemplateContent([Windows.UI.Notifications.ToastTemplateType]::ToastImageAndText02)
 $toastXml = [xml] $template.GetXml()
 $toastXml.GetElementsByTagName("text")[0].AppendChild($toastXml.CreateTextNode($title)) > $null
 $toastXml.GetElementsByTagName("text")[1].AppendChild($toastXml.CreateTextNode($content)) > $null
-
+$toastXml.GetElementsByTagName("image")[0].SetAttribute("src", $iconPath) > $null
 $xml = New-Object Windows.Data.Xml.Dom.XmlDocument
 $xml.LoadXml($toastXml.OuterXml)
 $toast = [Windows.UI.Notifications.ToastNotification]::new($xml)
 [Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier("%s").Show($toast);`
-
-func isDark() bool {
-	k, err := registry.OpenKey(registry.CURRENT_USER, `SOFTWARE\Microsoft\Windows\CurrentVersion\Themes\Personalize`, registry.QUERY_VALUE)
-	if err != nil { // older version of Windows will not have this key
-		return false
-	}
-	defer k.Close()
-
-	useLight, _, err := k.GetIntegerValue("AppsUseLightTheme")
-	if err != nil { // older version of Windows will not have this value
-		return false
-	}
-
-	return useLight == 0
-}
-
-func defaultVariant() fyne.ThemeVariant {
-	if isDark() {
-		return theme.VariantDark
-	}
-	return theme.VariantLight
-}
 
 func rootConfigDir() string {
 	homeDir, _ := os.UserHomeDir()
@@ -62,7 +36,7 @@ func rootConfigDir() string {
 }
 
 func (a *fyneApp) OpenURL(url *url.URL) error {
-	cmd := execabs.Command("rundll32", "url.dll,FileProtocolHandler", url.String())
+	cmd := exec.Command("rundll32", "url.dll,FileProtocolHandler", url.String())
 	cmd.Stdin, cmd.Stdout, cmd.Stderr = os.Stdin, os.Stdout, os.Stderr
 	return cmd.Run()
 }
@@ -72,12 +46,13 @@ var scriptNum = 0
 func (a *fyneApp) SendNotification(n *fyne.Notification) {
 	title := escapeNotificationString(n.Title)
 	content := escapeNotificationString(n.Content)
+	iconFilePath := a.cachedIconPath()
 	appID := a.UniqueID()
 	if appID == "" || strings.Index(appID, "missing-id") == 0 {
 		appID = a.Metadata().Name
 	}
 
-	script := fmt.Sprintf(notificationTemplate, title, content, appID)
+	script := fmt.Sprintf(notificationTemplate, title, content, iconFilePath, appID)
 	go runScript("notify", script)
 }
 
@@ -112,7 +87,7 @@ func runScript(name, script string) {
 	defer os.Remove(tmpFilePath)
 
 	launch := "(Get-Content -Encoding UTF8 -Path " + tmpFilePath + " -Raw) | Invoke-Expression"
-	cmd := execabs.Command("PowerShell", "-ExecutionPolicy", "Bypass", launch)
+	cmd := exec.Command("PowerShell", "-ExecutionPolicy", "Bypass", launch)
 	cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
 	err = cmd.Run()
 	if err != nil {
