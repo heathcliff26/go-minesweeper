@@ -1,5 +1,4 @@
 //go:build !ci && android
-// +build !ci,android
 
 package app
 
@@ -44,10 +43,6 @@ func (a *fyneApp) SendNotification(n *fyne.Notification) {
 		C.sendNotification(C.uintptr_t(vm), C.uintptr_t(env), C.uintptr_t(ctx), titleStr, contentStr)
 		return nil
 	})
-}
-
-func defaultVariant() fyne.ThemeVariant {
-	return systemTheme
 }
 
 func rootConfigDir() string {

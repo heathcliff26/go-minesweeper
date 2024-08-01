@@ -7,6 +7,8 @@ import (
 	"sync"
 
 	"fyne.io/fyne/v2"
+	internalapp "fyne.io/fyne/v2/internal/app"
+	"fyne.io/fyne/v2/internal/build"
 	"fyne.io/fyne/v2/theme"
 )
 
@@ -37,14 +39,14 @@ type settings struct {
 	themeSpecified bool
 	variant        fyne.ThemeVariant
 
-	changeListeners sync.Map    // map[chan fyne.Settings]bool
-	watcher         interface{} // normally *fsnotify.Watcher or nil - avoid import in this file
+	changeListeners sync.Map // map[chan fyne.Settings]bool
+	watcher         any      // normally *fsnotify.Watcher or nil - avoid import in this file
 
 	schema SettingsSchema
 }
 
 func (s *settings) BuildType() fyne.BuildType {
-	return buildMode
+	return build.Mode
 }
 
 func (s *settings) PrimaryColor() string {
@@ -55,6 +57,8 @@ func (s *settings) PrimaryColor() string {
 
 // OverrideTheme allows the settings app to temporarily preview different theme details.
 // Please make sure that you remember the original settings and call this again to revert the change.
+//
+// Deprecated: Use container.NewThemeOverride to change the appearance of part of your application.
 func (s *settings) OverrideTheme(theme fyne.Theme, name string) {
 	s.propertyLock.Lock()
 	defer s.propertyLock.Unlock()
@@ -63,6 +67,10 @@ func (s *settings) OverrideTheme(theme fyne.Theme, name string) {
 }
 
 func (s *settings) Theme() fyne.Theme {
+	if s == nil {
+		fyne.LogError("Attempt to access current Fyne theme when no app is started", nil)
+		return nil
+	}
 	s.propertyLock.RLock()
 	defer s.propertyLock.RUnlock()
 	return s.theme
@@ -103,7 +111,7 @@ func (s *settings) AddChangeListener(listener chan fyne.Settings) {
 }
 
 func (s *settings) apply() {
-	s.changeListeners.Range(func(key, _ interface{}) bool {
+	s.changeListeners.Range(func(key, _ any) bool {
 		listener := key.(chan fyne.Settings)
 		select {
 		case listener <- s:
@@ -145,7 +153,7 @@ func (s *settings) setupTheme() {
 		name = env
 	}
 
-	variant := defaultVariant()
+	variant := internalapp.DefaultVariant()
 	effectiveTheme := s.theme
 	if !s.themeSpecified {
 		effectiveTheme = s.loadSystemTheme()

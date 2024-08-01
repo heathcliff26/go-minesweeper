@@ -1,5 +1,4 @@
-//go:build js || wasm || test_web_driver
-// +build js wasm test_web_driver
+//go:build wasm || test_web_driver
 
 package glfw
 
@@ -10,4 +9,8 @@ func (d *gLDriver) SetSystemTrayMenu(m *fyne.Menu) {
 }
 
 func (d *gLDriver) catchTerm() {
+}
+
+func setDisableScreenBlank(disable bool) {
+	// awaiting complete support for WakeLock
 }
