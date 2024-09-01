@@ -1,4 +1,4 @@
-# fyne.io/fyne/v2 v2.5.0
+# fyne.io/fyne/v2 v2.5.1
 ## explicit; go 1.19
 fyne.io/fyne/v2
 fyne.io/fyne/v2/app
@@ -89,7 +89,7 @@ github.com/go-gl/glfw/v3.3/glfw/glfw/deps/mingw
 github.com/go-gl/glfw/v3.3/glfw/glfw/deps/vs2008
 github.com/go-gl/glfw/v3.3/glfw/glfw/include/GLFW
 github.com/go-gl/glfw/v3.3/glfw/glfw/src
-# github.com/go-text/render v0.1.0
+# github.com/go-text/render v0.1.1-0.20240418202334-dd62631dae9b
 ## explicit; go 1.17
 github.com/go-text/render
 # github.com/go-text/typesetting v0.1.0
@@ -132,7 +132,7 @@ github.com/nicksnyder/go-i18n/v2/internal/plural
 # github.com/pmezard/go-difflib v1.0.0
 ## explicit
 github.com/pmezard/go-difflib/difflib
-# github.com/rymdport/portal v0.2.2
+# github.com/rymdport/portal v0.2.6
 ## explicit; go 1.19
 github.com/rymdport/portal
 github.com/rymdport/portal/filechooser
