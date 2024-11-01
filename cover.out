@@ -26,11 +26,6 @@ github.com/heathcliff26/go-minesweeper/cmd/log-parser/main.go:63.16,66.3 2 0
 github.com/heathcliff26/go-minesweeper/cmd/log-parser/main.go:68.2,69.16 2 0
 github.com/heathcliff26/go-minesweeper/cmd/log-parser/main.go:69.16,72.3 2 0
 github.com/heathcliff26/go-minesweeper/cmd/log-parser/main.go:73.2,73.27 1 0
-github.com/heathcliff26/go-minesweeper/pkg/utils/utils.go:4.36,5.20 1 1
-github.com/heathcliff26/go-minesweeper/pkg/utils/utils.go:5.20,7.3 1 1
-github.com/heathcliff26/go-minesweeper/pkg/utils/utils.go:9.2,12.25 3 1
-github.com/heathcliff26/go-minesweeper/pkg/utils/utils.go:12.25,14.3 1 1
-github.com/heathcliff26/go-minesweeper/pkg/utils/utils.go:15.2,15.15 1 1
 github.com/heathcliff26/go-minesweeper/pkg/app/filedialog/dialog.go:22.87,26.66 4 0
 github.com/heathcliff26/go-minesweeper/pkg/app/filedialog/dialog.go:26.66,28.17 2 0
 github.com/heathcliff26/go-minesweeper/pkg/app/filedialog/dialog.go:28.17,31.4 2 0
@@ -71,6 +66,11 @@ github.com/heathcliff26/go-minesweeper/pkg/app/filedialog/dialog.go:120.16,122.3
 github.com/heathcliff26/go-minesweeper/pkg/app/filedialog/dialog.go:124.2,124.23 1 0
 github.com/heathcliff26/go-minesweeper/pkg/app/filedialog/dialog.go:124.23,126.3 1 0
 github.com/heathcliff26/go-minesweeper/pkg/app/filedialog/dialog.go:128.2,134.12 6 0
+github.com/heathcliff26/go-minesweeper/pkg/utils/utils.go:4.36,5.20 1 1
+github.com/heathcliff26/go-minesweeper/pkg/utils/utils.go:5.20,7.3 1 1
+github.com/heathcliff26/go-minesweeper/pkg/utils/utils.go:9.2,12.25 3 1
+github.com/heathcliff26/go-minesweeper/pkg/utils/utils.go:12.25,14.3 1 1
+github.com/heathcliff26/go-minesweeper/pkg/utils/utils.go:15.2,15.15 1 1
 github.com/heathcliff26/go-minesweeper/tests/performance/main.go:24.13,29.2 4 0
 github.com/heathcliff26/go-minesweeper/tests/performance/main.go:31.13,33.11 2 0
 github.com/heathcliff26/go-minesweeper/tests/performance/main.go:33.11,36.3 2 0
@@ -458,7 +458,7 @@ github.com/heathcliff26/go-minesweeper/pkg/app/grid.go:377.15,379.3 1 1
 github.com/heathcliff26/go-minesweeper/pkg/app/grid.go:380.2,382.124 2 1
 github.com/heathcliff26/go-minesweeper/pkg/app/grid.go:382.124,386.29 3 1
 github.com/heathcliff26/go-minesweeper/pkg/app/grid.go:386.29,387.35 1 1
-github.com/heathcliff26/go-minesweeper/pkg/app/grid.go:387.35,388.10 1 1
+github.com/heathcliff26/go-minesweeper/pkg/app/grid.go:387.35,388.10 1 0
 github.com/heathcliff26/go-minesweeper/pkg/app/grid.go:391.4,391.35 1 1
 github.com/heathcliff26/go-minesweeper/pkg/app/grid.go:391.35,392.13 1 1
 github.com/heathcliff26/go-minesweeper/pkg/app/grid.go:394.4,395.21 2 1
