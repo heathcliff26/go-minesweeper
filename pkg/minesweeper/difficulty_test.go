@@ -12,7 +12,7 @@ func TestDifficulties(t *testing.T) {
 	assert := assert.New(t)
 
 	assert.Equal(difficulties, res)
-	assert.NotSame(difficulties, res)
+	assert.NotSame(&difficulties[0], &res[0])
 }
 
 func TestNewCustomDifficulty(t *testing.T) {
