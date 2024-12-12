@@ -2,6 +2,8 @@
 
 This is an implementation of minesweeper in golang, made with the ui framework fyne.io
 
+![](img/screenshots/screenshot-difficulty-expert.png)
+
 ## Table of Contents
 
 - [Golang minesweeper](#golang-minesweeper)
@@ -10,6 +12,7 @@ This is an implementation of minesweeper in golang, made with the ui framework f
     - [Controls](#controls)
     - [Game options](#game-options)
     - [Changing difficulty](#changing-difficulty)
+  - [Screenshots](#screenshots)
   - [Potential features](#potential-features)
 
 ## Usage
@@ -44,6 +47,12 @@ To change the difficulty, select a new difficulty in the menu.
 
 The custom option will open a dialog where you can create a custom difficulty.
 It will tell you if your options don't work.
+
+## Screenshots
+
+![](img/screenshots/screenshot-difficulty-beginner.png)
+![](img/screenshots/screenshot-difficulty-advanced.png)
+![](img/screenshots/screenshot-difficulty-expert.png)
 
 ## Potential features
 
