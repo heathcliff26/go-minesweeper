@@ -39,6 +39,14 @@
     </screenshots>
 
     <releases>
+        <release version="v0.5.6" date="2024-12-12" type="stable">
+            <description>
+                <p>Improved installation experience on linux</p>
+                <p>Added example screenshots</p>
+                <p>Added support for building this app as a flatpak</p>
+            </description>
+            <url type="details">https://github.com/heathcliff26/go-minesweeper/releases/tag/v0.5.5</url>
+        </release>
         <release version="v0.5.5" date="2024-11-01" type="stable">
             <description>
                 <p>Dependency bumps</p>
