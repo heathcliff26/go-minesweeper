@@ -28,6 +28,9 @@ dependencies:
 generate:
 	go generate ./...
 
+lint-metainfo:
+	flatpak run --command=flatpak-builder-lint org.flatpak.Builder appstream io.github.heathcliff26.go-minesweeper.metainfo.xml
+
 .PHONY: \
 	default \
 	build \
@@ -37,4 +40,5 @@ generate:
 	assets \
 	dependencies \
 	generate \
+	lint-metainfo \
 	$(NULL)
