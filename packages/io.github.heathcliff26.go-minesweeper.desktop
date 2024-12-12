@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+
+Name=go-minesweeper
+Comment=A minesweeper implementation in golang
+Categories=Game;
+Keywords=minesweeper;
+
+Icon=@BASE_DIR/io.github.heathcliff26.go-minesweeper.png
+Exec=@BASE_DIR/go-minesweeper
+Terminal=false
