@@ -13,5 +13,6 @@ if [ ! -d "${OUT_DIR}" ]; then
 fi
 
 podman run -t -v "${base_dir}":/app:z ghcr.io/heathcliff26/go-fyne-ci:latest /bin/bash -c "go test -coverprofile=\"${OUT_DIR}/cover.out\" ./... && go tool cover -html \"${OUT_DIR}/cover.out\" -o \"${OUT_DIR}/index.html\""
+rm "${OUT_DIR}/cover.out"
 
 popd >/dev/null
