@@ -1,8 +1,6 @@
 package filedialog
 
 import (
-	"os"
-
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/storage"
@@ -109,13 +107,6 @@ func setDialogLocationToDir(dir string, d *dialog.FileDialog) error {
 func showFileDialog(startLocation string, extensions []string, d *dialog.FileDialog, w fyne.Window) error {
 	d.SetFilter(storage.NewExtensionFileFilter(extensions))
 
-	if startLocation == "" {
-		pwd, err := os.Getwd()
-		if err != nil {
-			return err
-		}
-		startLocation = pwd
-	}
 	err := setDialogLocationToDir(startLocation, d)
 	if err != nil {
 		return err
