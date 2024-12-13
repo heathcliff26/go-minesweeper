@@ -3,7 +3,7 @@
     <id>io.github.heathcliff26.go-minesweeper</id>
 
     <name>go-minesweeper</name>
-    <summary>A minesweeper implementation in golang</summary>
+    <summary>A minesweeper game</summary>
 
     <metadata_license>MIT</metadata_license>
     <project_license>Artistic-2.0</project_license>
@@ -26,15 +26,26 @@
 
     <launchable type="desktop-id">io.github.heathcliff26.go-minesweeper.desktop</launchable>
 
+    <branding>
+        <color type="primary" scheme_preference="light">#023c8a</color>
+        <color type="primary" scheme_preference="dark">#03228a</color>
+    </branding>
+
     <screenshots>
         <screenshot type="default">
-            <image type="source">https://raw.githubusercontent.com/heathcliff26/go-minesweeper/bbca5ab55595673070bb05f32595f8978c0970a6/img/screenshots/screenshot-difficulty-advanced.png</image>
+            <image type="source">
+                https://raw.githubusercontent.com/heathcliff26/go-minesweeper/refs/tags/v0.5.6/img/screenshots/screenshot-difficulty-advanced.png
+            </image>
         </screenshot>
         <screenshot>
-            <image type="source">https://raw.githubusercontent.com/heathcliff26/go-minesweeper/bbca5ab55595673070bb05f32595f8978c0970a6/img/screenshots/screenshot-difficulty-beginner.png</image>
+            <image type="source">
+                https://raw.githubusercontent.com/heathcliff26/go-minesweeper/refs/tags/v0.5.6/img/screenshots/screenshot-difficulty-beginner.png
+            </image>
         </screenshot>
         <screenshot>
-            <image type="source">https://raw.githubusercontent.com/heathcliff26/go-minesweeper/bbca5ab55595673070bb05f32595f8978c0970a6/img/screenshots/screenshot-difficulty-expert.png</image>
+            <image type="source">
+                https://raw.githubusercontent.com/heathcliff26/go-minesweeper/refs/tags/v0.5.6/img/screenshots/screenshot-difficulty-expert.png
+            </image>
         </screenshot>
     </screenshots>
 
