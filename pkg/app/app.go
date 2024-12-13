@@ -13,6 +13,7 @@ import (
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/widget"
 	"github.com/heathcliff26/go-minesweeper/pkg/app/filedialog"
+	"github.com/heathcliff26/go-minesweeper/pkg/app/locations"
 	"github.com/heathcliff26/go-minesweeper/pkg/minesweeper"
 )
 
@@ -187,7 +188,13 @@ func (a *App) customDifficultyDialog() {
 }
 
 func (a *App) loadSave() {
-	path, err := filedialog.FileOpen("Open Savegame", "", []string{minesweeper.SaveFileExtension})
+	saveDir, err := locations.SaveFolder()
+	if err != nil {
+		dialog.ShowError(err, a.main)
+		return
+	}
+
+	path, err := filedialog.FileOpen("Open Savegame", saveDir, []string{minesweeper.SaveFileExtension})
 	if err != nil {
 		dialog.ShowError(err, a.main)
 		return
@@ -216,7 +223,13 @@ func (a *App) saveGame() {
 		d.Show()
 		return
 	}
-	path, err := filedialog.FileSave("Save Game", "", []string{minesweeper.SaveFileExtension})
+	saveDir, err := locations.SaveFolder()
+	if err != nil {
+		dialog.ShowError(err, a.main)
+		return
+	}
+
+	path, err := filedialog.FileSave("Save Game", saveDir, []string{minesweeper.SaveFileExtension})
 	if err != nil {
 		dialog.ShowError(err, a.main)
 		return
