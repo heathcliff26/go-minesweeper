@@ -31,6 +31,9 @@ generate:
 lint-metainfo:
 	flatpak run --command=flatpak-builder-lint org.flatpak.Builder appstream io.github.heathcliff26.go-minesweeper.metainfo.xml
 
+clean:
+	hack/clean.sh
+
 .PHONY: \
 	default \
 	build \
@@ -41,4 +44,5 @@ lint-metainfo:
 	dependencies \
 	generate \
 	lint-metainfo \
+	clean \
 	$(NULL)
