@@ -61,7 +61,7 @@
 				
 				<option value="file2">github.com/heathcliff26/go-minesweeper/cmd/log-parser/main.go (0.0%)</option>
 				
-				<option value="file3">github.com/heathcliff26/go-minesweeper/pkg/app/app.go (49.2%)</option>
+				<option value="file3">github.com/heathcliff26/go-minesweeper/pkg/app/app.go (46.4%)</option>
 				
 				<option value="file4">github.com/heathcliff26/go-minesweeper/pkg/app/button.go (100.0%)</option>
 				
@@ -71,27 +71,31 @@
 				
 				<option value="file7">github.com/heathcliff26/go-minesweeper/pkg/app/grid.go (99.0%)</option>
 				
-				<option value="file8">github.com/heathcliff26/go-minesweeper/pkg/app/tile.go (100.0%)</option>
+				<option value="file8">github.com/heathcliff26/go-minesweeper/pkg/app/locations/locations.go (0.0%)</option>
 				
-				<option value="file9">github.com/heathcliff26/go-minesweeper/pkg/app/timer.go (100.0%)</option>
+				<option value="file9">github.com/heathcliff26/go-minesweeper/pkg/app/locations/locations_linux.go (80.0%)</option>
 				
-				<option value="file10">github.com/heathcliff26/go-minesweeper/pkg/app/utils.go (59.5%)</option>
+				<option value="file10">github.com/heathcliff26/go-minesweeper/pkg/app/tile.go (100.0%)</option>
 				
-				<option value="file11">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/difficulty.go (100.0%)</option>
+				<option value="file11">github.com/heathcliff26/go-minesweeper/pkg/app/timer.go (100.0%)</option>
 				
-				<option value="file12">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/errors.go (50.0%)</option>
+				<option value="file12">github.com/heathcliff26/go-minesweeper/pkg/app/utils.go (59.5%)</option>
 				
-				<option value="file13">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/game.go (99.0%)</option>
+				<option value="file13">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/difficulty.go (100.0%)</option>
 				
-				<option value="file14">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/save.go (84.6%)</option>
+				<option value="file14">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/errors.go (50.0%)</option>
 				
-				<option value="file15">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/status.go (100.0%)</option>
+				<option value="file15">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/game.go (99.0%)</option>
 				
-				<option value="file16">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/utils.go (100.0%)</option>
+				<option value="file16">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/save.go (84.6%)</option>
 				
-				<option value="file17">github.com/heathcliff26/go-minesweeper/pkg/utils/utils.go (100.0%)</option>
+				<option value="file17">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/status.go (100.0%)</option>
 				
-				<option value="file18">github.com/heathcliff26/go-minesweeper/tests/performance/main.go (0.0%)</option>
+				<option value="file18">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/utils.go (100.0%)</option>
+				
+				<option value="file19">github.com/heathcliff26/go-minesweeper/pkg/utils/utils.go (100.0%)</option>
+				
+				<option value="file20">github.com/heathcliff26/go-minesweeper/tests/performance/main.go (0.0%)</option>
 				
 				</select>
 			</div>
@@ -250,6 +254,7 @@ import (
         "fyne.io/fyne/v2/dialog"
         "fyne.io/fyne/v2/widget"
         "github.com/heathcliff26/go-minesweeper/pkg/app/filedialog"
+        "github.com/heathcliff26/go-minesweeper/pkg/app/locations"
         "github.com/heathcliff26/go-minesweeper/pkg/minesweeper"
 )
 
@@ -424,7 +429,13 @@ func (a *App) customDifficultyDialog() <span class="cov0" title="0">{
 }
 
 func (a *App) loadSave() <span class="cov0" title="0">{
-        path, err := filedialog.FileOpen("Open Savegame", "", []string{minesweeper.SaveFileExtension})
+        saveDir, err := locations.SaveFolder()
+        if err != nil </span><span class="cov0" title="0">{
+                dialog.ShowError(err, a.main)
+                return
+        }</span>
+
+        <span class="cov0" title="0">path, err := filedialog.FileOpen("Open Savegame", saveDir, []string{minesweeper.SaveFileExtension})
         if err != nil </span><span class="cov0" title="0">{
                 dialog.ShowError(err, a.main)
                 return
@@ -453,7 +464,13 @@ func (a *App) saveGame() <span class="cov0" title="0">{
                 d.Show()
                 return
         }</span>
-        <span class="cov0" title="0">path, err := filedialog.FileSave("Save Game", "", []string{minesweeper.SaveFileExtension})
+        <span class="cov0" title="0">saveDir, err := locations.SaveFolder()
+        if err != nil </span><span class="cov0" title="0">{
+                dialog.ShowError(err, a.main)
+                return
+        }</span>
+
+        <span class="cov0" title="0">path, err := filedialog.FileSave("Save Game", saveDir, []string{minesweeper.SaveFileExtension})
         if err != nil </span><span class="cov0" title="0">{
                 dialog.ShowError(err, a.main)
                 return
@@ -615,8 +632,6 @@ func (m *Counter) Dec() <span class="cov8" title="1">{
 		<pre class="file" id="file6" style="display: none">package filedialog
 
 import (
-        "os"
-
         "fyne.io/fyne/v2"
         "fyne.io/fyne/v2/dialog"
         "fyne.io/fyne/v2/storage"
@@ -723,14 +738,7 @@ func setDialogLocationToDir(dir string, d *dialog.FileDialog) error <span class=
 func showFileDialog(startLocation string, extensions []string, d *dialog.FileDialog, w fyne.Window) error <span class="cov0" title="0">{
         d.SetFilter(storage.NewExtensionFileFilter(extensions))
 
-        if startLocation == "" </span><span class="cov0" title="0">{
-                pwd, err := os.Getwd()
-                if err != nil </span><span class="cov0" title="0">{
-                        return err
-                }</span>
-                <span class="cov0" title="0">startLocation = pwd</span>
-        }
-        <span class="cov0" title="0">err := setDialogLocationToDir(startLocation, d)
+        err := setDialogLocationToDir(startLocation, d)
         if err != nil </span><span class="cov0" title="0">{
                 return err
         }</span>
@@ -1174,7 +1182,54 @@ func (g *MinesweeperGrid) Autosolve(delay time.Duration) bool <span class="cov8"
 }
 </pre>
 		
-		<pre class="file" id="file8" style="display: none">//go:generate fyne bundle --package assets --prefix Resource -o ../../assets/bundle_generated.go ../../img/mine.png
+		<pre class="file" id="file8" style="display: none">package locations
+
+import "os"
+
+const appName = "go-minesweeper"
+
+var saveFolder = ""
+
+func SaveFolder() (string, error) <span class="cov0" title="0">{
+        if saveFolder != "" </span><span class="cov0" title="0">{
+                return saveFolder, os.MkdirAll(saveFolder, 0755)
+        }</span>
+        <span class="cov0" title="0">return os.Getwd()</span>
+}
+</pre>
+		
+		<pre class="file" id="file9" style="display: none">//go:build linux
+
+package locations
+
+import (
+        "log/slog"
+        "os"
+        "path/filepath"
+)
+
+func init() <span class="cov8" title="1">{
+        loadSaveFolderLocation()
+}</span>
+
+func loadSaveFolderLocation() <span class="cov8" title="1">{
+        xdgDataHome := os.Getenv("XDG_DATA_HOME")
+        if xdgDataHome != "" </span><span class="cov8" title="1">{
+                saveFolder = filepath.Join(xdgDataHome, "saves")
+                return
+        }</span>
+
+        <span class="cov8" title="1">home, err := os.UserHomeDir()
+        if err != nil </span><span class="cov0" title="0">{
+                slog.Error("Failed to get user home folder", "err", err)
+                return
+        }</span>
+
+        <span class="cov8" title="1">saveFolder = filepath.Join(home, ".config", appName, "saves")</span>
+}
+</pre>
+		
+		<pre class="file" id="file10" style="display: none">//go:generate fyne bundle --package assets --prefix Resource -o ../../assets/bundle_generated.go ../../img/mine.png
 //go:generate fyne bundle --prefix Resource -o ../../assets/bundle_generated.go -append ../../img/flag.png
 //go:generate fyne bundle --prefix Resource -o ../../assets/bundle_generated.go -append ../../img/flag-success.png
 //go:generate fyne bundle --prefix Resource -o ../../assets/bundle_generated.go -append ../../img/flag-assisted.png
@@ -1442,7 +1497,7 @@ func (t *Tile) gameFinished() bool <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file9" style="display: none">package app
+		<pre class="file" id="file11" style="display: none">package app
 
 import (
         "fmt"
@@ -1536,7 +1591,7 @@ func (t *Timer) refresh() <span class="cov8" title="1">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file10" style="display: none">package app
+		<pre class="file" id="file12" style="display: none">package app
 
 import (
         "image/color"
@@ -1628,7 +1683,7 @@ func newGridLabel(text string) *canvas.Text <span class="cov8" title="1">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file11" style="display: none">package minesweeper
+		<pre class="file" id="file13" style="display: none">package minesweeper
 
 const (
         DifficultyClassic      = iota
@@ -1702,7 +1757,7 @@ func NewCustomDifficulty(mines, row, col int) (Difficulty, error) <span class="c
 }
 </pre>
 		
-		<pre class="file" id="file12" style="display: none">package minesweeper
+		<pre class="file" id="file14" style="display: none">package minesweeper
 
 import "fmt"
 
@@ -1732,7 +1787,7 @@ func (e *ErrDifficultyMineCount) Error() string <span class="cov0" title="0">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file13" style="display: none">package minesweeper
+		<pre class="file" id="file15" style="display: none">package minesweeper
 
 import (
         "log/slog"
@@ -2033,7 +2088,7 @@ func (g *LocalGame) calculateFieldContent() <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file14" style="display: none">package minesweeper
+		<pre class="file" id="file16" style="display: none">package minesweeper
 
 import (
         "crypto/sha512"
@@ -2124,7 +2179,7 @@ func (s *Save) Game() *LocalGame <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file15" style="display: none">package minesweeper
+		<pre class="file" id="file17" style="display: none">package minesweeper
 
 import (
         "log/slog"
@@ -2272,7 +2327,7 @@ func (s *Status) updateActions() <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file16" style="display: none">package minesweeper
+		<pre class="file" id="file18" style="display: none">package minesweeper
 
 import (
         "fmt"
@@ -2375,7 +2430,7 @@ func areaAroundPos(d Difficulty, p Pos) []Pos <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file17" style="display: none">package utils
+		<pre class="file" id="file19" style="display: none">package utils
 
 // Create a new, empty 2 dimensional array of the given type and dimensions.
 func Make2D[T any](x, y int) [][]T <span class="cov8" title="1">{
@@ -2393,7 +2448,7 @@ func Make2D[T any](x, y int) [][]T <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file18" style="display: none">package main
+		<pre class="file" id="file20" style="display: none">package main
 
 import (
         "encoding/json"
