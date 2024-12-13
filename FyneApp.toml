@@ -1,7 +1,7 @@
 Website = "https://github.com/heathcliff26/go-minesweeper"
 
 [Details]
-Icon = "img/mine.png"
+Icon = "packages/io.github.heathcliff26.go-minesweeper.png"
 Name = "go-minesweeper"
 ID = "com.github.heathcliff26.go-minesweeper"
 Version = "0.5.6"
