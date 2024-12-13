@@ -5,9 +5,8 @@ set -e
 base_dir="$(dirname "${BASH_SOURCE[0]}" | xargs realpath)/.."
 
 FYNE_CROSS_IMAGE="ghcr.io/heathcliff26/go-fyne-ci:latest"
-APP_ID="io.github.heathcliff26.go-minesweeper"
 
-os="${1}"
+os="${1:-$(go env GOOS)}"
 arches="${2:-$(go env GOARCH)}"
 fyne_cross="$(go env GOPATH)/bin/fyne-cross"
 
@@ -31,7 +30,6 @@ for arch in "${arch_array[@]}"; do
         [ -e "${tmp_dir}" ] && rm -rf "${tmp_dir}"
         mkdir "${tmp_dir}"
         cp packages/* "fyne-cross/bin/linux-${arch}/go-minesweeper" "${tmp_dir}/"
-        cp img/mine.png "${tmp_dir}/${APP_ID}.png"
         tar -C "${tmp_dir}" -czf "fyne-cross/dist/go-minesweeper_linux-${arch}.tar.gz" .
         rm -rf "${tmp_dir}"
     elif [ "${os}" == "windows" ]; then
