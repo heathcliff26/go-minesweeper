@@ -3,8 +3,6 @@
 package locations
 
 import (
-	"log/slog"
-	"os"
 	"path/filepath"
 	"testing"
 
@@ -14,17 +12,25 @@ import (
 func TestLoadSaveFolderLocation(t *testing.T) {
 	assert := assert.New(t)
 
-	home, err := os.UserHomeDir()
-	if err != nil {
-		slog.Error("Failed to get user home folder", "err", err)
-		return
-	}
-
-	expectedFolder := filepath.Join(home, ".config", appName, "saves")
-
-	assert.Equal(expectedFolder, saveFolder, "Variable should have been initialized")
+	path, err := loadSaveFolderLocation()
+	assert.NoError(err)
+	assert.Contains(path, filepath.Join(".config", appName, "saves"), "Variable should have home location ending")
 
 	t.Setenv("XDG_DATA_HOME", "test")
-	loadSaveFolderLocation()
-	assert.Equal("test/saves", saveFolder, "Should read data location from env variable")
+	path, err = loadSaveFolderLocation()
+	assert.NoError(err)
+	assert.Equal("test/saves", path, "Should read data location from env variable")
+}
+
+func TestLoadSettingsFileLocation(t *testing.T) {
+	assert := assert.New(t)
+
+	path, err := loadSettingsFileLocation()
+	assert.NoError(err)
+	assert.Contains(path, filepath.Join(".config", appName, settingsFilename), "Variable should have home location ending")
+
+	t.Setenv("XDG_CONFIG_HOME", "test")
+	path, err = loadSettingsFileLocation()
+	assert.NoError(err)
+	assert.Equal("test/"+settingsFilename, path, "Should read settings.yaml location from env variable")
 }

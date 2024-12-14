@@ -11,7 +11,7 @@ import (
 )
 
 func TestNewTile(t *testing.T) {
-	g := NewMinesweeperGrid(DEFAULT_DIFFICULTY, false)
+	g := NewMinesweeperGrid(minesweeper.Difficulties()[DEFAULT_DIFFICULTY], false)
 	tile := g.Tiles[1][2]
 
 	t.Run("New", func(t *testing.T) {
@@ -51,7 +51,7 @@ func TestTileTapped(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 
-	g := NewMinesweeperGrid(DEFAULT_DIFFICULTY, false)
+	g := NewMinesweeperGrid(minesweeper.Difficulties()[DEFAULT_DIFFICULTY], false)
 	for _, row := range g.Tiles {
 		for _, tile := range row {
 			tile.CreateRenderer()
@@ -78,7 +78,7 @@ func TestTileTappedSecondary(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 
-	g := NewMinesweeperGrid(DEFAULT_DIFFICULTY, false)
+	g := NewMinesweeperGrid(minesweeper.Difficulties()[DEFAULT_DIFFICULTY], false)
 	tile := g.Tiles[1][2]
 	tile.CreateRenderer()
 
@@ -133,7 +133,7 @@ func TestDoubleTapped(t *testing.T) {
 		t.Run(tCase.Name, func(t *testing.T) {
 			t.Parallel()
 
-			g := NewMinesweeperGrid(DEFAULT_DIFFICULTY, false)
+			g := NewMinesweeperGrid(minesweeper.Difficulties()[DEFAULT_DIFFICULTY], false)
 			for _, row := range g.Tiles {
 				for _, tile := range row {
 					tile.CreateRenderer()
@@ -208,7 +208,7 @@ func TestDoubleTapped(t *testing.T) {
 }
 
 func TestTileUpdateContent(t *testing.T) {
-	g := NewMinesweeperGrid(DEFAULT_DIFFICULTY, false)
+	g := NewMinesweeperGrid(minesweeper.Difficulties()[DEFAULT_DIFFICULTY], false)
 	tile := g.Tiles[1][2]
 	tile.CreateRenderer()
 
@@ -343,7 +343,7 @@ func TestTileUpdateContent(t *testing.T) {
 }
 
 func TestTileReset(t *testing.T) {
-	g := NewMinesweeperGrid(DEFAULT_DIFFICULTY, false)
+	g := NewMinesweeperGrid(minesweeper.Difficulties()[DEFAULT_DIFFICULTY], false)
 	tile := g.Tiles[1][2]
 	tile.CreateRenderer()
 
@@ -377,7 +377,7 @@ func TestTileReset(t *testing.T) {
 func TestTileUntappable(t *testing.T) {
 	t.Parallel()
 
-	g := NewMinesweeperGrid(DEFAULT_DIFFICULTY, false)
+	g := NewMinesweeperGrid(minesweeper.Difficulties()[DEFAULT_DIFFICULTY], false)
 	for _, row := range g.Tiles {
 		for _, tile := range row {
 			tile.CreateRenderer()

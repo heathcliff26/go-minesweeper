@@ -17,13 +17,13 @@ type assistedModeTestConfig struct {
 }
 
 func TestNewGrid(t *testing.T) {
-	g := NewMinesweeperGrid(DEFAULT_DIFFICULTY, true)
+	g := NewMinesweeperGrid(minesweeper.Difficulties()[DEFAULT_DIFFICULTY], true)
 
 	assert := assert.New(t)
 
 	assert.Equal(g.Row(), len(g.Tiles))
 	assert.Equal(g.Col(), len(g.Tiles[0]))
-	assert.Equal(DEFAULT_DIFFICULTY, g.Difficulty)
+	assert.Equal(minesweeper.Difficulties()[DEFAULT_DIFFICULTY], g.Difficulty)
 	assert.Nil(g.Game)
 	assert.True(g.AssistedMode)
 	assert.Equal(DEFAULT_GAME_ALGORITHM, g.GameAlgorithm)
@@ -33,7 +33,7 @@ func TestNewGrid(t *testing.T) {
 }
 
 func TestTappedTile(t *testing.T) {
-	g := NewMinesweeperGrid(DEFAULT_DIFFICULTY, false)
+	g := NewMinesweeperGrid(minesweeper.Difficulties()[DEFAULT_DIFFICULTY], false)
 	for _, row := range g.Tiles {
 		for _, tile := range row {
 			tile.CreateRenderer()
@@ -50,7 +50,7 @@ func TestTappedTile(t *testing.T) {
 }
 
 func TestGameAlgorithm(t *testing.T) {
-	g := NewMinesweeperGrid(DEFAULT_DIFFICULTY, false)
+	g := NewMinesweeperGrid(minesweeper.Difficulties()[DEFAULT_DIFFICULTY], false)
 	for _, row := range g.Tiles {
 		for _, tile := range row {
 			tile.CreateRenderer()
@@ -75,7 +75,7 @@ func TestGameAlgorithm(t *testing.T) {
 }
 
 func TestNewGame(t *testing.T) {
-	g := NewMinesweeperGrid(DEFAULT_DIFFICULTY, false)
+	g := NewMinesweeperGrid(minesweeper.Difficulties()[DEFAULT_DIFFICULTY], false)
 	for _, row := range g.Tiles {
 		for _, tile := range row {
 			tile.CreateRenderer()
@@ -100,7 +100,7 @@ func TestNewGame(t *testing.T) {
 }
 
 func TestReplay(t *testing.T) {
-	g := NewMinesweeperGrid(DEFAULT_DIFFICULTY, false)
+	g := NewMinesweeperGrid(minesweeper.Difficulties()[DEFAULT_DIFFICULTY], false)
 	for _, row := range g.Tiles {
 		for _, tile := range row {
 			tile.CreateRenderer()
@@ -130,7 +130,7 @@ func TestUpdateFromStatus(t *testing.T) {
 	t.Run("NilPointer", func(t *testing.T) {
 		t.Parallel()
 
-		g := NewMinesweeperGrid(DEFAULT_DIFFICULTY, false)
+		g := NewMinesweeperGrid(minesweeper.Difficulties()[DEFAULT_DIFFICULTY], false)
 		// Should not panic
 		g.updateFromStatus(nil)
 	})
@@ -138,7 +138,7 @@ func TestUpdateFromStatus(t *testing.T) {
 		t.Parallel()
 		assert := assert.New(t)
 
-		g := NewMinesweeperGrid(DEFAULT_DIFFICULTY, false)
+		g := NewMinesweeperGrid(minesweeper.Difficulties()[DEFAULT_DIFFICULTY], false)
 		for _, row := range g.Tiles {
 			for _, tile := range row {
 				tile.CreateRenderer()
@@ -247,7 +247,7 @@ func TestAssistedMode(t *testing.T) {
 
 func TestHint(t *testing.T) {
 	t.Run("GameNil", func(t *testing.T) {
-		g := NewMinesweeperGrid(DEFAULT_DIFFICULTY, false)
+		g := NewMinesweeperGrid(minesweeper.Difficulties()[DEFAULT_DIFFICULTY], false)
 		assert.False(t, g.Hint(), "Should not give hint when game is nil")
 	})
 	t.Run("StatusNil", func(t *testing.T) {
@@ -332,14 +332,14 @@ func TestAutosolve(t *testing.T) {
 	t.Run("GameNil", func(t *testing.T) {
 		t.Parallel()
 
-		g := NewMinesweeperGrid(DEFAULT_DIFFICULTY, false)
+		g := NewMinesweeperGrid(minesweeper.Difficulties()[DEFAULT_DIFFICULTY], false)
 
 		assert.False(t, g.Autosolve(0), "Should not run autosolve")
 	})
 	t.Run("StatusNil", func(t *testing.T) {
 		t.Parallel()
 
-		g := NewMinesweeperGrid(DEFAULT_DIFFICULTY, false)
+		g := NewMinesweeperGrid(minesweeper.Difficulties()[DEFAULT_DIFFICULTY], false)
 		for _, row := range g.Tiles {
 			for _, tile := range row {
 				tile.CreateRenderer()
@@ -352,7 +352,7 @@ func TestAutosolve(t *testing.T) {
 	t.Run("GameWon", func(t *testing.T) {
 		t.Parallel()
 
-		g := NewMinesweeperGrid(DEFAULT_DIFFICULTY, false)
+		g := NewMinesweeperGrid(minesweeper.Difficulties()[DEFAULT_DIFFICULTY], false)
 		for _, row := range g.Tiles {
 			for _, tile := range row {
 				tile.CreateRenderer()
@@ -369,7 +369,7 @@ func TestAutosolve(t *testing.T) {
 	t.Run("GameOver", func(t *testing.T) {
 		t.Parallel()
 
-		g := NewMinesweeperGrid(DEFAULT_DIFFICULTY, false)
+		g := NewMinesweeperGrid(minesweeper.Difficulties()[DEFAULT_DIFFICULTY], false)
 		for _, row := range g.Tiles {
 			for _, tile := range row {
 				tile.CreateRenderer()
@@ -388,7 +388,7 @@ func TestAutosolve(t *testing.T) {
 		assert := assert.New(t)
 
 		for _, value := range []bool{true, false} {
-			g := NewMinesweeperGrid(DEFAULT_DIFFICULTY, false)
+			g := NewMinesweeperGrid(minesweeper.Difficulties()[DEFAULT_DIFFICULTY], false)
 			for _, row := range g.Tiles {
 				for _, tile := range row {
 					tile.CreateRenderer()

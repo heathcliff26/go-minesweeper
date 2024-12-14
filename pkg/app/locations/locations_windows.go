@@ -3,21 +3,22 @@
 package locations
 
 import (
-	"log/slog"
 	"os"
 	"path/filepath"
 )
 
-func init() {
-	loadSaveFolderLocation()
-}
-
-func loadSaveFolderLocation() {
+func loadSaveFolderLocation() (string, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
-		slog.Error("Failed to get user home folder", "err", err)
-		return
+		return "", err
 	}
+	return filepath.Join(home, "AppData", "Roaming", appName, "saves"), nil
+}
 
-	saveFolder = filepath.Join(home, "AppData", "Roaming", appName, "saves")
+func loadSettingsFileLocation() (string, error) {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(home, "AppData", "Roaming", appName, settingsFile), nil
 }

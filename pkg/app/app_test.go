@@ -19,6 +19,11 @@ func init() {
 }
 
 func TestApp(t *testing.T) {
+	overrideSettingsPath = "not-a-file.yaml"
+	t.Cleanup(func() {
+		overrideSettingsPath = ""
+	})
+
 	newApp = test.NewApp
 
 	a := New()
@@ -44,7 +49,7 @@ func TestApp(t *testing.T) {
 		assert := assert.New(t)
 
 		assert.NotEmpty(a.grid)
-		assert.Equal(DEFAULT_DIFFICULTY, a.grid.Difficulty)
+		assert.Equal(minesweeper.Difficulties()[DEFAULT_DIFFICULTY], a.grid.Difficulty)
 		assert.False(a.grid.AssistedMode)
 		assert.Equal(DEFAULT_GAME_ALGORITHM, a.grid.GameAlgorithm)
 	})
@@ -81,7 +86,7 @@ func TestApp(t *testing.T) {
 				opt.Action()
 				assert.False(a.grid.Timer.Running(), "Game should not be running")
 
-				a.NewGrid(DEFAULT_DIFFICULTY)
+				a.NewGrid(minesweeper.Difficulties()[DEFAULT_DIFFICULTY])
 				a.grid.TappedTile(minesweeper.NewPos(0, 0))
 				if !assert.True(a.grid.Timer.Running(), "Assert that a game is running") {
 					t.FailNow()
@@ -93,7 +98,7 @@ func TestApp(t *testing.T) {
 		}
 	})
 	t.Run("AssistedMode", func(t *testing.T) {
-		a.NewGrid(DEFAULT_DIFFICULTY)
+		a.NewGrid(minesweeper.Difficulties()[DEFAULT_DIFFICULTY])
 
 		assert := assert.New(t)
 
@@ -126,4 +131,32 @@ func TestApp(t *testing.T) {
 			})
 		}
 	})
+}
+
+func TestAppWithPreferences(t *testing.T) {
+	overrideSettingsPath = "testdata/settings.yaml"
+	t.Cleanup(func() {
+		overrideSettingsPath = ""
+	})
+
+	newApp = test.NewApp
+
+	a := New()
+
+	p := Preferences{
+		DifficultyInt: 0,
+		AssistedMode:  true,
+		GameAlgorithm: 0,
+	}
+
+	assert := assert.New(t)
+
+	for i := range a.difficulties {
+		assert.Equal(i == p.DifficultyInt, a.difficulties[i].Checked, "Only the difficulty from preferences should be selected")
+	}
+	for i := range a.gameAlgorithms {
+		assert.Equal(i == p.GameAlgorithm, a.gameAlgorithms[i].Checked, "Only the game algorithm from preferences should be selected")
+	}
+	assert.Equal(p.GameAlgorithm, a.grid.GameAlgorithm, "The grid should have the correct game algorithm selected")
+	assert.Equal(p.AssistedMode, a.assistedMode.Checked, "Assisted Mode should be selected")
 }

@@ -8,3 +8,5 @@ coverprofiles/
 
 # Test save files
 /*.sav
+/settings.yaml
+/saves
