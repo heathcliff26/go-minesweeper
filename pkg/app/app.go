@@ -2,6 +2,7 @@ package app
 
 import (
 	"image/color"
+	"log/slog"
 	"os"
 	"time"
 
@@ -19,7 +20,7 @@ import (
 
 var TEXT_COLOR = color.White
 
-var DEFAULT_DIFFICULTY = minesweeper.Difficulties()[minesweeper.DifficultyIntermediate]
+const DEFAULT_DIFFICULTY = minesweeper.DifficultyIntermediate
 
 const DEFAULT_GAME_ALGORITHM = GameAlgorithmSolvable
 
@@ -43,6 +44,13 @@ type App struct {
 
 // Create a new App
 func New() *App {
+	preferences, err := LoadPreferences()
+	if err != nil {
+		slog.Info("Failed to load preferences, falling back to defaults", "err", err)
+	} else {
+		slog.Debug("Loaded preferences", "preferences", preferences)
+	}
+
 	app := newApp()
 	version := getVersion(app)
 	main := app.NewWindow(version.Name)
@@ -53,9 +61,9 @@ func New() *App {
 		Version: version,
 	}
 	a.main.SetTitle(version.Name)
-	a.makeMenu()
-	a.NewGrid(DEFAULT_DIFFICULTY)
-	a.setGameAlgorithm(DEFAULT_GAME_ALGORITHM)
+	a.makeMenu(preferences)
+	a.NewGrid(preferences.Difficulty())
+	a.setGameAlgorithm(preferences.GameAlgorithm)
 
 	a.main.SetFixedSize(true)
 	a.main.Show()
@@ -66,10 +74,18 @@ func New() *App {
 // Simply calls app.Run()
 func (a *App) Run() {
 	a.app.Run()
+
+	preferences := CreatePreferencesFromApp(a)
+	err := preferences.Save()
+	if err != nil {
+		slog.Error("Failed to save preferences for next time", "err", err)
+	} else {
+		slog.Info("Saved preferences")
+	}
 }
 
 // Create the main menu bar
-func (a *App) makeMenu() {
+func (a *App) makeMenu(preferences Preferences) {
 	// Can't assign grid functions directly, as the instance of grid may change
 	newGameOption := fyne.NewMenuItem("New", func() {
 		a.grid.NewGame()
@@ -95,7 +111,7 @@ func (a *App) makeMenu() {
 			}
 			a.NewGrid(d)
 		}
-		item.Checked = (d == DEFAULT_DIFFICULTY)
+		item.Checked = (d == preferences.Difficulty())
 		diffItems = append(diffItems, item)
 	}
 	diffItems = append(diffItems, fyne.NewMenuItemSeparator())
@@ -110,6 +126,7 @@ func (a *App) makeMenu() {
 			go a.grid.updateFromStatus(a.grid.Game.Status())
 		}
 	})
+	a.assistedMode.Checked = preferences.AssistedMode
 	a.gameAlgorithms = make([]*fyne.MenuItem, 3)
 	a.gameAlgorithms[0] = fyne.NewMenuItem("Safe Position", func() {
 		a.setGameAlgorithm(GameAlgorithmSafePos)

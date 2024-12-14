@@ -3,27 +3,32 @@
 package locations
 
 import (
-	"log/slog"
 	"os"
 	"path/filepath"
 )
 
-func init() {
-	loadSaveFolderLocation()
-}
-
-func loadSaveFolderLocation() {
+func loadSaveFolderLocation() (string, error) {
 	xdgDataHome := os.Getenv("XDG_DATA_HOME")
 	if xdgDataHome != "" {
-		saveFolder = filepath.Join(xdgDataHome, "saves")
-		return
+		return filepath.Join(xdgDataHome, "saves"), nil
 	}
 
 	home, err := os.UserHomeDir()
 	if err != nil {
-		slog.Error("Failed to get user home folder", "err", err)
-		return
+		return "", err
+	}
+	return filepath.Join(home, ".config", appName, "saves"), nil
+}
+
+func loadSettingsFileLocation() (string, error) {
+	xdgConfigHome := os.Getenv("XDG_CONFIG_HOME")
+	if xdgConfigHome != "" {
+		return filepath.Join(xdgConfigHome, settingsFilename), nil
 	}
 
-	saveFolder = filepath.Join(home, ".config", appName, "saves")
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(home, ".config", appName, settingsFilename), nil
 }

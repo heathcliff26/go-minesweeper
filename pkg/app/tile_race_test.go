@@ -2,10 +2,14 @@
 
 package app
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/heathcliff26/go-minesweeper/pkg/minesweeper"
+)
 
 func TestTileFlagRace(t *testing.T) {
-	g := NewMinesweeperGrid(DEFAULT_DIFFICULTY, false)
+	g := NewMinesweeperGrid(minesweeper.Difficulties()[DEFAULT_DIFFICULTY], false)
 	tile := g.Tiles[0][0]
 	tile.CreateRenderer()
 
