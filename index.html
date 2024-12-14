@@ -61,7 +61,7 @@
 				
 				<option value="file2">github.com/heathcliff26/go-minesweeper/cmd/log-parser/main.go (0.0%)</option>
 				
-				<option value="file3">github.com/heathcliff26/go-minesweeper/pkg/app/app.go (46.4%)</option>
+				<option value="file3">github.com/heathcliff26/go-minesweeper/pkg/app/app.go (46.7%)</option>
 				
 				<option value="file4">github.com/heathcliff26/go-minesweeper/pkg/app/button.go (100.0%)</option>
 				
@@ -71,31 +71,33 @@
 				
 				<option value="file7">github.com/heathcliff26/go-minesweeper/pkg/app/grid.go (99.0%)</option>
 				
-				<option value="file8">github.com/heathcliff26/go-minesweeper/pkg/app/locations/locations.go (0.0%)</option>
+				<option value="file8">github.com/heathcliff26/go-minesweeper/pkg/app/locations/locations.go (63.2%)</option>
 				
-				<option value="file9">github.com/heathcliff26/go-minesweeper/pkg/app/locations/locations_linux.go (80.0%)</option>
+				<option value="file9">github.com/heathcliff26/go-minesweeper/pkg/app/locations/locations_linux.go (85.7%)</option>
 				
-				<option value="file10">github.com/heathcliff26/go-minesweeper/pkg/app/tile.go (100.0%)</option>
+				<option value="file10">github.com/heathcliff26/go-minesweeper/pkg/app/preferences.go (92.1%)</option>
 				
-				<option value="file11">github.com/heathcliff26/go-minesweeper/pkg/app/timer.go (100.0%)</option>
+				<option value="file11">github.com/heathcliff26/go-minesweeper/pkg/app/tile.go (100.0%)</option>
 				
-				<option value="file12">github.com/heathcliff26/go-minesweeper/pkg/app/utils.go (59.5%)</option>
+				<option value="file12">github.com/heathcliff26/go-minesweeper/pkg/app/timer.go (100.0%)</option>
 				
-				<option value="file13">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/difficulty.go (100.0%)</option>
+				<option value="file13">github.com/heathcliff26/go-minesweeper/pkg/app/utils.go (59.5%)</option>
 				
-				<option value="file14">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/errors.go (50.0%)</option>
+				<option value="file14">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/difficulty.go (100.0%)</option>
 				
-				<option value="file15">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/game.go (99.0%)</option>
+				<option value="file15">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/errors.go (50.0%)</option>
 				
-				<option value="file16">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/save.go (84.6%)</option>
+				<option value="file16">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/game.go (99.0%)</option>
 				
-				<option value="file17">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/status.go (100.0%)</option>
+				<option value="file17">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/save.go (84.6%)</option>
 				
-				<option value="file18">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/utils.go (100.0%)</option>
+				<option value="file18">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/status.go (100.0%)</option>
 				
-				<option value="file19">github.com/heathcliff26/go-minesweeper/pkg/utils/utils.go (100.0%)</option>
+				<option value="file19">github.com/heathcliff26/go-minesweeper/pkg/minesweeper/utils.go (100.0%)</option>
 				
-				<option value="file20">github.com/heathcliff26/go-minesweeper/tests/performance/main.go (0.0%)</option>
+				<option value="file20">github.com/heathcliff26/go-minesweeper/pkg/utils/utils.go (100.0%)</option>
+				
+				<option value="file21">github.com/heathcliff26/go-minesweeper/tests/performance/main.go (0.0%)</option>
 				
 				</select>
 			</div>
@@ -243,6 +245,7 @@ func main() <span class="cov0" title="0">{
 
 import (
         "image/color"
+        "log/slog"
         "os"
         "time"
 
@@ -260,7 +263,7 @@ import (
 
 var TEXT_COLOR = color.White
 
-var DEFAULT_DIFFICULTY = minesweeper.Difficulties()[minesweeper.DifficultyIntermediate]
+const DEFAULT_DIFFICULTY = minesweeper.DifficultyIntermediate
 
 const DEFAULT_GAME_ALGORITHM = GameAlgorithmSolvable
 
@@ -284,7 +287,14 @@ type App struct {
 
 // Create a new App
 func New() *App <span class="cov8" title="1">{
-        app := newApp()
+        preferences, err := LoadPreferences()
+        if err != nil </span><span class="cov8" title="1">{
+                slog.Info("Failed to load preferences, falling back to defaults", "err", err)
+        }</span> else<span class="cov8" title="1"> {
+                slog.Debug("Loaded preferences", "preferences", preferences)
+        }</span>
+
+        <span class="cov8" title="1">app := newApp()
         version := getVersion(app)
         main := app.NewWindow(version.Name)
 
@@ -294,23 +304,31 @@ func New() *App <span class="cov8" title="1">{
                 Version: version,
         }
         a.main.SetTitle(version.Name)
-        a.makeMenu()
-        a.NewGrid(DEFAULT_DIFFICULTY)
-        a.setGameAlgorithm(DEFAULT_GAME_ALGORITHM)
+        a.makeMenu(preferences)
+        a.NewGrid(preferences.Difficulty())
+        a.setGameAlgorithm(preferences.GameAlgorithm)
 
         a.main.SetFixedSize(true)
         a.main.Show()
 
-        return a
-}</span>
+        return a</span>
+}
 
 // Simply calls app.Run()
 func (a *App) Run() <span class="cov0" title="0">{
         a.app.Run()
-}</span>
+
+        preferences := CreatePreferencesFromApp(a)
+        err := preferences.Save()
+        if err != nil </span><span class="cov0" title="0">{
+                slog.Error("Failed to save preferences for next time", "err", err)
+        }</span> else<span class="cov0" title="0"> {
+                slog.Info("Saved preferences")
+        }</span>
+}
 
 // Create the main menu bar
-func (a *App) makeMenu() <span class="cov8" title="1">{
+func (a *App) makeMenu(preferences Preferences) <span class="cov8" title="1">{
         // Can't assign grid functions directly, as the instance of grid may change
         newGameOption := fyne.NewMenuItem("New", func() </span><span class="cov8" title="1">{
                 a.grid.NewGame()
@@ -336,7 +354,7 @@ func (a *App) makeMenu() <span class="cov8" title="1">{
                         }</span>
                         <span class="cov8" title="1">a.NewGrid(d)</span>
                 }
-                <span class="cov8" title="1">item.Checked = (d == DEFAULT_DIFFICULTY)
+                <span class="cov8" title="1">item.Checked = (d == preferences.Difficulty())
                 diffItems = append(diffItems, item)</span>
         }
         <span class="cov8" title="1">diffItems = append(diffItems, fyne.NewMenuItemSeparator())
@@ -351,7 +369,8 @@ func (a *App) makeMenu() <span class="cov8" title="1">{
                         go a.grid.updateFromStatus(a.grid.Game.Status())
                 }</span>
         })
-        <span class="cov8" title="1">a.gameAlgorithms = make([]*fyne.MenuItem, 3)
+        <span class="cov8" title="1">a.assistedMode.Checked = preferences.AssistedMode
+        a.gameAlgorithms = make([]*fyne.MenuItem, 3)
         a.gameAlgorithms[0] = fyne.NewMenuItem("Safe Position", func() </span><span class="cov8" title="1">{
                 a.setGameAlgorithm(GameAlgorithmSafePos)
         }</span>)
@@ -1184,17 +1203,52 @@ func (g *MinesweeperGrid) Autosolve(delay time.Duration) bool <span class="cov8"
 		
 		<pre class="file" id="file8" style="display: none">package locations
 
-import "os"
+import (
+        "log/slog"
+        "os"
+        "path/filepath"
+)
 
 const appName = "go-minesweeper"
 
+const settingsFilename = "settings.yaml"
+
 var saveFolder = ""
 
-func SaveFolder() (string, error) <span class="cov0" title="0">{
-        if saveFolder != "" </span><span class="cov0" title="0">{
+var settingsFile = ""
+
+func SaveFolder() (string, error) <span class="cov8" title="1">{
+        if saveFolder != "" </span><span class="cov8" title="1">{
+                return saveFolder, nil
+        }</span>
+
+        <span class="cov8" title="1">var err error
+        saveFolder, err = loadSaveFolderLocation()
+        if err == nil </span><span class="cov8" title="1">{
                 return saveFolder, os.MkdirAll(saveFolder, 0755)
         }</span>
-        <span class="cov0" title="0">return os.Getwd()</span>
+        <span class="cov0" title="0">slog.Error("Failed to load save folder location, falling back to current directory", "err", err)
+
+        return os.Getwd()</span>
+}
+
+func SettingsFile() (string, error) <span class="cov8" title="1">{
+        if settingsFile != "" </span><span class="cov8" title="1">{
+                return settingsFile, nil
+        }</span>
+
+        <span class="cov8" title="1">var err error
+        settingsFile, err = loadSettingsFileLocation()
+        if err == nil </span><span class="cov8" title="1">{
+                return settingsFile, os.MkdirAll(filepath.Dir(settingsFile), 0755)
+        }</span>
+        <span class="cov0" title="0">slog.Error("Failed to load settings.yaml location, falling back to current directory", "err", err)
+
+        pwd, err := os.Getwd()
+        if err != nil </span><span class="cov0" title="0">{
+                return "", err
+        }</span>
+        <span class="cov0" title="0">return filepath.Join(pwd, settingsFilename), nil</span>
 }
 </pre>
 		
@@ -1203,33 +1257,144 @@ func SaveFolder() (string, error) <span class="cov0" title="0">{
 package locations
 
 import (
-        "log/slog"
         "os"
         "path/filepath"
 )
 
-func init() <span class="cov8" title="1">{
-        loadSaveFolderLocation()
-}</span>
-
-func loadSaveFolderLocation() <span class="cov8" title="1">{
+func loadSaveFolderLocation() (string, error) <span class="cov8" title="1">{
         xdgDataHome := os.Getenv("XDG_DATA_HOME")
         if xdgDataHome != "" </span><span class="cov8" title="1">{
-                saveFolder = filepath.Join(xdgDataHome, "saves")
-                return
+                return filepath.Join(xdgDataHome, "saves"), nil
         }</span>
 
         <span class="cov8" title="1">home, err := os.UserHomeDir()
         if err != nil </span><span class="cov0" title="0">{
-                slog.Error("Failed to get user home folder", "err", err)
-                return
+                return "", err
+        }</span>
+        <span class="cov8" title="1">return filepath.Join(home, ".config", appName, "saves"), nil</span>
+}
+
+func loadSettingsFileLocation() (string, error) <span class="cov8" title="1">{
+        xdgConfigHome := os.Getenv("XDG_CONFIG_HOME")
+        if xdgConfigHome != "" </span><span class="cov8" title="1">{
+                return filepath.Join(xdgConfigHome, settingsFilename), nil
         }</span>
 
-        <span class="cov8" title="1">saveFolder = filepath.Join(home, ".config", appName, "saves")</span>
+        <span class="cov8" title="1">home, err := os.UserHomeDir()
+        if err != nil </span><span class="cov0" title="0">{
+                return "", err
+        }</span>
+        <span class="cov8" title="1">return filepath.Join(home, ".config", appName, settingsFilename), nil</span>
 }
 </pre>
 		
-		<pre class="file" id="file10" style="display: none">//go:generate fyne bundle --package assets --prefix Resource -o ../../assets/bundle_generated.go ../../img/mine.png
+		<pre class="file" id="file10" style="display: none">package app
+
+import (
+        "os"
+
+        "github.com/heathcliff26/go-minesweeper/pkg/app/locations"
+        "github.com/heathcliff26/go-minesweeper/pkg/minesweeper"
+        "gopkg.in/yaml.v3"
+)
+
+type Preferences struct {
+        DifficultyInt int  `yaml:"difficulty"`
+        AssistedMode  bool `yaml:"assistedMode"`
+        GameAlgorithm int  `yaml:"gameAlgorithm"`
+}
+
+// Only used for testing, as we don't want to touch the actual file that might be on the system.
+var overrideSettingsPath = ""
+
+func defaultPreferences() Preferences <span class="cov8" title="1">{
+        return Preferences{
+                DifficultyInt: DEFAULT_DIFFICULTY,
+                AssistedMode:  false,
+                GameAlgorithm: DEFAULT_GAME_ALGORITHM,
+        }
+}</span>
+
+// Load the preferences from the settings file.
+// Return default values when an error occurs.
+func LoadPreferences() (Preferences, error) <span class="cov8" title="1">{
+        path, err := locations.SettingsFile()
+        if err != nil </span><span class="cov0" title="0">{
+                return defaultPreferences(), err
+        }</span>
+        <span class="cov8" title="1">if overrideSettingsPath != "" </span><span class="cov8" title="1">{
+                path = overrideSettingsPath
+        }</span>
+
+        <span class="cov8" title="1">f, err := os.ReadFile(path)
+        if err != nil </span><span class="cov8" title="1">{
+                return defaultPreferences(), err
+        }</span>
+
+        <span class="cov8" title="1">p := defaultPreferences()
+        err = yaml.Unmarshal(f, &amp;p)
+        if err != nil </span><span class="cov8" title="1">{
+                return defaultPreferences(), err
+        }</span>
+
+        <span class="cov8" title="1">return p, nil</span>
+}
+
+// Convert the current app state to preferences that can be saved.
+func CreatePreferencesFromApp(app *App) Preferences <span class="cov8" title="1">{
+        difficulty := DEFAULT_DIFFICULTY
+        for i, d := range app.difficulties </span><span class="cov8" title="1">{
+                if d.Checked </span><span class="cov8" title="1">{
+                        difficulty = i
+                        break</span>
+                }
+        }
+
+        <span class="cov8" title="1">gameAlgorithm := DEFAULT_GAME_ALGORITHM
+        for i, algorithm := range app.gameAlgorithms </span><span class="cov8" title="1">{
+                if algorithm.Checked </span><span class="cov8" title="1">{
+                        gameAlgorithm = i
+                        break</span>
+                }
+        }
+
+        <span class="cov8" title="1">return Preferences{
+                DifficultyInt: difficulty,
+                AssistedMode:  app.assistedMode.Checked,
+                GameAlgorithm: gameAlgorithm,
+        }</span>
+}
+
+// Convert the saved difficulty number to an actual difficulty
+func (p Preferences) Difficulty() minesweeper.Difficulty <span class="cov8" title="1">{
+        difficulties := minesweeper.Difficulties()
+
+        if p.DifficultyInt &lt; 0 || p.DifficultyInt &gt;= len(difficulties) </span><span class="cov8" title="1">{
+                return difficulties[DEFAULT_DIFFICULTY]
+        }</span>
+        <span class="cov8" title="1">return difficulties[p.DifficultyInt]</span>
+}
+
+// Save the preferences to the settings file
+func (p Preferences) Save() error <span class="cov8" title="1">{
+        path, err := locations.SettingsFile()
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov8" title="1">if overrideSettingsPath != "" </span><span class="cov8" title="1">{
+                path = overrideSettingsPath
+        }</span>
+
+        <span class="cov8" title="1">data, err := yaml.Marshal(&amp;p)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">return os.WriteFile(path, data, 0644)</span>
+}
+</pre>
+		
+		<pre class="file" id="file11" style="display: none">//go:generate fyne bundle --package assets --prefix Resource -o ../../assets/bundle_generated.go ../../img/mine.png
 //go:generate fyne bundle --prefix Resource -o ../../assets/bundle_generated.go -append ../../img/flag.png
 //go:generate fyne bundle --prefix Resource -o ../../assets/bundle_generated.go -append ../../img/flag-success.png
 //go:generate fyne bundle --prefix Resource -o ../../assets/bundle_generated.go -append ../../img/flag-assisted.png
@@ -1497,7 +1662,7 @@ func (t *Tile) gameFinished() bool <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file11" style="display: none">package app
+		<pre class="file" id="file12" style="display: none">package app
 
 import (
         "fmt"
@@ -1591,7 +1756,7 @@ func (t *Timer) refresh() <span class="cov8" title="1">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file12" style="display: none">package app
+		<pre class="file" id="file13" style="display: none">package app
 
 import (
         "image/color"
@@ -1683,7 +1848,7 @@ func newGridLabel(text string) *canvas.Text <span class="cov8" title="1">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file13" style="display: none">package minesweeper
+		<pre class="file" id="file14" style="display: none">package minesweeper
 
 const (
         DifficultyClassic      = iota
@@ -1757,7 +1922,7 @@ func NewCustomDifficulty(mines, row, col int) (Difficulty, error) <span class="c
 }
 </pre>
 		
-		<pre class="file" id="file14" style="display: none">package minesweeper
+		<pre class="file" id="file15" style="display: none">package minesweeper
 
 import "fmt"
 
@@ -1787,7 +1952,7 @@ func (e *ErrDifficultyMineCount) Error() string <span class="cov0" title="0">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file15" style="display: none">package minesweeper
+		<pre class="file" id="file16" style="display: none">package minesweeper
 
 import (
         "log/slog"
@@ -2088,7 +2253,7 @@ func (g *LocalGame) calculateFieldContent() <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file16" style="display: none">package minesweeper
+		<pre class="file" id="file17" style="display: none">package minesweeper
 
 import (
         "crypto/sha512"
@@ -2179,7 +2344,7 @@ func (s *Save) Game() *LocalGame <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file17" style="display: none">package minesweeper
+		<pre class="file" id="file18" style="display: none">package minesweeper
 
 import (
         "log/slog"
@@ -2327,7 +2492,7 @@ func (s *Status) updateActions() <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file18" style="display: none">package minesweeper
+		<pre class="file" id="file19" style="display: none">package minesweeper
 
 import (
         "fmt"
@@ -2430,7 +2595,7 @@ func areaAroundPos(d Difficulty, p Pos) []Pos <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file19" style="display: none">package utils
+		<pre class="file" id="file20" style="display: none">package utils
 
 // Create a new, empty 2 dimensional array of the given type and dimensions.
 func Make2D[T any](x, y int) [][]T <span class="cov8" title="1">{
@@ -2448,7 +2613,7 @@ func Make2D[T any](x, y int) [][]T <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file20" style="display: none">package main
+		<pre class="file" id="file21" style="display: none">package main
 
 import (
         "encoding/json"
