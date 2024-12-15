@@ -144,9 +144,9 @@ func TestAppWithPreferences(t *testing.T) {
 	a := New()
 
 	p := Preferences{
-		DifficultyInt: 0,
+		DifficultyInt: minesweeper.DifficultyClassic,
 		AssistedMode:  true,
-		GameAlgorithm: 0,
+		GameAlgorithm: GameAlgorithmSafePos,
 	}
 
 	assert := assert.New(t)
