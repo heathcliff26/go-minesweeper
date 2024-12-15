@@ -50,6 +50,17 @@
     </screenshots>
 
     <releases>
+        <release version="v0.6.0" date="2024-12-15" type="stable">
+            <description>
+                <p>Replaced icon for better look and improved visibility</p>
+                <p>Fix flathub quality checks on meta information</p>
+                <p>Add default location for save files</p>
+                <p>Save selected options between sessions</p>
+                <p>Change default options for first startup</p>
+                <p>Improved code quality and stability through more CI checks</p>
+            </description>
+            <url type="details">https://github.com/heathcliff26/go-minesweeper/releases/tag/v0.5.5</url>
+        </release>
         <release version="v0.5.6" date="2024-12-12" type="stable">
             <description>
                 <p>Improved installation experience on linux</p>
