@@ -20,5 +20,5 @@ func loadSettingsFileLocation() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return filepath.Join(home, "AppData", "Roaming", appName, settingsFile), nil
+	return filepath.Join(home, "AppData", "Roaming", appName, settingsFilename), nil
 }
