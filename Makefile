@@ -22,7 +22,7 @@ coverprofile:
 assets:
 	hack/generate-assets.sh
 
-dependencies:
+update-deps:
 	hack/update-deps.sh
 
 generate:
@@ -41,7 +41,7 @@ clean:
 	lint \
 	coverprofile \
 	assets \
-	dependencies \
+	update-deps \
 	generate \
 	lint-metainfo \
 	clean \
