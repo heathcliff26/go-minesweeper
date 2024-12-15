@@ -20,9 +20,9 @@ import (
 
 var TEXT_COLOR = color.White
 
-const DEFAULT_DIFFICULTY = minesweeper.DifficultyIntermediate
+const DEFAULT_DIFFICULTY = minesweeper.DifficultyBeginner
 
-const DEFAULT_GAME_ALGORITHM = GameAlgorithmSolvable
+const DEFAULT_GAME_ALGORITHM = GameAlgorithmSafeArea
 
 const DEFAULT_AUTOSOLVE_DELAY = 500 * time.Millisecond
 

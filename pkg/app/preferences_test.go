@@ -25,9 +25,9 @@ func TestLoadPreferences(t *testing.T) {
 	p, err = LoadPreferences()
 	assert.NoError(err)
 	res := Preferences{
-		DifficultyInt: 0,
+		DifficultyInt: minesweeper.DifficultyClassic,
 		AssistedMode:  true,
-		GameAlgorithm: 0,
+		GameAlgorithm: GameAlgorithmSafePos,
 	}
 	assert.Equal(res, p, "Should load the settings")
 
@@ -55,9 +55,9 @@ func TestCreatePreferencesFromApp(t *testing.T) {
 	assert := assert.New(t)
 
 	res := Preferences{
-		DifficultyInt: 0,
+		DifficultyInt: minesweeper.DifficultyClassic,
 		AssistedMode:  true,
-		GameAlgorithm: 0,
+		GameAlgorithm: GameAlgorithmSafePos,
 	}
 	assert.Equal(res, p, "Should create the Preferences correctly")
 
@@ -92,9 +92,9 @@ func TestPreferencesDifficuly(t *testing.T) {
 
 func TestPreferencesSave(t *testing.T) {
 	p := Preferences{
-		DifficultyInt: 0,
+		DifficultyInt: minesweeper.DifficultyClassic,
 		AssistedMode:  true,
-		GameAlgorithm: 0,
+		GameAlgorithm: GameAlgorithmSafePos,
 	}
 
 	testFilePath := "test-settings.yaml"
