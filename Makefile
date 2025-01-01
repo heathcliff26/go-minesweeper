@@ -19,6 +19,12 @@ build-all:
 coverprofile:
 	hack/coverprofile.sh
 
+fmt:
+	gofmt -s -w ./cmd ./pkg ./tests
+
+validate:
+	hack/validate.sh
+
 assets:
 	hack/generate-assets.sh
 
@@ -40,6 +46,8 @@ clean:
 	test \
 	lint \
 	coverprofile \
+	fmt \
+	validate \
 	assets \
 	update-deps \
 	generate \
