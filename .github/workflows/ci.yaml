@@ -25,9 +25,13 @@ on:
 jobs:
   lint:
     uses: heathcliff26/ci/.github/workflows/golang-fyne-lint.yaml@main
+    permissions:
+      contents: read
 
   unit-tests-linux:
     uses: heathcliff26/ci/.github/workflows/golang-unit-tests.yaml@main
+    permissions:
+      contents: read
     with:
       cmd: hack/unit-tests.sh
       os: ubuntu-latest
@@ -35,18 +39,24 @@ jobs:
 
   unit-tests-windows:
     uses: heathcliff26/ci/.github/workflows/golang-unit-tests.yaml@main
+    permissions:
+      contents: read
     with:
       cmd: go test -v -timeout 300s ./...
       os: windows-latest
 
   validate:
     uses: heathcliff26/ci/.github/workflows/golang-build.yaml@main
+    permissions:
+      contents: read
     with:
       cache: false
       cmd: "make validate"
 
   build:
     uses: heathcliff26/ci/.github/workflows/golang-fyne-build.yaml@main
+    permissions:
+      contents: read
     needs:
       - lint
       - unit-tests-linux
