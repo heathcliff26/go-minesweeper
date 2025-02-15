@@ -1,14 +1,12 @@
 package app
 
 import (
-	"image/color"
 	"log/slog"
 	"os"
 	"time"
 
 	"fyne.io/fyne/v2"
 	fApp "fyne.io/fyne/v2/app"
-	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/data/binding"
 	"fyne.io/fyne/v2/dialog"
@@ -17,8 +15,6 @@ import (
 	"github.com/heathcliff26/go-minesweeper/pkg/app/locations"
 	"github.com/heathcliff26/go-minesweeper/pkg/minesweeper"
 )
-
-var TEXT_COLOR = color.White
 
 const DEFAULT_DIFFICULTY = minesweeper.DifficultyBeginner
 
@@ -54,6 +50,7 @@ func New() *App {
 	app := newApp()
 	version := getVersion(app)
 	main := app.NewWindow(version.Name)
+	app.Settings().SetTheme(mainTheme{})
 
 	a := &App{
 		app:     app,
@@ -178,14 +175,12 @@ func (a *App) customDifficultyDialog() {
 	mines := minesweeper.DifficultyMineMin
 	row, col := minesweeper.DifficultyRowColMin, minesweeper.DifficultyRowColMin
 
-	mineLabel := canvas.NewText("Mines", TEXT_COLOR)
-	mineEntry := widget.NewEntryWithData(binding.IntToString(binding.BindInt(&mines)))
-	rowLabel := canvas.NewText("Rows", TEXT_COLOR)
-	rowEntry := widget.NewEntryWithData(binding.IntToString(binding.BindInt(&row)))
-	colLabel := canvas.NewText("Columns", TEXT_COLOR)
-	colEntry := widget.NewEntryWithData(binding.IntToString(binding.BindInt(&col)))
+	mineItem := widget.NewFormItem("Mines", widget.NewEntryWithData(binding.IntToString(binding.BindInt(&mines))))
+	rowItem := widget.NewFormItem("Rows", widget.NewEntryWithData(binding.IntToString(binding.BindInt(&row))))
+	colItem := widget.NewFormItem("Columns", widget.NewEntryWithData(binding.IntToString(binding.BindInt(&col))))
 
-	content := container.NewGridWithColumns(2, mineLabel, mineEntry, rowLabel, rowEntry, colLabel, colEntry)
+	content := widget.NewForm(mineItem, rowItem, colItem)
+
 	diffDialog := dialog.NewCustomConfirm("Custom Difficulty", "ok", "cancel", content, func(ok bool) {
 		if !ok {
 			return

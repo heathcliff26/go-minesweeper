@@ -1,7 +1,6 @@
 package app
 
 import (
-	"image/color"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -11,6 +10,7 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/widget"
 )
 
 // Struct for containing the current version of the app
@@ -49,36 +49,39 @@ func getVersion(app fyne.App) Version {
 
 // Create the content for the version dialog
 func getVersionContent(v Version) fyne.CanvasObject {
-	r1 := make([]fyne.CanvasObject, 3)
-	r2 := make([]fyne.CanvasObject, 3)
-	r1[0] = canvas.NewText("Version:", TEXT_COLOR)
-	r2[0] = canvas.NewText(v.Version, TEXT_COLOR)
-	r1[1] = canvas.NewText("Commit:", TEXT_COLOR)
-	r2[1] = canvas.NewText(v.Commit, TEXT_COLOR)
-	r1[2] = canvas.NewText("Go:", TEXT_COLOR)
-	r2[2] = canvas.NewText(v.Go, TEXT_COLOR)
+	data := [][]string{
+		{"Version:", v.Version},
+		{"Commit:", v.Commit},
+		{"Go:", v.Go},
+	}
 
-	row1 := container.NewVBox(r1...)
-	row2 := container.NewVBox(r2...)
+	versionTable := widget.NewTable(
+		func() (int, int) {
+			return len(data), len(data[0])
+		},
+		func() fyne.CanvasObject {
+			return widget.NewLabel("                ")
+		},
+		func(i widget.TableCellID, o fyne.CanvasObject) {
+			o.(*widget.Label).SetText(data[i.Row][i.Col])
+		},
+	)
 
-	return container.NewPadded(container.NewHBox(row1, row2))
-}
+	versionTable.ShowHeaderRow = false
+	versionTable.ShowHeaderColumn = false
+	versionTable.StickyRowCount = len(data) - 1
+	versionTable.StickyColumnCount = len(data[0]) - 1
+	versionTable.HideSeparators = true
 
-// Create a line for the border
-func makeBorderStrip() fyne.CanvasObject {
-	rec := canvas.NewRectangle(color.White)
-	rec.SetMinSize(fyne.NewSize(1, 1))
-	return rec
+	return versionTable
 }
 
 // Wrap the objects in a box with border lines
 func newBorder(content ...fyne.CanvasObject) fyne.CanvasObject {
-	top := makeBorderStrip()
-	left := makeBorderStrip()
-	bottom := makeBorderStrip()
-	right := makeBorderStrip()
-	border := container.NewBorder(top, bottom, left, right, content...)
-	return container.NewPadded(border)
+	contentContainer := container.NewThemeOverride(container.NewPadded(content...), mainTheme{})
+	border := widget.NewCard("", "", contentContainer)
+
+	return container.NewThemeOverride(border, borderTheme{})
 }
 
 // Create a new label used in the grid, with preset color, text size and text style

@@ -29,7 +29,7 @@ func TestApp(t *testing.T) {
 	a := New()
 
 	t.Run("App", func(t *testing.T) {
-		assert.NotEmpty(t, a.app)
+		assert.NotNil(t, a.app)
 	})
 	t.Run("Main", func(t *testing.T) {
 		assert := assert.New(t)
