@@ -56,9 +56,12 @@ It will tell you if your options don't work.
 
 ## Screenshots
 
-![](img/screenshots/screenshot-difficulty-beginner.png)
-![](img/screenshots/screenshot-difficulty-advanced.png)
-![](img/screenshots/screenshot-difficulty-expert.png)
+![](img/screenshots/difficulty-beginner-dark.png#gh-dark-mode-only)
+![](img/screenshots/difficulty-intermediate-dark.png#gh-dark-mode-only)
+![](img/screenshots/difficulty-expert-dark.png#gh-dark-mode-only)
+![](img/screenshots/difficulty-beginner-light.png#gh-light-mode-only)
+![](img/screenshots/difficulty-intermediate-light.png#gh-light-mode-only)
+![](img/screenshots/difficulty-expert-light.png#gh-light-mode-only)
 
 ## Potential features
 
