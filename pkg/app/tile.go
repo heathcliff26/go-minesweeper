@@ -12,13 +12,13 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 	"github.com/heathcliff26/go-minesweeper/assets"
 	"github.com/heathcliff26/go-minesweeper/pkg/minesweeper"
 )
 
 var (
-	TileDefaultColor    = color.Gray16{32767}
 	TileBackgroundColor = color.Gray16{^uint16(0)}
 	TileExplodedColor   = color.RGBA{240, 10, 20, alpha}
 
@@ -95,7 +95,7 @@ func NewTile(x, y int, grid *MinesweeperGrid) *Tile {
 func (t *Tile) CreateRenderer() fyne.WidgetRenderer {
 	t.ExtendBaseWidget(t)
 
-	t.background = canvas.NewRectangle(TileDefaultColor)
+	t.background = canvas.NewRectangle(theme.Color(colorNameTileDefault))
 	t.background.SetMinSize(TileSize)
 
 	t.label = canvas.NewText("", color.White)
@@ -149,7 +149,7 @@ func (t *Tile) updateContent() {
 
 	t.icon.Hidden = true
 	t.label.Hidden = true
-	t.background.FillColor = TileDefaultColor
+	t.background.FillColor = theme.Color(colorNameTileDefault)
 	defer t.Refresh()
 
 	switch {

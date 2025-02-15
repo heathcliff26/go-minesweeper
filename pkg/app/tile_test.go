@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"fyne.io/fyne/v2/theme"
 	"github.com/heathcliff26/go-minesweeper/assets"
 	"github.com/heathcliff26/go-minesweeper/pkg/minesweeper"
 	"github.com/stretchr/testify/assert"
@@ -34,7 +35,7 @@ func TestNewTile(t *testing.T) {
 
 		assert := assert.New(t)
 
-		assert.Equal(TileDefaultColor, tile.background.FillColor)
+		assert.Equal(theme.Color(colorNameTileDefault), tile.background.FillColor)
 		assert.Equal(TileSize, tile.background.MinSize())
 
 		assert.Equal("", tile.label.Text)
@@ -219,7 +220,7 @@ func TestTileUpdateContent(t *testing.T) {
 
 		assert.True(tile.icon.Hidden)
 		assert.True(tile.label.Hidden)
-		assert.Equal(TileDefaultColor, tile.background.FillColor)
+		assert.Equal(theme.Color(colorNameTileDefault), tile.background.FillColor)
 	})
 	t.Run("Checked", func(t *testing.T) {
 		tile.field.Checked = true
@@ -242,7 +243,7 @@ func TestTileUpdateContent(t *testing.T) {
 
 		assert.False(tile.icon.Hidden)
 		assert.Equal(assets.ResourceFlagPng, tile.icon.Resource)
-		assert.Equal(TileDefaultColor, tile.background.FillColor)
+		assert.Equal(theme.Color(colorNameTileDefault), tile.background.FillColor)
 	})
 	t.Run("FlaggedSuccess", func(t *testing.T) {
 		tile.Flag(true)
@@ -257,7 +258,7 @@ func TestTileUpdateContent(t *testing.T) {
 
 		assert.False(tile.icon.Hidden)
 		assert.Equal(assets.ResourceFlagSuccessPng, tile.icon.Resource)
-		assert.Equal(TileDefaultColor, tile.background.FillColor)
+		assert.Equal(theme.Color(colorNameTileDefault), tile.background.FillColor)
 	})
 	t.Run("FlaggedAssisted", func(t *testing.T) {
 		tile.Flag(true)
@@ -268,7 +269,7 @@ func TestTileUpdateContent(t *testing.T) {
 
 		assert.False(tile.icon.Hidden)
 		assert.Equal(assets.ResourceFlagAssistedPng, tile.icon.Resource)
-		assert.Equal(TileDefaultColor, tile.background.FillColor)
+		assert.Equal(theme.Color(colorNameTileDefault), tile.background.FillColor)
 
 		tile.field.Content = minesweeper.Mine
 		t.Cleanup(func() {
@@ -279,7 +280,7 @@ func TestTileUpdateContent(t *testing.T) {
 
 		assert.False(tile.icon.Hidden)
 		assert.Equal(assets.ResourceFlagAssistedPng, tile.icon.Resource)
-		assert.Equal(TileDefaultColor, tile.background.FillColor)
+		assert.Equal(theme.Color(colorNameTileDefault), tile.background.FillColor)
 	})
 	t.Run("Mine", func(t *testing.T) {
 		tile.field.Content = minesweeper.Mine
@@ -292,7 +293,7 @@ func TestTileUpdateContent(t *testing.T) {
 
 		assert.False(tile.icon.Hidden)
 		assert.Equal(assets.ResourceMinePng, tile.icon.Resource)
-		assert.Equal(TileDefaultColor, tile.background.FillColor)
+		assert.Equal(theme.Color(colorNameTileDefault), tile.background.FillColor)
 
 		tile.field.Checked = true
 		t.Cleanup(func() {
@@ -361,7 +362,7 @@ func TestTileReset(t *testing.T) {
 	assert.False(tile.field.Checked)
 	assert.Equal(minesweeper.Unknown, tile.field.Content)
 
-	assert.Equal(TileDefaultColor, tile.background.FillColor)
+	assert.Equal(theme.Color(colorNameTileDefault), tile.background.FillColor)
 	assert.Equal(TileSize, tile.background.MinSize())
 
 	assert.Equal("", tile.label.Text)
