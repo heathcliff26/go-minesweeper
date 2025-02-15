@@ -9,7 +9,7 @@ bin_dir="${base_dir}/bin"
 GOOS="${GOOS:-$(go env GOOS)}"
 GOARCH="${GOARCH:-$(go env GOARCH)}"
 
-GO_LD_FLAGS="${GO_LD_FLAGS:-"-w -s"}"
+GO_LD_FLAGS="${GO_LD_FLAGS:-"-s"}"
 
 output_name="${bin_dir}/go-minesweeper"
 

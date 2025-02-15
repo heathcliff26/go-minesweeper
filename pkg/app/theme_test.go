@@ -11,8 +11,11 @@ import (
 func TestMainTheme(t *testing.T) {
 	assert := assert.New(t)
 
-	assert.Equal(color.RGBA{211, 211, 211, alpha}, mainTheme{}.Color(theme.ColorNameBackground, theme.VariantLight))
+	assert.Equal(lightGray, mainTheme{}.Color(theme.ColorNameBackground, theme.VariantLight))
 	assert.Equal(theme.DefaultTheme().Color(theme.ColorNameBackground, theme.VariantDark), mainTheme{}.Color(theme.ColorNameBackground, theme.VariantDark))
+
+	assert.Equal(tileDefaultColorVariantLight, mainTheme{}.Color(colorNameTileDefault, theme.VariantLight))
+	assert.Equal(tileDefaultColorVariantDark, mainTheme{}.Color(colorNameTileDefault, theme.VariantDark))
 
 	assert.Equal(theme.DefaultTheme().Icon(theme.IconNameAccount), mainTheme{}.Icon(theme.IconNameAccount))
 	assert.Equal(theme.DefaultTheme().Size(theme.SizeNameSeparatorThickness), mainTheme{}.Size(theme.SizeNameSeparatorThickness))

@@ -7,6 +7,14 @@ import (
 	"fyne.io/fyne/v2/theme"
 )
 
+const colorNameTileDefault = "tileDefault"
+
+var (
+	lightGray                    = color.RGBA{211, 211, 211, alpha}
+	tileDefaultColorVariantLight = color.RGBA{180, 180, 180, alpha}
+	tileDefaultColorVariantDark  = color.Gray16{32767}
+)
+
 var (
 	// Ensure there are compile errors if the theme interface is not implemented
 	_ fyne.Theme = mainTheme{}
@@ -17,7 +25,14 @@ type mainTheme struct{}
 
 func (mainTheme) Color(name fyne.ThemeColorName, variant fyne.ThemeVariant) color.Color {
 	if variant == theme.VariantLight && name == theme.ColorNameBackground {
-		return color.RGBA{211, 211, 211, alpha} // Light Gray
+		return lightGray
+	}
+	if name == colorNameTileDefault {
+		if variant == theme.VariantLight {
+			return tileDefaultColorVariantLight
+		} else if variant == theme.VariantDark {
+			return tileDefaultColorVariantDark
+		}
 	}
 	return theme.DefaultTheme().Color(name, variant)
 }
