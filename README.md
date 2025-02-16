@@ -8,7 +8,8 @@
 
 This is an implementation of minesweeper in golang, made with the ui framework fyne.io
 
-![](img/screenshots/screenshot-difficulty-expert.png)
+![](img/screenshots/difficulty-expert-dark.png#gh-dark-mode-only)
+![](img/screenshots/difficulty-expert-light.png#gh-light-mode-only)
 
 ## Table of Contents
 
