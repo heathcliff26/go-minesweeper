@@ -143,14 +143,15 @@ func (t *Tile) DoubleTapped(_ *fyne.PointEvent) {
 }
 
 // Update the tile render depending on the current state of it's backing Field
-func (t *Tile) updateContent() {
+func (t *Tile) Refresh() {
 	t.lUpdate.Lock()
 	defer t.lUpdate.Unlock()
+
+	defer canvas.Refresh(t)
 
 	t.icon.Hidden = true
 	t.label.Hidden = true
 	t.background.FillColor = theme.Color(colorNameTileDefault)
-	defer t.Refresh()
 
 	switch {
 	case t.Flagged() && !t.Checked():
@@ -189,7 +190,7 @@ func (t *Tile) Reset() {
 	t.field.Checked = false
 	t.field.Content = minesweeper.Unknown
 	t.marking = HelpMarkingNone
-	t.updateContent()
+	t.Refresh()
 }
 
 // Returns if the tiles field is checked
@@ -208,7 +209,7 @@ func (t *Tile) SetField(f minesweeper.Field) {
 		return
 	}
 	t.field = f
-	t.updateContent()
+	t.Refresh()
 }
 
 // Returns if the tile is flagged as a suspected mine
@@ -235,7 +236,7 @@ func (t *Tile) Flag(v bool) {
 	t.flagged = v
 
 	t.lFlag.Unlock()
-	t.updateContent()
+	t.Refresh()
 }
 
 // Returns the marking of the tile
@@ -249,7 +250,7 @@ func (t *Tile) Mark(m HelpMarking) {
 		return
 	}
 	t.marking = m
-	t.updateContent()
+	t.Refresh()
 }
 
 // Check if the tile should be clickable
