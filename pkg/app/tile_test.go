@@ -208,12 +208,12 @@ func TestDoubleTapped(t *testing.T) {
 	})
 }
 
-func TestTileUpdateContent(t *testing.T) {
+func TestTileRefresh(t *testing.T) {
 	g := NewMinesweeperGrid(minesweeper.Difficulties()[DEFAULT_DIFFICULTY], false)
 	tile := g.Tiles[1][2]
 	tile.CreateRenderer()
 
-	tile.updateContent()
+	tile.Refresh()
 
 	t.Run("Default", func(t *testing.T) {
 		assert := assert.New(t)
@@ -227,7 +227,7 @@ func TestTileUpdateContent(t *testing.T) {
 		t.Cleanup(func() {
 			tile.field.Checked = false
 		})
-		tile.updateContent()
+		tile.Refresh()
 
 		assert.Equal(t, TileBackgroundColor, tile.background.FillColor)
 	})
@@ -237,7 +237,7 @@ func TestTileUpdateContent(t *testing.T) {
 		t.Cleanup(func() {
 			tile.Flag(false)
 		})
-		tile.updateContent()
+		tile.Refresh()
 
 		assert := assert.New(t)
 
@@ -252,7 +252,7 @@ func TestTileUpdateContent(t *testing.T) {
 			tile.Flag(false)
 			tile.field.Content = minesweeper.Unknown
 		})
-		tile.updateContent()
+		tile.Refresh()
 
 		assert := assert.New(t)
 
@@ -263,7 +263,7 @@ func TestTileUpdateContent(t *testing.T) {
 	t.Run("FlaggedAssisted", func(t *testing.T) {
 		tile.Flag(true)
 		tile.Mark(HelpMarkingMine)
-		tile.updateContent()
+		tile.Refresh()
 
 		assert := assert.New(t)
 
@@ -276,7 +276,7 @@ func TestTileUpdateContent(t *testing.T) {
 			tile.Flag(false)
 			tile.field.Content = minesweeper.Unknown
 		})
-		tile.updateContent()
+		tile.Refresh()
 
 		assert.False(tile.icon.Hidden)
 		assert.Equal(assets.ResourceFlagAssistedPng, tile.icon.Resource)
@@ -287,7 +287,7 @@ func TestTileUpdateContent(t *testing.T) {
 		t.Cleanup(func() {
 			tile.field.Content = minesweeper.Unknown
 		})
-		tile.updateContent()
+		tile.Refresh()
 
 		assert := assert.New(t)
 
@@ -299,7 +299,7 @@ func TestTileUpdateContent(t *testing.T) {
 		t.Cleanup(func() {
 			tile.field.Checked = false
 		})
-		tile.updateContent()
+		tile.Refresh()
 
 		assert.False(tile.icon.Hidden)
 		assert.Equal(assets.ResourceMinePng, tile.icon.Resource)
@@ -315,7 +315,7 @@ func TestTileUpdateContent(t *testing.T) {
 
 		for i := 0; i < 10; i++ {
 			tile.field.Content = minesweeper.FieldContent(i)
-			tile.updateContent()
+			tile.Refresh()
 
 			assert.True(tile.label.Hidden)
 		}
@@ -324,7 +324,7 @@ func TestTileUpdateContent(t *testing.T) {
 
 		for i := 1; i < 9; i++ {
 			tile.field.Content = minesweeper.FieldContent(i)
-			tile.updateContent()
+			tile.Refresh()
 
 			assert.False(tile.label.Hidden)
 			assert.Equal(strconv.Itoa(i), tile.label.Text)
@@ -332,12 +332,12 @@ func TestTileUpdateContent(t *testing.T) {
 		}
 
 		tile.field.Content = minesweeper.FieldContent(0)
-		tile.updateContent()
+		tile.Refresh()
 
 		assert.True(tile.label.Hidden)
 
 		tile.field.Content = minesweeper.FieldContent(9)
-		tile.updateContent()
+		tile.Refresh()
 
 		assert.True(tile.label.Hidden)
 	})
@@ -353,7 +353,7 @@ func TestTileReset(t *testing.T) {
 	tile.field.Content = minesweeper.Mine
 	tile.Mark(HelpMarkingMine)
 
-	tile.updateContent()
+	tile.Refresh()
 	tile.Reset()
 
 	assert := assert.New(t)
