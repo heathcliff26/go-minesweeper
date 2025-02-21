@@ -142,7 +142,8 @@ func (t *Tile) DoubleTapped(_ *fyne.PointEvent) {
 	go t.grid.TapNeighbours(t.pos)
 }
 
-// Update the tile render depending on the current state of it's backing Field
+// Update the tile render depending on the current state of it's backing Field.
+// Calls to this function should wrap it in fyne.Do
 func (t *Tile) Refresh() {
 	t.lUpdate.Lock()
 	defer t.lUpdate.Unlock()
