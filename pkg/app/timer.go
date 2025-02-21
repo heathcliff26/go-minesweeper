@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
 )
 
@@ -88,5 +89,5 @@ func (t *Timer) Running() bool {
 // Refresh the timer from it's current values
 func (t *Timer) refresh() {
 	t.Label.Text = fmt.Sprintf("%04d", t.Seconds)
-	t.Label.Refresh()
+	fyne.Do(t.Label.Refresh)
 }

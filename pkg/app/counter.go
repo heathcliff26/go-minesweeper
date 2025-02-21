@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"sync"
 
+	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
 )
 
@@ -40,7 +41,7 @@ func (m *Counter) refresh() {
 	} else {
 		m.Label.Text = fmt.Sprintf("%02d", m.Count)
 	}
-	m.Label.Refresh()
+	fyne.Do(m.Label.Refresh)
 }
 
 // Increase the counter
