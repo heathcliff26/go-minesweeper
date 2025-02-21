@@ -29,15 +29,6 @@ var (
 	setup       sync.Once
 )
 
-func goroutineID() (id uint64) {
-	var buf [30]byte
-	runtime.Stack(buf[:], false)
-	for i := 10; buf[i] != ' '; i++ {
-		id = id*10 + uint64(buf[i]&15)
-	}
-	return id
-}
-
 func (d *gLDriver) SetSystemTrayMenu(m *fyne.Menu) {
 	setup.Do(func() {
 		d.trayStart, d.trayStop = systray.RunWithExternalLoop(func() {
@@ -61,7 +52,9 @@ func (d *gLDriver) SetSystemTrayMenu(m *fyne.Menu) {
 			}
 
 			// it must be refreshed after init, so an earlier call would have been ineffective
-			d.refreshSystray(m)
+			runOnMain(func() {
+				d.refreshSystray(m)
+			})
 		}, func() {
 			// anything required for tear-down
 		})
@@ -135,14 +128,12 @@ func itemForMenuItem(i *fyne.MenuItem, parent *systray.MenuItem) *systray.MenuIt
 }
 
 func (d *gLDriver) refreshSystray(m *fyne.Menu) {
-	runOnMain(func() {
-		d.systrayMenu = m
+	d.systrayMenu = m
 
-		systray.ResetMenu()
-		d.refreshSystrayMenu(m, nil)
+	systray.ResetMenu()
+	d.refreshSystrayMenu(m, nil)
 
-		addMissingQuitForMenu(m, d)
-	})
+	addMissingQuitForMenu(m, d)
 }
 
 func (d *gLDriver) refreshSystrayMenu(m *fyne.Menu, parent *systray.MenuItem) {
@@ -159,7 +150,7 @@ func (d *gLDriver) refreshSystrayMenu(m *fyne.Menu, parent *systray.MenuItem) {
 		go func() {
 			for range item.ClickedCh {
 				if fn != nil {
-					fn()
+					runOnMain(fn)
 				}
 			}
 		}()
@@ -175,13 +166,11 @@ func (d *gLDriver) SetSystemTrayIcon(resource fyne.Resource) {
 		return
 	}
 
-	runOnMain(func() {
-		if _, ok := resource.(*theme.ThemedResource); ok {
-			systray.SetTemplateIcon(img, img)
-		} else {
-			systray.SetIcon(img)
-		}
-	})
+	if _, ok := resource.(*theme.ThemedResource); ok {
+		systray.SetTemplateIcon(img, img)
+	} else {
+		systray.SetIcon(img)
+	}
 }
 
 func (d *gLDriver) SystemTrayMenu() *fyne.Menu {

@@ -18,6 +18,13 @@ type Check struct {
 	Text    string
 	Checked bool
 
+	// Partial check is when there is an indeterminate state (usually meaning that child items are some-what checked).
+	// Turning this on will override the checked state and show a dash icon (neither checked nor unchecked).
+	// The user interaction cannot turn this on, tapping a partial check state will set `Checked` to true.
+	//
+	// Since: 2.6
+	Partial bool
+
 	OnChanged func(bool) `json:"-"`
 
 	focused bool
@@ -64,16 +71,15 @@ func (c *Check) Bind(data binding.Bool) {
 }
 
 // SetChecked sets the checked state and refreshes widget
+// If the `Partial` state is set this will be turned off to respect the `checked` bool passed in here.
 func (c *Check) SetChecked(checked bool) {
-	c.propertyLock.Lock()
-	if checked == c.Checked {
-		c.propertyLock.Unlock()
+	if checked == c.Checked && !c.Partial {
 		return
 	}
 
+	c.Partial = false
 	c.Checked = checked
 	onChanged := c.OnChanged
-	c.propertyLock.Unlock()
 
 	if onChanged != nil {
 		onChanged(checked)
@@ -163,8 +169,6 @@ func (c *Check) CreateRenderer() fyne.WidgetRenderer {
 	bg := canvas.NewImageFromResource(th.Icon(theme.IconNameCheckButtonFill))
 	icon := canvas.NewImageFromResource(th.Icon(theme.IconNameCheckButton))
 
-	c.propertyLock.RLock()
-	defer c.propertyLock.RUnlock()
 	text := canvas.NewText(c.Text, th.Color(theme.ColorNameForeground, v))
 	text.Alignment = fyne.TextAlignLeading
 
@@ -218,9 +222,7 @@ func (c *Check) TypedKey(key *fyne.KeyEvent) {}
 //
 // Since: 2.4
 func (c *Check) SetText(text string) {
-	c.propertyLock.Lock()
 	c.Text = text
-	c.propertyLock.Unlock()
 	c.Refresh()
 }
 
@@ -285,10 +287,7 @@ func (c *checkRenderer) MinSize() fyne.Size {
 	pad4 := th.Size(theme.SizeNameInnerPadding) * 2
 	min := c.label.MinSize().Add(fyne.NewSize(th.Size(theme.SizeNameInlineIcon)+pad4, pad4))
 
-	c.check.propertyLock.RLock()
-	text := c.check.Text
-	c.check.propertyLock.RUnlock()
-	if text != "" {
+	if c.check.Text != "" {
 		min.Add(fyne.NewSize(th.Size(theme.SizeNamePadding), 0))
 	}
 
@@ -323,7 +322,7 @@ func (c *checkRenderer) Layout(size fyne.Size) {
 func (c *checkRenderer) applyTheme(th fyne.Theme, v fyne.ThemeVariant) {
 	c.label.Color = th.Color(theme.ColorNameForeground, v)
 	c.label.TextSize = th.Size(theme.SizeNameText)
-	if c.check.disabled.Load() {
+	if c.check.Disabled() {
 		c.label.Color = th.Color(theme.ColorNameDisabled, v)
 	}
 }
@@ -332,12 +331,10 @@ func (c *checkRenderer) Refresh() {
 	th := c.check.Theme()
 	v := fyne.CurrentApp().Settings().ThemeVariant()
 
-	c.check.propertyLock.RLock()
 	c.applyTheme(th, v)
 	c.updateLabel()
 	c.updateResource(th)
 	c.updateFocusIndicator(th, v)
-	c.check.propertyLock.RUnlock()
 	canvas.Refresh(c.check.super())
 }
 
@@ -353,12 +350,16 @@ func (c *checkRenderer) updateResource(th fyne.Theme) {
 	bgRes := theme.NewThemedResource(th.Icon(theme.IconNameCheckButtonFill))
 	bgRes.ColorName = theme.ColorNameInputBackground
 
-	if c.check.Checked {
+	if c.check.Partial {
+		res = theme.NewThemedResource(th.Icon(theme.IconNameCheckButtonPartial))
+		res.ColorName = theme.ColorNamePrimary
+		bgRes.ColorName = theme.ColorNameBackground
+	} else if c.check.Checked {
 		res = theme.NewThemedResource(th.Icon(theme.IconNameCheckButtonChecked))
 		res.ColorName = theme.ColorNamePrimary
 		bgRes.ColorName = theme.ColorNameBackground
 	}
-	if c.check.disabled.Load() {
+	if c.check.Disabled() {
 		if c.check.Checked {
 			res = theme.NewThemedResource(theme.CheckButtonCheckedIcon())
 		}
@@ -373,7 +374,7 @@ func (c *checkRenderer) updateResource(th fyne.Theme) {
 
 // must be called while holding c.check.propertyLock for reading
 func (c *checkRenderer) updateFocusIndicator(th fyne.Theme, v fyne.ThemeVariant) {
-	if c.check.disabled.Load() {
+	if c.check.Disabled() {
 		c.focusIndicator.FillColor = color.Transparent
 	} else if c.check.focused {
 		c.focusIndicator.FillColor = th.Color(theme.ColorNameFocus, v)
@@ -385,6 +386,10 @@ func (c *checkRenderer) updateFocusIndicator(th fyne.Theme, v fyne.ThemeVariant)
 }
 
 func focusIfNotMobile(w fyne.Widget) {
+	if w == nil {
+		return
+	}
+
 	if !fyne.CurrentDevice().IsMobile() {
 		if c := fyne.CurrentApp().Driver().CanvasForObject(w); c != nil {
 			c.Focus(w.(fyne.Focusable))

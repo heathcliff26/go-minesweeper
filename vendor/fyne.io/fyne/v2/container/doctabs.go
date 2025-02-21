@@ -172,7 +172,7 @@ func (t *DocTabs) SetItems(items []*TabItem) {
 
 // SetTabLocation sets the location of the tab bar
 func (t *DocTabs) SetTabLocation(l TabLocation) {
-	t.location = tabsAdjustedLocation(l)
+	t.location = tabsAdjustedLocation(l, t)
 	t.Refresh()
 }
 
@@ -337,6 +337,7 @@ func (r *docTabsRenderer) buildTabButtons(count int, buttons *fyne.Container) {
 			item.button = &tabButton{
 				onTapped: func() { r.docTabs.Select(item) },
 				onClosed: func() { r.docTabs.close(item) },
+				tabs:     r.tabs,
 			}
 		}
 		button := item.button

@@ -7,11 +7,12 @@ import (
 	_ "image/png" // for the icon
 	"runtime"
 	"sync"
+	"time"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/driver/desktop"
-	"fyne.io/fyne/v2/internal/driver/common"
+	"fyne.io/fyne/v2/internal/cache"
 	"fyne.io/fyne/v2/internal/painter/gl"
 	"fyne.io/fyne/v2/internal/scale"
 
@@ -45,10 +46,7 @@ var cursorMap map[desktop.Cursor]*Cursor
 var _ fyne.Window = (*window)(nil)
 
 type window struct {
-	common.Window
-
 	viewport   *glfw.Window
-	viewLock   sync.RWMutex
 	createLock sync.Once
 	decorate   bool
 	closing    bool
@@ -95,6 +93,8 @@ type window struct {
 	shouldExpand                    bool
 
 	pending []func()
+
+	lastWalkedTime time.Time
 }
 
 func (w *window) SetFullScreen(full bool) {
@@ -466,99 +466,86 @@ func (w *window) DetachCurrentContext() {
 	glfw.DetachCurrentContext()
 }
 
-func (w *window) rescaleOnMain() {
+func (w *window) RescaleContext() {
 	if w.viewport == nil {
 		return
 	}
 
-	//	if w.fullScreen {
 	w.width, w.height = w.viewport.GetSize()
 	scaledFull := fyne.NewSize(
 		scale.ToFyneCoordinate(w.canvas, w.width),
 		scale.ToFyneCoordinate(w.canvas, w.height))
 	w.canvas.Resize(scaledFull)
-	return
-	//	}
 
-	//	size := w.canvas.size.Union(w.canvas.MinSize())
-	//	newWidth, newHeight := w.screenSize(size)
-	//	w.viewport.SetSize(newWidth, newHeight)
+	// Ensure textures re-rasterize at the new scale
+	cache.DeleteTextTexturesFor(w.canvas)
+	w.canvas.content.Refresh()
 }
 
 func (w *window) create() {
-	runOnMain(func() {
-		// we can't hide the window in webgl, so there might be some artifact
-		initWindowHints()
+	// we can't hide the window in webgl, so there might be some artifact
+	initWindowHints()
 
-		pixWidth, pixHeight := w.screenSize(w.canvas.size)
-		pixWidth = int(fyne.Max(float32(pixWidth), float32(w.width)))
-		if pixWidth == 0 {
-			pixWidth = 10
-		}
-		pixHeight = int(fyne.Max(float32(pixHeight), float32(w.height)))
-		if pixHeight == 0 {
-			pixHeight = 10
-		}
+	pixWidth, pixHeight := w.screenSize(w.canvas.size)
+	pixWidth = int(fyne.Max(float32(pixWidth), float32(w.width)))
+	if pixWidth == 0 {
+		pixWidth = 10
+	}
+	pixHeight = int(fyne.Max(float32(pixHeight), float32(w.height)))
+	if pixHeight == 0 {
+		pixHeight = 10
+	}
 
-		win, err := glfw.CreateWindow(pixWidth, pixHeight, w.title, nil, nil)
-		if err != nil {
-			w.driver.initFailed("window creation error", err)
-			return
-		}
+	win, err := glfw.CreateWindow(pixWidth, pixHeight, w.title, nil, nil)
+	if err != nil {
+		w.driver.initFailed("window creation error", err)
+		return
+	}
 
-		w.viewLock.Lock()
-		w.viewport = win
-		w.viewLock.Unlock()
-	})
+	w.viewport = win
 
 	if w.view() == nil { // something went wrong above, it will have been logged
 		return
 	}
 
 	// run the GL init on the draw thread
-	runOnDraw(w, func() {
+	w.RunWithContext(func() {
 		w.canvas.SetPainter(gl.NewPainter(w.canvas, w))
 		w.canvas.Painter().Init()
 	})
 
-	runOnMain(func() {
-		w.setDarkMode()
+	w.setDarkMode()
 
-		win := w.view()
-		win.SetCloseCallback(w.closed)
-		win.SetPosCallback(w.moved)
-		win.SetSizeCallback(w.resized)
-		win.SetFramebufferSizeCallback(w.frameSized)
-		win.SetRefreshCallback(w.refresh)
-		win.SetCursorPosCallback(w.mouseMoved)
-		win.SetMouseButtonCallback(w.mouseClicked)
-		win.SetScrollCallback(w.mouseScrolled)
-		win.SetKeyCallback(w.keyPressed)
-		win.SetCharCallback(w.charInput)
-		win.SetFocusCallback(w.focused)
+	win.SetCloseCallback(w.closed)
+	win.SetPosCallback(w.moved)
+	win.SetSizeCallback(w.resized)
+	win.SetFramebufferSizeCallback(w.frameSized)
+	win.SetRefreshCallback(w.refresh)
+	win.SetCursorPosCallback(w.mouseMoved)
+	win.SetMouseButtonCallback(w.mouseClicked)
+	win.SetScrollCallback(w.mouseScrolled)
+	win.SetKeyCallback(w.keyPressed)
+	win.SetCharCallback(w.charInput)
+	win.SetFocusCallback(w.focused)
 
-		w.canvas.detectedScale = w.detectScale()
-		w.canvas.scale = w.calculatedScale()
-		w.canvas.texScale = w.detectTextureScale()
-		// update window size now we have scaled detected
-		w.fitContent()
+	w.canvas.detectedScale = w.detectScale()
+	w.canvas.scale = w.calculatedScale()
+	w.canvas.texScale = w.detectTextureScale()
+	// update window size now we have scaled detected
+	w.fitContent()
 
-		for _, fn := range w.pending {
-			fn()
-		}
+	for _, fn := range w.pending {
+		fn()
+	}
 
-		w.requestedWidth, w.requestedHeight = w.width, w.height
+	w.requestedWidth, w.requestedHeight = w.width, w.height
 
-		width, height := win.GetSize()
-		w.processFrameSized(width, height)
-		w.processResized(width, height)
-	})
+	width, height := win.GetSize()
+	w.processFrameSized(width, height)
+	w.processResized(width, height)
 }
 
 func (w *window) view() *glfw.Window {
-	w.viewLock.RLock()
-	defer w.viewLock.RUnlock()
-
 	if w.closing {
 		return nil
 	}

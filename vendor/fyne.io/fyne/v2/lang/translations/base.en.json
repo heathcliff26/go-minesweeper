@@ -22,11 +22,24 @@
     "Show Hidden Files": "Show Hidden Files",
     "Undo": "Undo",
     "Yes": "Yes",
-
     "file.name": {
         "other": "Name"
     },
     "file.parent": {
         "other": "Parent"
-    }
+    },
+    "friday": "Friday",
+    "friday.short": "Fri",
+    "monday": "Monday",
+    "monday.short": "Mon",
+    "saturday": "Saturday",
+    "saturday.short": "Sat",
+    "sunday": "Sunday",
+    "sunday.short": "Sun",
+    "thursday": "Thursday",
+    "thursday.short": "Thu",
+    "tuesday": "Tuesday",
+    "tuesday.short": "Tue",
+    "wednesday": "Wednesday",
+    "wednesday.short": "Wed"
 }

@@ -4,7 +4,6 @@ import (
 	"math"
 	"runtime"
 	"strconv"
-	"sync/atomic"
 	"time"
 
 	"fyne.io/fyne/v2"
@@ -13,6 +12,7 @@ import (
 	"fyne.io/fyne/v2/internal"
 	"fyne.io/fyne/v2/internal/animation"
 	intapp "fyne.io/fyne/v2/internal/app"
+	"fyne.io/fyne/v2/internal/async"
 	"fyne.io/fyne/v2/internal/build"
 	"fyne.io/fyne/v2/internal/cache"
 	intdriver "fyne.io/fyne/v2/internal/driver"
@@ -60,7 +60,8 @@ type driver struct {
 	theme           fyne.ThemeVariant
 	onConfigChanged func(*Configuration)
 	painting        bool
-	running         atomic.Bool
+	running         bool
+	queuedFuncs     *async.UnboundedChan[func()]
 }
 
 // Declare conformity with Driver
@@ -71,11 +72,41 @@ func init() {
 	runtime.LockOSThread()
 }
 
+func (d *driver) DoFromGoroutine(fn func(), wait bool) {
+	caller := func() {
+		if d.queuedFuncs == nil {
+			fn() // before the app actually starts
+			return
+		}
+		var done chan struct{}
+		if wait {
+			done = common.DonePool.Get()
+			defer common.DonePool.Put(done)
+		}
+
+		d.queuedFuncs.In() <- func() {
+			fn()
+			if wait {
+				done <- struct{}{}
+			}
+		}
+
+		if wait {
+			<-done
+		}
+	}
+
+	if wait {
+		async.EnsureNotMain(caller)
+	} else {
+		caller()
+	}
+
+}
+
 func (d *driver) CreateWindow(title string) fyne.Window {
 	c := newCanvas(fyne.CurrentDevice()).(*canvas) // silence lint
 	ret := &window{title: title, canvas: c, isChild: len(d.windows) > 0}
-	ret.InitEventQueue()
-	go ret.RunEventQueue()
 	c.setContent(&fynecanvas.Rectangle{FillColor: theme.Color(theme.ColorNameBackground)})
 	c.SetPainter(pgl.NewPainter(c, ret))
 	d.windows = append(d.windows, ret)
@@ -101,6 +132,10 @@ func (d *driver) currentWindow() *window {
 	}
 
 	return last
+}
+
+func (d *driver) Clipboard() fyne.Clipboard {
+	return NewClipboard()
 }
 
 func (d *driver) RenderedTextSize(text string, textSize float32, style fyne.TextStyle, source fyne.Resource) (size fyne.Size, baseline float32) {
@@ -137,18 +172,41 @@ func (d *driver) Quit() {
 }
 
 func (d *driver) Run() {
-	if !d.running.CompareAndSwap(false, true) {
+	if d.running {
 		return // Run was called twice.
 	}
+	d.running = true
 
 	app.Main(func(a app.App) {
+		async.SetMainGoroutine()
 		d.app = a
-		settingsChange := make(chan fyne.Settings)
-		fyne.CurrentApp().Settings().AddChangeListener(settingsChange)
+		d.queuedFuncs = async.NewUnboundedChan[func()]()
+
+		fyne.CurrentApp().Settings().AddListener(func(s fyne.Settings) {
+			painter.ClearFontCache()
+			cache.ResetThemeCaches()
+			intapp.ApplySettingsWithCallback(s, fyne.CurrentApp(), func(w fyne.Window) {
+				c, ok := w.Canvas().(*canvas)
+				if !ok {
+					return
+				}
+				c.applyThemeOutOfTreeObjects()
+			})
+		})
+
 		draw := time.NewTicker(time.Second / 60)
 		defer func() {
 			l := fyne.CurrentApp().Lifecycle().(*intapp.Lifecycle)
-			l.WaitForEvents()
+
+			// exhaust the event queue
+			go func() {
+				l.WaitForEvents()
+				d.queuedFuncs.Close()
+			}()
+			for fn := range d.queuedFuncs.Out() {
+				fn()
+			}
+
 			l.DestroyEventQueue()
 		}()
 
@@ -156,16 +214,8 @@ func (d *driver) Run() {
 			select {
 			case <-draw.C:
 				d.sendPaintEvent()
-			case set := <-settingsChange:
-				painter.ClearFontCache()
-				cache.ResetThemeCaches()
-				intapp.ApplySettingsWithCallback(set, fyne.CurrentApp(), func(w fyne.Window) {
-					c, ok := w.Canvas().(*canvas)
-					if !ok {
-						return
-					}
-					c.applyThemeOutOfTreeObjects()
-				})
+			case fn := <-d.queuedFuncs.Out():
+				fn()
 			case e, ok := <-a.Events():
 				if !ok {
 					return // events channel closed, app done
@@ -248,7 +298,7 @@ func (d *driver) handleLifecycle(e lifecycle.Event, w *window) {
 	switch e.Crosses(lifecycle.StageFocused) {
 	case lifecycle.CrossOn: // foregrounding
 		if f := fyne.CurrentApp().Lifecycle().(*intapp.Lifecycle).OnEnteredForeground(); f != nil {
-			w.QueueEvent(f)
+			f()
 		}
 	case lifecycle.CrossOff: // will enter background
 		if runtime.GOOS == "darwin" || runtime.GOOS == "ios" {
@@ -261,7 +311,7 @@ func (d *driver) handleLifecycle(e lifecycle.Event, w *window) {
 			d.app.Publish()
 		}
 		if f := fyne.CurrentApp().Lifecycle().(*intapp.Lifecycle).OnExitedForeground(); f != nil {
-			w.QueueEvent(f)
+			f()
 		}
 	}
 }
@@ -280,6 +330,7 @@ func (d *driver) handlePaint(e paint.Event, w *window) {
 		c.Painter().Init() // we cannot init until the context is set above
 	}
 
+	d.animation.TickAnimations()
 	canvasNeedRefresh := c.FreeDirtyTextures() > 0 || c.CheckDirtyAndClear()
 	if canvasNeedRefresh {
 		newSize := fyne.NewSize(float32(d.currentSize.WidthPx)/c.scale, float32(d.currentSize.HeightPx)/c.scale)
@@ -298,7 +349,7 @@ func (d *driver) handlePaint(e paint.Event, w *window) {
 
 func (d *driver) onStart() {
 	if f := fyne.CurrentApp().Lifecycle().(*intapp.Lifecycle).OnStarted(); f != nil {
-		go f() // don't block main, we don't have window event queue
+		f()
 	}
 }
 
@@ -383,7 +434,7 @@ func (d *driver) tapMoveCanvas(w *window, x, y float32, tapID touch.Sequence) {
 	pos := fyne.NewPos(tapX, tapY+tapYOffset)
 
 	w.canvas.tapMove(pos, int(tapID), func(wid fyne.Draggable, ev *fyne.DragEvent) {
-		w.QueueEvent(func() { wid.Dragged(ev) })
+		wid.Dragged(ev)
 	})
 }
 
@@ -393,14 +444,14 @@ func (d *driver) tapUpCanvas(w *window, x, y float32, tapID touch.Sequence) {
 	pos := fyne.NewPos(tapX, tapY+tapYOffset)
 
 	w.canvas.tapUp(pos, int(tapID), func(wid fyne.Tappable, ev *fyne.PointEvent) {
-		w.QueueEvent(func() { wid.Tapped(ev) })
+		wid.Tapped(ev)
 	}, func(wid fyne.SecondaryTappable, ev *fyne.PointEvent) {
-		w.QueueEvent(func() { wid.TappedSecondary(ev) })
+		wid.TappedSecondary(ev)
 	}, func(wid fyne.DoubleTappable, ev *fyne.PointEvent) {
-		w.QueueEvent(func() { wid.DoubleTapped(ev) })
+		wid.DoubleTapped(ev)
 	}, func(wid fyne.Draggable, ev *fyne.DragEvent) {
 		if math.Abs(float64(ev.Dragged.DX)) <= tapMoveEndThreshold && math.Abs(float64(ev.Dragged.DY)) <= tapMoveEndThreshold {
-			w.QueueEvent(wid.DragEnd)
+			wid.DragEnd()
 			return
 		}
 
@@ -413,11 +464,13 @@ func (d *driver) tapUpCanvas(w *window, x, y float32, tapID touch.Sequence) {
 					ev.Dragged.DY *= tapMoveDecay
 				}
 
-				w.QueueEvent(func() { wid.Dragged(ev) })
+				d.DoFromGoroutine(func() {
+					wid.Dragged(ev)
+				}, true)
 				time.Sleep(time.Millisecond * 16)
 			}
 
-			w.QueueEvent(wid.DragEnd)
+			d.DoFromGoroutine(wid.DragEnd, true)
 		}()
 	})
 }

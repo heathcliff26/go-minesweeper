@@ -1,4 +1,4 @@
-//go:build !no_native_menus && !wasm && !test_web_driver
+//go:build darwin && !no_native_menus
 
 package glfw
 
@@ -179,9 +179,13 @@ func insertNativeMenuItem(nsMenu unsafe.Pointer, item *fyne.MenuItem, nextItemID
 			if _, isThemed := rsc.(*theme.ThemedResource); isThemed {
 				var r, g, b, a C.int
 				C.getTextColorRGBA(&r, &g, &b, &a)
+				content, err := svg.Colorize(rsc.Content(), color.NRGBA{R: uint8(r), G: uint8(g), B: uint8(b), A: uint8(a)})
+				if err != nil {
+					fyne.LogError("", err)
+				}
 				rsc = &fyne.StaticResource{
 					StaticName:    rsc.Name(),
-					StaticContent: svg.Colorize(rsc.Content(), color.NRGBA{R: uint8(r), G: uint8(g), B: uint8(b), A: uint8(a)}),
+					StaticContent: content,
 				}
 			}
 			size := int(C.menuFontSize())
@@ -246,7 +250,7 @@ func registerCallback(w *window, item *fyne.MenuItem, nextItemID int) int {
 		callbacks = append(callbacks, &menuCallbacks{
 			action: func() {
 				if item.Action != nil {
-					w.QueueEvent(item.Action)
+					item.Action()
 				}
 			},
 			enabled: func() bool {
@@ -263,10 +267,6 @@ func registerCallback(w *window, item *fyne.MenuItem, nextItemID int) int {
 
 func setExceptionCallback(cb func(string)) {
 	ecb = cb
-}
-
-func hasNativeMenu() bool {
-	return true
 }
 
 //export menuCallback

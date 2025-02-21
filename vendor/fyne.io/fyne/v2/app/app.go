@@ -19,9 +19,10 @@ import (
 var _ fyne.App = (*fyneApp)(nil)
 
 type fyneApp struct {
-	driver   fyne.Driver
-	icon     fyne.Resource
-	uniqueID string
+	driver    fyne.Driver
+	clipboard fyne.Clipboard
+	icon      fyne.Resource
+	uniqueID  string
 
 	cloud     fyne.CloudProvider
 	lifecycle app.Lifecycle
@@ -67,7 +68,7 @@ func (a *fyneApp) NewWindow(title string) fyne.Window {
 }
 
 func (a *fyneApp) Run() {
-	go a.lifecycle.RunEventQueue()
+	go a.lifecycle.RunEventQueue(a.driver.DoFromGoroutine)
 	a.driver.Run()
 }
 
@@ -112,6 +113,10 @@ func (a *fyneApp) newDefaultPreferences() *preferences {
 	return p
 }
 
+func (a *fyneApp) Clipboard() fyne.Clipboard {
+	return a.clipboard
+}
+
 // New returns a new application instance with the default driver and no unique ID (unless specified in FyneApp.toml)
 func New() fyne.App {
 	if meta.ID == "" {
@@ -140,8 +145,8 @@ func makeStoreDocs(id string, s *store) *internal.Docs {
 	}
 }
 
-func newAppWithDriver(d fyne.Driver, id string) fyne.App {
-	newApp := &fyneApp{uniqueID: id, driver: d}
+func newAppWithDriver(d fyne.Driver, clipboard fyne.Clipboard, id string) fyne.App {
+	newApp := &fyneApp{uniqueID: id, clipboard: clipboard, driver: d}
 	fyne.SetCurrentApp(newApp)
 
 	newApp.prefs = newApp.newDefaultPreferences()

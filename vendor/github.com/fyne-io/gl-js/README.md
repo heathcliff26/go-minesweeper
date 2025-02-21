@@ -1,4 +1,8 @@
-# gl [![Build Status](https://travis-ci.org/goxjs/gl.svg?branch=master)](https://travis-ci.org/goxjs/gl) [![GoDoc](https://godoc.org/github.com/fyne-io/gl-js?status.svg)](https://godoc.org/github.com/fyne-io/gl-js)
+[![Tests](https://github.com/fyne-io/gl-js/actions/workflows/tests.yml/badge.svg)](https://github.com/fyne-io/gl-js/actions/workflows/tests.yml)
+[![Static Analysis](https://github.com/fyne-io/gl-js/actions/workflows/analysis.yml/badge.svg)](https://github.com/fyne-io/gl-js/actions/workflows/analysis.yml)
+[![GoDoc](https://godoc.org/github.com/fyne-io/gl-js?status.svg)](https://godoc.org/github.com/fyne-io/gl-js)
+
+# GL
 
 Package gl is a Go cross-platform binding for OpenGL, with an OpenGL ES 2-like API.
 
@@ -14,22 +18,19 @@ This is a fork of golang.org/x/mobile/gl package with [CL 8793](https://go-revie
 merged in and Windows support added. This package is fully functional, but may eventually become superceded by
 the new x/mobile/gl plan. It will exist and be fully supported until it can be safely replaced by a better package.
 
-Installation
-------------
+## Installation
 
 ```bash
-go get -u github.com/fyne-io/gl-js/...
-GOARCH=js go get -u -d github.com/fyne-io/gl-js/...
+go get github.com/fyne-io/gl-js
 ```
 
-Usage
------
+## Usage
 
 This OpenGL binding has a ContextWatcher, which implements [glfw.ContextWatcher](https://godoc.org/github.com/goxjs/glfw#ContextWatcher)
 interface. Recommended usage is with github.com/fyne-io/glfw-js package, which accepts a ContextWatcher in its Init, and takes on the responsibility
 of notifying it when context is made current or detached.
 
-```Go
+```go
 if err := glfw.Init(gl.ContextWatcher); err != nil {
 	// Handle error.
 }

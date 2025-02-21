@@ -3,6 +3,7 @@ package ico
 import (
 	"bytes"
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"image"
 	"image/color"
@@ -13,18 +14,25 @@ import (
 	bmp "github.com/jsummers/gobmp"
 )
 
+var pngHeader = []byte{'\x89', 'P', 'N', 'G', '\r', '\n', '\x1a', '\n'}
+
 func init() {
 	image.RegisterFormat("ico", "\x00\x00\x01\x00?????\x00", Decode, DecodeConfig)
 }
-
-// ---- public ----
 
 func Decode(r io.Reader) (image.Image, error) {
 	var d decoder
 	if err := d.decode(r); err != nil {
 		return nil, err
 	}
-	return d.images[0], nil
+	img := d.images[0]
+	// return the image with the highest resolution, if any
+	for i := 1; i < len(d.images); i++ {
+		if d.images[i].Bounds().Dx() > img.Bounds().Dx() {
+			img = d.images[i]
+		}
+	}
+	return img, nil
 }
 
 func DecodeAll(r io.Reader) ([]image.Image, error) {
@@ -61,8 +69,6 @@ func DecodeConfig(r io.Reader) (image.Config, error) {
 	d.forgeBMPHead(buf, &e)
 	return bmp.DecodeConfig(bytes.NewReader(buf))
 }
-
-// ---- private ----
 
 type direntry struct {
 	Width   byte
@@ -147,6 +153,9 @@ func (d *decoder) decodeHeader(r io.Reader) error {
 	return nil
 }
 
+// ErrorNoEntries is returned when the decoded image contains no entries.
+var ErrorNoEntries = errors.New("no entries")
+
 func (d *decoder) decodeEntries(r io.Reader) error {
 	n := int(d.head.Number)
 	d.entries = make([]direntry, n)
@@ -154,6 +163,9 @@ func (d *decoder) decodeEntries(r io.Reader) error {
 		if err := binary.Read(r, binary.LittleEndian, &(d.entries[i])); err != nil {
 			return err
 		}
+	}
+	if len(d.entries) < 1 {
+		return ErrorNoEntries
 	}
 	return nil
 }
@@ -209,5 +221,3 @@ func (d *decoder) forgeBMPHead(buf []byte, e *direntry) (mask []byte) {
 	binary.LittleEndian.PutUint32(buf[10:14], offset)
 	return
 }
-
-var pngHeader = []byte{'\x89', 'P', 'N', 'G', '\r', '\n', '\x1a', '\n'}
