@@ -5,13 +5,13 @@ import (
 
 	"github.com/heathcliff26/go-minesweeper/pkg/app/locations"
 	"github.com/heathcliff26/go-minesweeper/pkg/minesweeper"
-	"gopkg.in/yaml.v3"
+	"sigs.k8s.io/yaml"
 )
 
 type Preferences struct {
-	DifficultyInt int  `yaml:"difficulty"`
-	AssistedMode  bool `yaml:"assistedMode"`
-	GameAlgorithm int  `yaml:"gameAlgorithm"`
+	DifficultyInt int  `json:"difficulty"`
+	AssistedMode  bool `json:"assistedMode"`
+	GameAlgorithm int  `json:"gameAlgorithm"`
 }
 
 // Only used for testing, as we don't want to touch the actual file that might be on the system.
