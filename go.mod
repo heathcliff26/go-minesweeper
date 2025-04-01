@@ -3,7 +3,7 @@ module github.com/heathcliff26/go-minesweeper
 go 1.24.0
 
 require (
-	fyne.io/fyne/v2 v2.5.4
+	fyne.io/fyne/v2 v2.5.5
 	github.com/stretchr/testify v1.10.0
 	sigs.k8s.io/yaml v1.4.0
 )
