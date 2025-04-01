@@ -28,9 +28,10 @@ func (mainTheme) Color(name fyne.ThemeColorName, variant fyne.ThemeVariant) colo
 		return lightGray
 	}
 	if name == colorNameTileDefault {
-		if variant == theme.VariantLight {
+		switch variant {
+		case theme.VariantLight:
 			return tileDefaultColorVariantLight
-		} else if variant == theme.VariantDark {
+		case theme.VariantDark:
 			return tileDefaultColorVariantDark
 		}
 	}
@@ -55,9 +56,10 @@ type borderTheme struct {
 
 func (borderTheme) Color(name fyne.ThemeColorName, variant fyne.ThemeVariant) color.Color {
 	if name == theme.ColorNameShadow {
-		if variant == theme.VariantLight {
+		switch variant {
+		case theme.VariantLight:
 			return color.Black
-		} else if variant == theme.VariantDark {
+		case theme.VariantDark:
 			return color.White
 		}
 	}

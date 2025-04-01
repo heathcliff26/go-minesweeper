@@ -92,7 +92,7 @@ func measureLoop(name string, iterations int, f func(res chan time.Duration)) st
 				output += " "
 			}
 		}
-		if !(iterations%measurementsPerLine == 0) {
+		if iterations%measurementsPerLine != 0 {
 			output += "\n"
 		}
 	}

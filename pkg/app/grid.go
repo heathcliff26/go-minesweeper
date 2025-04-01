@@ -379,7 +379,7 @@ func (g *MinesweeperGrid) Autosolve(delay time.Duration) bool {
 	}()
 	g.updateFromStatus(s)
 
-	for i, safePos := 0, s.ObviousSafePos(); len(safePos) > 0 && !(s.GameOver() || s.GameWon()); safePos = s.ObviousSafePos() {
+	for i, safePos := 0, s.ObviousSafePos(); len(safePos) > 0 && !s.GameOver() && !s.GameWon(); safePos = s.ObviousSafePos() {
 		mines := s.ObviousMines()
 
 		slog.Debug("Autosolve: Checking safe positions", slog.Int("iteration", i))
