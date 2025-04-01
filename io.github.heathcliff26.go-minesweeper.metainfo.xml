@@ -71,6 +71,12 @@
     </screenshots>
 
     <releases>
+        <release version="v0.7.2" date="2025-04-01" type="stable">
+            <description>
+                <p>Bumped framework version</p>
+            </description>
+            <url type="details">https://github.com/heathcliff26/go-minesweeper/releases/tag/v0.7.2</url>
+        </release>
         <release version="v0.7.1" date="2025-03-01" type="stable">
             <description>
                 <p>Fixed grid tiles not updating immediatly when switching theme</p>
