@@ -43,5 +43,5 @@ func (b *Button) TappedSecondary(_ *fyne.PointEvent) {}
 // Set label text to the given string and refresh widget
 func (b *Button) SetText(text string) {
 	b.Label.Text = text
-	b.Refresh()
+	fyne.Do(b.Refresh)
 }

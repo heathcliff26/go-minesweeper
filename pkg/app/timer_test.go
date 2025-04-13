@@ -28,8 +28,9 @@ func TestTimer(t *testing.T) {
 		assert.True(timer.running)
 
 		time.Sleep(10 * time.Second)
-
 		timer.Stop()
+		// Wait extra to ensure updates finished
+		time.Sleep(time.Second)
 
 		assert.False(timer.running)
 		assert.Equal(10, timer.Seconds)
@@ -64,6 +65,8 @@ func TestTimer(t *testing.T) {
 
 		time.Sleep(10 * time.Second)
 		timer.Stop()
+		// Wait extra to ensure updates finished
+		time.Sleep(time.Second)
 
 		assert.Equal(10, timer.Seconds)
 	})
