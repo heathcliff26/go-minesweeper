@@ -4,6 +4,7 @@ import (
 	"context"
 	"image"
 	"math"
+	"sync"
 	"time"
 
 	"fyne.io/fyne/v2"
@@ -41,6 +42,7 @@ type canvas struct {
 	onTypedRune func(rune)
 
 	touchCancelFunc context.CancelFunc
+	touchCancelLock sync.Mutex
 	touchLastTapped fyne.CanvasObject
 	touchTapCount   int
 }
@@ -309,7 +311,11 @@ func (c *canvas) tapUp(pos fyne.Position, tapID int,
 
 	if c.dragging != nil {
 		previousDelta := c.lastTapDelta[tapID]
-		dragCallback(c.dragging, &fyne.DragEvent{Dragged: previousDelta})
+		ev := &fyne.DragEvent{Dragged: previousDelta}
+		draggedObjDelta := c.dragStart.Subtract(c.dragging.(fyne.CanvasObject).Position())
+		ev.Position = pos.Subtract(c.dragOffset).Add(draggedObjDelta)
+		ev.AbsolutePosition = pos
+		dragCallback(c.dragging, ev)
 
 		c.dragging = nil
 		return
@@ -354,10 +360,13 @@ func (c *canvas) tapUp(pos fyne.Position, tapID int,
 	if duration < tapSecondaryDelay {
 		_, doubleTap := co.(fyne.DoubleTappable)
 		if doubleTap {
+			c.touchCancelLock.Lock()
 			c.touchTapCount++
 			c.touchLastTapped = co
-			if c.touchCancelFunc != nil {
-				c.touchCancelFunc()
+			cancel := c.touchCancelFunc
+			c.touchCancelLock.Unlock()
+			if cancel != nil {
+				cancel()
 				return
 			}
 			go c.waitForDoubleTap(co, ev, tapCallback, doubleTapCallback)
@@ -374,22 +383,35 @@ func (c *canvas) tapUp(pos fyne.Position, tapID int,
 }
 
 func (c *canvas) waitForDoubleTap(co fyne.CanvasObject, ev *fyne.PointEvent, tapCallback func(fyne.Tappable, *fyne.PointEvent), doubleTapCallback func(fyne.DoubleTappable, *fyne.PointEvent)) {
-	var ctx context.Context
-	ctx, c.touchCancelFunc = context.WithDeadline(context.TODO(), time.Now().Add(tapDoubleDelay))
-	defer c.touchCancelFunc()
+	ctx, cancel := context.WithDeadline(context.TODO(), time.Now().Add(tapDoubleDelay))
+	c.touchCancelLock.Lock()
+	c.touchCancelFunc = cancel
+	c.touchCancelLock.Unlock()
+	defer cancel()
+
 	<-ctx.Done()
-	if c.touchTapCount == 2 && c.touchLastTapped == co {
-		if wid, ok := co.(fyne.DoubleTappable); ok {
-			doubleTapCallback(wid, ev)
+	fyne.CurrentApp().Driver().DoFromGoroutine(func() {
+		c.touchCancelLock.Lock()
+		touchCount := c.touchTapCount
+		touchLast := c.touchLastTapped
+		c.touchCancelLock.Unlock()
+
+		if touchCount == 2 && touchLast == co {
+			if wid, ok := co.(fyne.DoubleTappable); ok {
+				doubleTapCallback(wid, ev)
+			}
+		} else {
+			if wid, ok := co.(fyne.Tappable); ok {
+				tapCallback(wid, ev)
+			}
 		}
-	} else {
-		if wid, ok := co.(fyne.Tappable); ok {
-			tapCallback(wid, ev)
-		}
-	}
-	c.touchTapCount = 0
-	c.touchCancelFunc = nil
-	c.touchLastTapped = nil
+
+		c.touchCancelLock.Lock()
+		c.touchTapCount = 0
+		c.touchCancelFunc = nil
+		c.touchLastTapped = nil
+		c.touchCancelLock.Unlock()
+	}, true)
 }
 
 func (c *canvas) windowHeadIsDisplacing() bool {

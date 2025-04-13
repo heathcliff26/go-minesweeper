@@ -7,11 +7,12 @@ import (
 	_ "image/png" // for the icon
 	"runtime"
 	"sync"
+	"time"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/driver/desktop"
-	"fyne.io/fyne/v2/internal/driver/common"
+	"fyne.io/fyne/v2/internal/cache"
 	"fyne.io/fyne/v2/internal/painter/gl"
 	"fyne.io/fyne/v2/internal/scale"
 
@@ -45,14 +46,11 @@ var cursorMap map[desktop.Cursor]*Cursor
 var _ fyne.Window = (*window)(nil)
 
 type window struct {
-	common.Window
-
-	viewport   *glfw.Window
-	viewLock   sync.RWMutex
-	createLock sync.Once
-	decorate   bool
-	closing    bool
-	fixedSize  bool
+	viewport  *glfw.Window
+	created   bool
+	decorate  bool
+	closing   bool
+	fixedSize bool
 
 	cursor   desktop.Cursor
 	canvas   *glCanvas
@@ -95,6 +93,8 @@ type window struct {
 	shouldExpand                    bool
 
 	pending []func()
+
+	lastWalkedTime time.Time
 }
 
 func (w *window) SetFullScreen(full bool) {
@@ -156,26 +156,36 @@ func (w *window) detectScale() float32 {
 }
 
 func (w *window) moved(_ *glfw.Window, x, y int) {
-	w.processMoved(x, y)
+	runOnMain(func() {
+		w.processMoved(x, y)
+	})
 }
 
 func (w *window) resized(_ *glfw.Window, width, height int) {
-	w.canvas.scale = w.calculatedScale()
-	w.processResized(width, height)
+	runOnMain(func() {
+		w.canvas.scale = w.calculatedScale()
+		w.processResized(width, height)
+	})
 }
 
 func (w *window) frameSized(_ *glfw.Window, width, height int) {
-	w.processFrameSized(width, height)
+	runOnMain(func() {
+		w.processFrameSized(width, height)
+	})
 }
 
 func (w *window) refresh(_ *glfw.Window) {
-	w.processRefresh()
+	runOnMain(func() {
+		w.processRefresh()
+	})
 }
 
 func (w *window) closed(viewport *glfw.Window) {
-	viewport.SetShouldClose(false) // reset the closed flag until we check the veto in processClosed
+	runOnMain(func() {
+		viewport.SetShouldClose(false) // reset the closed flag until we check the veto in processClosed
 
-	w.processClosed()
+		w.processClosed()
+	})
 }
 
 func fyneToNativeCursor(cursor desktop.Cursor) (*Cursor, bool) {
@@ -189,24 +199,30 @@ func (w *window) setCustomCursor(rawCursor *Cursor, isCustomCursor bool) {
 }
 
 func (w *window) mouseMoved(_ *glfw.Window, xpos, ypos float64) {
-	w.processMouseMoved(w.scaleInput(xpos), w.scaleInput(ypos))
+	runOnMain(func() {
+		w.processMouseMoved(w.scaleInput(xpos), w.scaleInput(ypos))
+	})
 }
 
 func (w *window) mouseClicked(viewport *glfw.Window, btn glfw.MouseButton, action glfw.Action, mods glfw.ModifierKey) {
-	button, modifiers := convertMouseButton(btn, mods)
-	mouseAction := convertAction(action)
+	runOnMain(func() {
+		button, modifiers := convertMouseButton(btn, mods)
+		mouseAction := convertAction(action)
 
-	w.processMouseClicked(button, mouseAction, modifiers)
+		w.processMouseClicked(button, mouseAction, modifiers)
+	})
 }
 
 func (w *window) mouseScrolled(viewport *glfw.Window, xoff, yoff float64) {
-	if runtime.GOOS != "darwin" && xoff == 0 &&
-		(viewport.GetKey(glfw.KeyLeftShift) == glfw.Press ||
-			viewport.GetKey(glfw.KeyRightShift) == glfw.Press) {
-		xoff, yoff = yoff, xoff
-	}
+	runOnMain(func() {
+		if runtime.GOOS != "darwin" && xoff == 0 &&
+			(viewport.GetKey(glfw.KeyLeftShift) == glfw.Press ||
+				viewport.GetKey(glfw.KeyRightShift) == glfw.Press) {
+			xoff, yoff = yoff, xoff
+		}
 
-	w.processMouseScrolled(xoff, yoff)
+		w.processMouseScrolled(xoff, yoff)
+	})
 }
 
 func convertMouseButton(btn glfw.MouseButton, mods glfw.ModifierKey) (desktop.MouseButton, fyne.KeyModifier) {
@@ -466,99 +482,86 @@ func (w *window) DetachCurrentContext() {
 	glfw.DetachCurrentContext()
 }
 
-func (w *window) rescaleOnMain() {
+func (w *window) RescaleContext() {
 	if w.viewport == nil {
 		return
 	}
 
-	//	if w.fullScreen {
 	w.width, w.height = w.viewport.GetSize()
 	scaledFull := fyne.NewSize(
 		scale.ToFyneCoordinate(w.canvas, w.width),
 		scale.ToFyneCoordinate(w.canvas, w.height))
 	w.canvas.Resize(scaledFull)
-	return
-	//	}
 
-	//	size := w.canvas.size.Union(w.canvas.MinSize())
-	//	newWidth, newHeight := w.screenSize(size)
-	//	w.viewport.SetSize(newWidth, newHeight)
+	// Ensure textures re-rasterize at the new scale
+	cache.DeleteTextTexturesFor(w.canvas)
+	w.canvas.content.Refresh()
 }
 
 func (w *window) create() {
-	runOnMain(func() {
-		// we can't hide the window in webgl, so there might be some artifact
-		initWindowHints()
+	// we can't hide the window in webgl, so there might be some artifact
+	initWindowHints()
 
-		pixWidth, pixHeight := w.screenSize(w.canvas.size)
-		pixWidth = int(fyne.Max(float32(pixWidth), float32(w.width)))
-		if pixWidth == 0 {
-			pixWidth = 10
-		}
-		pixHeight = int(fyne.Max(float32(pixHeight), float32(w.height)))
-		if pixHeight == 0 {
-			pixHeight = 10
-		}
+	pixWidth, pixHeight := w.screenSize(w.canvas.size)
+	pixWidth = int(fyne.Max(float32(pixWidth), float32(w.width)))
+	if pixWidth == 0 {
+		pixWidth = 10
+	}
+	pixHeight = int(fyne.Max(float32(pixHeight), float32(w.height)))
+	if pixHeight == 0 {
+		pixHeight = 10
+	}
 
-		win, err := glfw.CreateWindow(pixWidth, pixHeight, w.title, nil, nil)
-		if err != nil {
-			w.driver.initFailed("window creation error", err)
-			return
-		}
+	win, err := glfw.CreateWindow(pixWidth, pixHeight, w.title, nil, nil)
+	if err != nil {
+		w.driver.initFailed("window creation error", err)
+		return
+	}
 
-		w.viewLock.Lock()
-		w.viewport = win
-		w.viewLock.Unlock()
-	})
+	w.viewport = win
 
 	if w.view() == nil { // something went wrong above, it will have been logged
 		return
 	}
 
 	// run the GL init on the draw thread
-	runOnDraw(w, func() {
+	w.RunWithContext(func() {
 		w.canvas.SetPainter(gl.NewPainter(w.canvas, w))
 		w.canvas.Painter().Init()
 	})
 
-	runOnMain(func() {
-		w.setDarkMode()
+	w.setDarkMode()
 
-		win := w.view()
-		win.SetCloseCallback(w.closed)
-		win.SetPosCallback(w.moved)
-		win.SetSizeCallback(w.resized)
-		win.SetFramebufferSizeCallback(w.frameSized)
-		win.SetRefreshCallback(w.refresh)
-		win.SetCursorPosCallback(w.mouseMoved)
-		win.SetMouseButtonCallback(w.mouseClicked)
-		win.SetScrollCallback(w.mouseScrolled)
-		win.SetKeyCallback(w.keyPressed)
-		win.SetCharCallback(w.charInput)
-		win.SetFocusCallback(w.focused)
+	win.SetCloseCallback(w.closed)
+	win.SetPosCallback(w.moved)
+	win.SetSizeCallback(w.resized)
+	win.SetFramebufferSizeCallback(w.frameSized)
+	win.SetRefreshCallback(w.refresh)
+	win.SetCursorPosCallback(w.mouseMoved)
+	win.SetMouseButtonCallback(w.mouseClicked)
+	win.SetScrollCallback(w.mouseScrolled)
+	win.SetKeyCallback(w.keyPressed)
+	win.SetCharCallback(w.charInput)
+	win.SetFocusCallback(w.focused)
 
-		w.canvas.detectedScale = w.detectScale()
-		w.canvas.scale = w.calculatedScale()
-		w.canvas.texScale = w.detectTextureScale()
-		// update window size now we have scaled detected
-		w.fitContent()
+	w.canvas.detectedScale = w.detectScale()
+	w.canvas.scale = w.calculatedScale()
+	w.canvas.texScale = w.detectTextureScale()
+	// update window size now we have scaled detected
+	w.fitContent()
 
-		for _, fn := range w.pending {
-			fn()
-		}
+	for _, fn := range w.pending {
+		fn()
+	}
 
-		w.requestedWidth, w.requestedHeight = w.width, w.height
+	w.requestedWidth, w.requestedHeight = w.width, w.height
 
-		width, height := win.GetSize()
-		w.processFrameSized(width, height)
-		w.processResized(width, height)
-	})
+	width, height := win.GetSize()
+	w.processFrameSized(width, height)
+	w.processResized(width, height)
 }
 
 func (w *window) view() *glfw.Window {
-	w.viewLock.RLock()
-	defer w.viewLock.RUnlock()
-
 	if w.closing {
 		return nil
 	}

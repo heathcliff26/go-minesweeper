@@ -60,9 +60,10 @@ func (e *Entry) setValidationError(err error) bool {
 		return false
 	}
 
+	changed := e.validationError != err
 	e.validationError = err
 
-	if e.onValidationChanged != nil {
+	if e.onValidationChanged != nil && changed {
 		e.onValidationChanged(err)
 	}
 
@@ -116,9 +117,7 @@ func (r *validationStatusRenderer) MinSize() fyne.Size {
 
 func (r *validationStatusRenderer) Refresh() {
 	th := r.entry.Theme()
-	r.entry.propertyLock.RLock()
-	defer r.entry.propertyLock.RUnlock()
-	if r.entry.disabled.Load() {
+	if r.entry.Disabled() {
 		r.icon.Hide()
 		return
 	}

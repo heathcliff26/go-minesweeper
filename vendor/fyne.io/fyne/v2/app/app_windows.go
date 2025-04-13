@@ -90,5 +90,11 @@ func runScript(name, script string) {
 }
 
 func watchTheme(s *settings) {
-	go internalapp.WatchTheme(s.setupTheme)
+	go internalapp.WatchTheme(func() {
+		fyne.Do(s.setupTheme)
+	})
+}
+
+func (a *fyneApp) registerRepositories() {
+	// no-op
 }
