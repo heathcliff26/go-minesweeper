@@ -142,7 +142,8 @@ func (t *Tile) DoubleTapped(_ *fyne.PointEvent) {
 	go t.grid.TapNeighbours(t.pos)
 }
 
-// Update the tile render depending on the current state of it's backing Field
+// Update the tile render depending on the current state of it's backing Field.
+// Calls to this function should wrap it in fyne.Do
 func (t *Tile) Refresh() {
 	t.lUpdate.Lock()
 	defer t.lUpdate.Unlock()
@@ -190,7 +191,7 @@ func (t *Tile) Reset() {
 	t.field.Checked = false
 	t.field.Content = minesweeper.Unknown
 	t.marking = HelpMarkingNone
-	t.Refresh()
+	fyne.Do(t.Refresh)
 }
 
 // Returns if the tiles field is checked
@@ -209,7 +210,7 @@ func (t *Tile) SetField(f minesweeper.Field) {
 		return
 	}
 	t.field = f
-	t.Refresh()
+	fyne.Do(t.Refresh)
 }
 
 // Returns if the tile is flagged as a suspected mine
@@ -236,7 +237,7 @@ func (t *Tile) Flag(v bool) {
 	t.flagged = v
 
 	t.lFlag.Unlock()
-	t.Refresh()
+	fyne.Do(t.Refresh)
 }
 
 // Returns the marking of the tile
@@ -250,7 +251,7 @@ func (t *Tile) Mark(m HelpMarking) {
 		return
 	}
 	t.marking = m
-	t.Refresh()
+	fyne.Do(t.Refresh)
 }
 
 // Check if the tile should be clickable

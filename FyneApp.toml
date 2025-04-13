@@ -6,3 +6,6 @@ Name = "go-minesweeper"
 ID = "com.github.heathcliff26.go-minesweeper"
 Version = "0.7.2"
 Build = 1
+
+[Migrations]
+fyneDo = true

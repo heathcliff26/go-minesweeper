@@ -11,80 +11,48 @@ const (
 	DialogWidth  = 600
 )
 
-type FileDialogResult struct {
-	Path  string
-	Error error
-}
-
-// Show a file open dialog in a new window and return path
-func FileOpen(name string, startLocation string, extensions []string) (string, error) {
-	var called bool
+// Show a file open dialog in a new window and return path.
+func FileOpen(name string, startLocation string, extensions []string, cb func(string, error)) {
 	w := fyne.CurrentApp().NewWindow(name)
-	ch := make(chan FileDialogResult)
 	d := dialog.NewFileOpen(func(uri fyne.URIReadCloser, err error) {
-		called = true
 		if err != nil {
-			ch <- FileDialogResult{"", err}
+			cb("", err)
 			return
 		}
 		if uri == nil {
-			ch <- FileDialogResult{"", err}
+			cb("", err)
 			return
 		}
 
-		ch <- FileDialogResult{uri.URI().Path(), nil}
+		cb(uri.URI().Path(), nil)
 	}, w)
 
 	err := showFileDialog(startLocation, extensions, d, w)
 	if err != nil {
-		return "", err
+		cb("", err)
 	}
-
-	w.SetOnClosed(func() {
-		if called {
-			return
-		}
-		ch <- FileDialogResult{}
-	})
-
-	result := <-ch
-	return result.Path, result.Error
 }
 
-// Show a file save dialog in a new window and return path
-func FileSave(name string, startLocation string, extensions []string) (string, error) {
-	var called bool
+// Show a file save dialog in a new window and return path.
+func FileSave(name string, startLocation string, extensions []string, cb func(string, error)) {
 	w := fyne.CurrentApp().NewWindow(name)
-	ch := make(chan FileDialogResult)
 	d := dialog.NewFileSave(func(uri fyne.URIWriteCloser, err error) {
-		called = true
 		if err != nil {
-			ch <- FileDialogResult{"", err}
+			cb("", err)
 			return
 		}
 		if uri == nil {
-			ch <- FileDialogResult{"", err}
+			cb("", err)
 			return
 		}
-
-		ch <- FileDialogResult{uri.URI().Path(), nil}
-		uri.Close()
+		defer uri.Close()
+		cb(uri.URI().Path(), nil)
 	}, w)
 
 	err := showFileDialog(startLocation, extensions, d, w)
 	if err != nil {
-		return "", err
+		cb("", err)
 	}
-
-	w.SetOnClosed(func() {
-		if called {
-			return
-		}
-		ch <- FileDialogResult{}
-	})
-
-	result := <-ch
-	return result.Path, result.Error
 }
 
 // Set a file dialogs location to the given directory.
@@ -119,8 +87,10 @@ func showFileDialog(startLocation string, extensions []string, d *dialog.FileDia
 	w.Resize(fyne.NewSize(DialogHeight, DialogWidth))
 	w.SetFixedSize(true)
 	d.Resize(fyne.NewSize(DialogHeight, DialogWidth))
-	w.Show()
-	d.Show()
+	fyne.Do(func() {
+		w.Show()
+		d.Show()
+	})
 
 	return nil
 }
