@@ -27,8 +27,15 @@ type Dialog interface {
 	Refresh()
 	Resize(size fyne.Size)
 
+	// MinSize returns the size that this dialog should not shrink below.
+	//
 	// Since: 2.1
 	MinSize() fyne.Size
+
+	// Dismiss instructs the dialog to close without any affirmative action.
+	//
+	// Since: 2.6
+	Dismiss()
 }
 
 // Declare conformity to Dialog interface
@@ -49,11 +56,15 @@ type dialog struct {
 	beforeShowHook func()
 }
 
+func (d *dialog) Dismiss() {
+	d.Hide()
+}
+
 func (d *dialog) Hide() {
 	d.hideWithResponse(false)
 }
 
-// MinSize returns the size that this dialog should not shrink below
+// MinSize returns the size that this dialog should not shrink below.
 //
 // Since: 2.1
 func (d *dialog) MinSize() fyne.Size {
@@ -100,10 +111,10 @@ func (d *dialog) SetOnClosed(closed func()) {
 	originalCallback := d.callback
 
 	d.callback = func(response bool) {
-		closed()
 		if originalCallback != nil {
 			originalCallback(response)
 		}
+		closed()
 	}
 }
 
@@ -137,6 +148,16 @@ func (d *dialog) create(buttons fyne.CanvasObject) {
 
 func (d *dialog) setButtons(buttons fyne.CanvasObject) {
 	d.win.Content.(*fyne.Container).Objects[3] = buttons
+	d.win.Refresh()
+}
+
+func (d *dialog) setIcon(icon fyne.Resource) {
+	if icon == nil {
+		d.win.Content.(*fyne.Container).Objects[0] = &layout.Spacer{}
+		d.win.Refresh()
+		return
+	}
+	d.win.Content.(*fyne.Container).Objects[0] = &canvas.Image{Resource: icon}
 	d.win.Refresh()
 }
 

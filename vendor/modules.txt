@@ -1,4 +1,4 @@
-# fyne.io/fyne/v2 v2.5.5
+# fyne.io/fyne/v2 v2.6.0
 ## explicit; go 1.19
 fyne.io/fyne/v2
 fyne.io/fyne/v2/app
@@ -65,16 +65,19 @@ github.com/fredbi/uri
 # github.com/fsnotify/fsnotify v1.7.0
 ## explicit; go 1.17
 github.com/fsnotify/fsnotify
-# github.com/fyne-io/gl-js v0.0.0-20220119005834-d2da28d9ccfe
-## explicit; go 1.14
+# github.com/fyne-io/gl-js v0.1.0
+## explicit; go 1.19
 github.com/fyne-io/gl-js
-# github.com/fyne-io/glfw-js v0.0.0-20241126112943-313d8a0fe1d0
+# github.com/fyne-io/glfw-js v0.2.0
 ## explicit; go 1.19
 github.com/fyne-io/glfw-js
-# github.com/fyne-io/image v0.0.0-20220602074514-4956b0afb3d2
-## explicit; go 1.14
+# github.com/fyne-io/image v0.1.1
+## explicit; go 1.19
 github.com/fyne-io/image/ico
-# github.com/go-gl/gl v0.0.0-20211210172815-726fda9656d6
+# github.com/fyne-io/oksvg v0.1.0
+## explicit; go 1.19
+github.com/fyne-io/oksvg
+# github.com/go-gl/gl v0.0.0-20231021071112-07e5d0ea2e71
 ## explicit; go 1.12
 github.com/go-gl/gl/v2.1/gl
 github.com/go-gl/gl/v2.1/gl/KHR
@@ -92,7 +95,7 @@ github.com/go-gl/glfw/v3.3/glfw/glfw/src
 # github.com/go-text/render v0.2.0
 ## explicit; go 1.17
 github.com/go-text/render
-# github.com/go-text/typesetting v0.2.0
+# github.com/go-text/typesetting v0.2.1
 ## explicit; go 1.17
 github.com/go-text/typesetting/di
 github.com/go-text/typesetting/font
@@ -111,19 +114,27 @@ github.com/go-text/typesetting/unicodedata
 github.com/godbus/dbus/v5
 github.com/godbus/dbus/v5/introspect
 github.com/godbus/dbus/v5/prop
-# github.com/gopherjs/gopherjs v1.17.2
-## explicit; go 1.17
-github.com/gopherjs/gopherjs/js
-# github.com/jeandeaual/go-locale v0.0.0-20240223122105-ce5225dcaa49
+# github.com/hack-pad/go-indexeddb v0.3.2
+## explicit; go 1.18
+github.com/hack-pad/go-indexeddb/idb
+github.com/hack-pad/go-indexeddb/idb/internal/jscache
+# github.com/hack-pad/safejs v0.1.0
+## explicit; go 1.18
+github.com/hack-pad/safejs
+github.com/hack-pad/safejs/internal/catch
+github.com/hack-pad/safejs/internal/stackerr
+# github.com/jeandeaual/go-locale v0.0.0-20241217141322-fcc2cadd6f08
 ## explicit; go 1.18
 github.com/jeandeaual/go-locale
-# github.com/jsummers/gobmp v0.0.0-20151104160322-e2ba15ffa76e
+# github.com/jsummers/gobmp v0.0.0-20230614200233-a9de23ed2e25
 ## explicit
 github.com/jsummers/gobmp
+# github.com/kr/text v0.2.0
+## explicit
 # github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 ## explicit
 github.com/nfnt/resize
-# github.com/nicksnyder/go-i18n/v2 v2.4.0
+# github.com/nicksnyder/go-i18n/v2 v2.5.1
 ## explicit; go 1.18
 github.com/nicksnyder/go-i18n/v2/i18n
 github.com/nicksnyder/go-i18n/v2/i18n/template
@@ -132,12 +143,13 @@ github.com/nicksnyder/go-i18n/v2/internal/plural
 # github.com/pmezard/go-difflib v1.0.0
 ## explicit
 github.com/pmezard/go-difflib/difflib
-# github.com/rymdport/portal v0.3.0
+# github.com/rymdport/portal v0.4.1
 ## explicit; go 1.19
 github.com/rymdport/portal
 github.com/rymdport/portal/filechooser
 github.com/rymdport/portal/internal/apis
 github.com/rymdport/portal/internal/convert
+github.com/rymdport/portal/internal/request
 github.com/rymdport/portal/notification
 github.com/rymdport/portal/openuri
 github.com/rymdport/portal/settings
@@ -153,7 +165,7 @@ github.com/srwiley/rasterx
 github.com/stretchr/testify/assert
 github.com/stretchr/testify/assert/yaml
 github.com/stretchr/testify/require
-# github.com/yuin/goldmark v1.7.1
+# github.com/yuin/goldmark v1.7.8
 ## explicit; go 1.19
 github.com/yuin/goldmark
 github.com/yuin/goldmark/ast
@@ -162,7 +174,7 @@ github.com/yuin/goldmark/renderer
 github.com/yuin/goldmark/renderer/html
 github.com/yuin/goldmark/text
 github.com/yuin/goldmark/util
-# golang.org/x/image v0.18.0
+# golang.org/x/image v0.24.0
 ## explicit; go 1.18
 golang.org/x/image/ccitt
 golang.org/x/image/colornames
@@ -172,20 +184,17 @@ golang.org/x/image/math/fixed
 golang.org/x/image/tiff
 golang.org/x/image/tiff/lzw
 golang.org/x/image/vector
-# golang.org/x/mobile v0.0.0-20231127183840-76ac6878050a
-## explicit; go 1.18
-golang.org/x/mobile/exp/f32
-# golang.org/x/net v0.25.0
+# golang.org/x/net v0.35.0
 ## explicit; go 1.18
 golang.org/x/net/html
 golang.org/x/net/html/atom
 golang.org/x/net/html/charset
-# golang.org/x/sys v0.20.0
+# golang.org/x/sys v0.30.0
 ## explicit; go 1.18
 golang.org/x/sys/unix
 golang.org/x/sys/windows
 golang.org/x/sys/windows/registry
-# golang.org/x/text v0.16.0
+# golang.org/x/text v0.22.0
 ## explicit; go 1.18
 golang.org/x/text/encoding
 golang.org/x/text/encoding/charmap
