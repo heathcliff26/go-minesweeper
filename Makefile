@@ -38,6 +38,9 @@ generate: ## Run Go generate for the project
 lint-metainfo: ## Lint the metainfo file for Flatpak
 	flatpak run --command=flatpak-builder-lint org.flatpak.Builder appstream io.github.heathcliff26.go-minesweeper.metainfo.xml
 
+gosec: ## Scan code for vulnerabilities using gosec
+	gosec ./...
+
 clean: ## Clean up build artifacts and temporary files
 	hack/clean.sh
 
@@ -59,6 +62,7 @@ help: ## Show this help message
 	update-deps \
 	generate \
 	lint-metainfo \
+	gosec \
 	clean \
 	help \
 	$(NULL)
