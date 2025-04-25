@@ -1,3 +1,4 @@
+// #nosec -- This is a helper command. Should only be used for development.
 package main
 
 import (

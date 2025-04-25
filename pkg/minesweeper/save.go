@@ -43,6 +43,7 @@ func NewSave(game *LocalGame) (*Save, error) {
 
 // Load a save file from the given path
 func LoadSave(path string) (*Save, error) {
+	// #nosec G304 -- Local users can decide on their file path themselves.
 	buf, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
@@ -69,6 +70,7 @@ func (s *Save) Save(path string) error {
 		return err
 	}
 
+	// #nosec G306 -- File permission should be determined by umask.
 	return os.WriteFile(path, data, 0644)
 }
 
