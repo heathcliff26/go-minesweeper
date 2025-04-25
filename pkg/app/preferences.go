@@ -36,6 +36,7 @@ func LoadPreferences() (Preferences, error) {
 		path = overrideSettingsPath
 	}
 
+	// #nosec G304 -- File path is hardcoded relative to user directory.
 	f, err := os.ReadFile(path)
 	if err != nil {
 		return defaultPreferences(), err
@@ -100,5 +101,6 @@ func (p Preferences) Save() error {
 		return err
 	}
 
+	// #nosec G306 -- File permission should be determined by umask.
 	return os.WriteFile(path, data, 0644)
 }

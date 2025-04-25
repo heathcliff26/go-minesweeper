@@ -19,6 +19,7 @@ func NewPos(x, y int) Pos {
 
 // Returns a random position inside the provided limits
 func RandomPos(maxX, maxY int) Pos {
+	// #nosec G304,G404 -- This is not a security sensitive task, so using the less resource intensive pseudo-random algorithm is fine.
 	return NewPos(rand.IntN(maxX), rand.IntN(maxY))
 }
 

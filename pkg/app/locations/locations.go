@@ -22,6 +22,7 @@ func SaveFolder() (string, error) {
 	var err error
 	saveFolder, err = loadSaveFolderLocation()
 	if err == nil {
+		// #nosec G301 -- File permission should be determined by umask.
 		return saveFolder, os.MkdirAll(saveFolder, 0755)
 	}
 	slog.Error("Failed to load save folder location, falling back to current directory", "err", err)
@@ -37,6 +38,7 @@ func SettingsFile() (string, error) {
 	var err error
 	settingsFile, err = loadSettingsFileLocation()
 	if err == nil {
+		// #nosec G301 -- File permission should be determined by umask.
 		return settingsFile, os.MkdirAll(filepath.Dir(settingsFile), 0755)
 	}
 	slog.Error("Failed to load settings.yaml location, falling back to current directory", "err", err)
