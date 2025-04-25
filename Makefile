@@ -2,43 +2,50 @@ SHELL := bash
 
 GO_LD_FLAGS ?= "-w -s"
 
+# Default target to build the project
 default: build
 
-lint:
+lint: ## Run linter
 	golangci-lint run -v --timeout 300s
 
-test:
+test: ## Run unit-tests
 	go test -v -race -timeout 300s -coverprofile=coverprofile.out -coverpkg "./pkg/..." ./...
 
-build:
+build: ## Build the project with optional GOOS and GOARCH
 	( GOOS="$(GOOS)" GOARCH="$(GOARCH)" GO_BUILD_FLAGS=$(GO_BUILD_FLAGS) hack/build.sh )
 
-build-all:
+build-all: ## Build the project for all supported platforms
 	hack/build-all.sh
 
-coverprofile:
+coverprofile: ## Generate coverage profile
 	hack/coverprofile.sh
 
-fmt:
+fmt: ## Format Go code
 	gofmt -s -w ./cmd ./pkg ./tests
 
-validate:
+validate: ## Validate that the generated files are up to date
 	hack/validate.sh
 
-assets:
+assets: ## Generate assets for the project
 	hack/generate-assets.sh
 
-update-deps:
+update-deps: ## Update project dependencies
 	hack/update-deps.sh
 
-generate:
+generate: ## Run Go generate for the project
 	go generate ./...
 
-lint-metainfo:
+lint-metainfo: ## Lint the metainfo file for Flatpak
 	flatpak run --command=flatpak-builder-lint org.flatpak.Builder appstream io.github.heathcliff26.go-minesweeper.metainfo.xml
 
-clean:
+clean: ## Clean up build artifacts and temporary files
 	hack/clean.sh
+
+help: ## Show this help message
+	@echo "Available targets:"
+	@grep -E '^[a-zA-Z_-]+:.*?##' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "%-20s %s\n", $$1, $$2}'
+	@echo ""
+	@echo "Run 'make <target>' to execute a specific target."
 
 .PHONY: \
 	default \
@@ -53,4 +60,5 @@ clean:
 	generate \
 	lint-metainfo \
 	clean \
+	help \
 	$(NULL)
