@@ -65,8 +65,7 @@ jobs:
       contents: read
     needs:
       - lint
-      - unit-tests-linux
-      - unit-tests-windows
+      - validate
     strategy:
       fail-fast: false
       matrix:
