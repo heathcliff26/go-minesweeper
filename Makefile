@@ -5,48 +5,63 @@ GO_LD_FLAGS ?= "-w -s"
 # Default target to build the project
 default: build
 
-lint: ## Run linter
+# Run linter
+lint:
 	golangci-lint run -v --timeout 300s
 
-test: ## Run unit-tests
+# Run unit-tests
+test:
 	go test -v -race -timeout 300s -coverprofile=coverprofile.out -coverpkg "./pkg/..." ./...
 
-build: ## Build the project with optional GOOS and GOARCH
+# Build the project with optional GOOS and GOARCH
+build:
 	( GOOS="$(GOOS)" GOARCH="$(GOARCH)" GO_BUILD_FLAGS=$(GO_BUILD_FLAGS) hack/build.sh )
 
-build-all: ## Build the project for all supported platforms
+# Build the project for all supported platforms
+build-all:
 	hack/build-all.sh
 
-coverprofile: ## Generate coverage profile
+# Generate coverage profile
+coverprofile:
 	hack/coverprofile.sh
 
-fmt: ## Format Go code
+# Format Go code
+fmt:
 	gofmt -s -w ./cmd ./pkg ./tests
 
-validate: ## Validate that the generated files are up to date
+# Validate that the generated files are up to date
+validate:
 	hack/validate.sh
 
-assets: ## Generate assets for the project
+# Generate assets for the project
+assets:
 	hack/generate-assets.sh
 
-update-deps: ## Update project dependencies
+# Update project dependencies
+update-deps:
 	hack/update-deps.sh
 
-generate: ## Run Go generate for the project
+# Run Go generate for the project
+generate:
 	go generate ./...
 
-lint-metainfo: ## Lint the metainfo file for Flatpak
+# Lint the metainfo file for Flatpak
+lint-metainfo:
 	flatpak run --command=flatpak-builder-lint org.flatpak.Builder appstream io.github.heathcliff26.go-minesweeper.metainfo.xml
 
-gosec: ## Scan code for vulnerabilities using gosec
+# Scan code for vulnerabilities using gosec
+gosec:
 	gosec ./...
 
-clean: ## Clean up build artifacts and temporary files
+# Clean up build artifacts and temporary files
+clean:
 	hack/clean.sh
 
-help: ## Show this help message
+# Show this help message
+help:
 	@echo "Available targets:"
-	@grep -E '^[a-zA-Z_-]+:.*?##' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "%-20s %s\n", $$1, $$2}'
+	@echo ""
+	@awk '/^#/{c=substr($$0,3);next}c&&/^[[:alpha:]][[:alnum:]_-]+:/{print substr($$1,1,index($$1,":")),c}1{c=0}' $(MAKEFILE_LIST) | column -s: -t
 	@echo ""
 	@echo "Run 'make <target>' to execute a specific target."
 
