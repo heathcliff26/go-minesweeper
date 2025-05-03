@@ -30,6 +30,8 @@ type Game interface {
 	OutOfBounds(p Pos) bool
 	// Returns the current status of the game. Only contains the knowledge a player should have.
 	Status() *Status
+	// Return the difficulty of the game
+	Difficulty() Difficulty
 	// Check if Game Over
 	Lost() bool
 	// Check if the game is won
@@ -47,7 +49,7 @@ var _ = Game(&LocalGame{})
 
 type LocalGame struct {
 	Field      [][]Field
-	Difficulty Difficulty
+	difficulty Difficulty
 
 	// Keep these 2 exported for testing in other packages
 	GameOver bool
@@ -63,7 +65,7 @@ type LocalGame struct {
 func blankGame(d Difficulty) *LocalGame {
 	return &LocalGame{
 		Field:      utils.Make2D[Field](d.Row, d.Col),
-		Difficulty: d,
+		difficulty: d,
 		GameOver:   false,
 		GameWon:    false,
 	}
@@ -105,8 +107,9 @@ func NewGameSolvable(d Difficulty, p Pos) *LocalGame {
 	for i := 0; i < 10000; i++ {
 		mines = CreateMines(d, area)
 		g := newGame(d, mines)
+		s := NewSolver(g)
 
-		if success = autosolve(g, p); success {
+		if success = s.Autosolve(p); success {
 			break
 		}
 	}
@@ -172,7 +175,7 @@ func (g *LocalGame) OutOfBounds(p Pos) bool {
 	if g == nil {
 		return true
 	}
-	return OutOfBounds(p, g.Difficulty)
+	return OutOfBounds(p, g.Difficulty())
 }
 
 // Returns the current status of the game. Only contains the knowledge a player should have.
@@ -180,18 +183,21 @@ func (g *LocalGame) Status() *Status {
 	return g.status
 }
 
+// Return the difficulty of the game
+func (g *LocalGame) Difficulty() Difficulty {
+	return g.difficulty
+}
+
 // Update the status from the current state of the game.
 // Returns status for convenience.
 func (g *LocalGame) UpdateStatus() *Status {
 	if g.status == nil {
 		g.status = &Status{
-			Field:      utils.Make2D[Field](g.Difficulty.Row, g.Difficulty.Col),
-			gameOver:   g.Lost(),
-			gameWon:    g.Won(),
-			difficulty: g.Difficulty,
+			Field:    utils.Make2D[Field](g.difficulty.Row, g.difficulty.Col),
+			gameOver: g.Lost(),
+			gameWon:  g.Won(),
 		}
 	}
-	g.status.actionsUpdated = false
 
 	wasWon := g.Won()
 	isWon := true
@@ -210,7 +216,7 @@ func (g *LocalGame) UpdateStatus() *Status {
 
 	if !wasWon && isWon {
 		g.GameWon = isWon
-		for x := 0; x < g.Difficulty.Row; x++ {
+		for x := 0; x < g.difficulty.Row; x++ {
 			copy(g.status.Field[x], g.Field[x])
 		}
 	}
@@ -256,7 +262,7 @@ func (g *LocalGame) ToSave() (*Save, error) {
 
 // Walk through all fields of the game and call the given function
 func (g *LocalGame) walkField(f func(x, y int)) {
-	walkField(f, g.Difficulty.Row, g.Difficulty.Col)
+	walkField(f, g.difficulty.Row, g.difficulty.Col)
 }
 
 // Count the the number of mines in the neighboring fields
@@ -277,7 +283,7 @@ func (g *LocalGame) countNearbyMines(p Pos) int {
 
 // Get a list of all mines in the game
 func (g *LocalGame) getMines() []Pos {
-	mines := make([]Pos, 0, g.Difficulty.Mines)
+	mines := make([]Pos, 0, g.difficulty.Mines)
 
 	g.walkField(func(x, y int) {
 		if g.Field[x][y].Content == Mine {

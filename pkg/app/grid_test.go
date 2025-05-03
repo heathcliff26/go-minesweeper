@@ -431,7 +431,7 @@ func TestAutosolve(t *testing.T) {
 			assert.Equal(tCase.Won, g.Game.Status().GameWon(), "Game should be "+msg1)
 
 			if tCase.Won {
-				mines := g.Game.Status().ObviousMines()
+				mines := g.solver.KnownMines()
 				var count int
 				for _, p := range mines {
 					if g.Tiles[p.X][p.Y].Flagged() {
@@ -441,7 +441,7 @@ func TestAutosolve(t *testing.T) {
 				assert.Greater(count, 0, "Should have flagged some mines")
 				assert.Less(count, len(mines), "Should not have flagged all mines")
 			} else {
-				for _, p := range g.Game.Status().ObviousMines() {
+				for _, p := range g.solver.KnownMines() {
 					assert.True(g.Tiles[p.X][p.Y].Flagged(), "Tile should be flagged, tile="+p.String())
 				}
 			}
@@ -462,7 +462,7 @@ func TestAutosolve(t *testing.T) {
 		// Run twice to check that flagged fields to not get unflagged
 		assert.True(g.Autosolve(0), "Should run autosolve a second time")
 
-		for _, p := range g.Game.Status().ObviousMines() {
+		for _, p := range g.solver.KnownMines() {
 			assert.True(g.Tiles[p.X][p.Y].Flagged(), "Tile should be flagged, tile="+p.String())
 		}
 	})

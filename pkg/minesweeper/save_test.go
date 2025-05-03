@@ -70,7 +70,7 @@ func TestSave(t *testing.T) {
 
 		g2.replay = false
 
-		assert.Equal(d, g2.Difficulty)
+		assert.Equal(d, g2.Difficulty())
 		assert.ElementsMatch(g.Field, g2.Field)
 	})
 }

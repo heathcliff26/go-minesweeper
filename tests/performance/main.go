@@ -150,11 +150,12 @@ func measureAssistedMode(res chan time.Duration) {
 		os.Exit(1)
 	}
 
+	solver := minesweeper.NewSolver(game)
+
 	start := time.Now()
 	for _, pos := range positions {
 		s, _ := game.CheckField(pos)
-		s.ObviousMines()
-		s.ObviousSafePos()
+		solver.Update()
 		if s.GameOver() || s.GameWon() {
 			fmt.Println("Something unexpected happened, the game finished")
 		}
