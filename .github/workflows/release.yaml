@@ -18,6 +18,7 @@ jobs:
     uses: ./.github/workflows/ci.yaml
     permissions:
       contents: read
+      security-events: write
     with:
       release: true
 
