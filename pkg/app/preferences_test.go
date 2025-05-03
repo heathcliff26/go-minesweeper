@@ -7,6 +7,7 @@ import (
 	"fyne.io/fyne/v2/test"
 	"github.com/heathcliff26/go-minesweeper/pkg/minesweeper"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestLoadPreferences(t *testing.T) {
@@ -107,9 +108,7 @@ func TestPreferencesSave(t *testing.T) {
 	assert := assert.New(t)
 
 	err := p.Save()
-	if !assert.NoError(err, "Should save the preferences") {
-		t.FailNow()
-	}
+	require.NoError(t, err, "Should save the preferences")
 	t.Cleanup(func() {
 		_ = os.Remove(testFilePath)
 	})

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestSave(t *testing.T) {
@@ -18,7 +19,7 @@ func TestSave(t *testing.T) {
 
 		assert := assert.New(t)
 
-		assert.Nil(err)
+		assert.NoError(err)
 
 		assert.NotNil(s)
 		assert.NotEmpty(s.ID)
@@ -33,16 +34,14 @@ func TestSave(t *testing.T) {
 
 		assert := assert.New(t)
 
-		if !assert.Nil(err, "Failed to save to file") {
-			t.FailNow()
-		}
+		require.NoError(t, err, "Failed to save to file")
 		t.Cleanup(func() {
 			_ = os.Remove(path)
 		})
 
 		s2, err := LoadSave(path)
 
-		assert.Nil(err)
+		assert.NoError(err)
 		assert.Equal(s, s2)
 	})
 	t.Run("SaveAddsExtension", func(t *testing.T) {
@@ -51,15 +50,13 @@ func TestSave(t *testing.T) {
 
 		assert := assert.New(t)
 
-		if !assert.Nil(err, "Failed to save to file") {
-			t.FailNow()
-		}
+		require.NoError(t, err, "Failed to save to file")
 		t.Cleanup(func() {
 			_ = os.Remove(path + SaveFileExtension)
 		})
 
 		_, err = os.Stat(path + SaveFileExtension)
-		assert.Nil(err, "Warning, can't delete save file, as name is not known")
+		assert.NoError(err, "Warning, can't delete save file, as name is not known")
 	})
 	t.Run("Game", func(t *testing.T) {
 		g2 := s.Game()

@@ -5,6 +5,7 @@ import (
 
 	"github.com/heathcliff26/go-minesweeper/pkg/utils"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNewGameWithSafePos(t *testing.T) {
@@ -361,22 +362,17 @@ func TestStatus(t *testing.T) {
 
 			g.UpdateStatus()
 
-			assert := assert.New(t)
+			require := require.New(t)
 
 			g.walkField(func(x, y int) {
 				if tCase.Loss || tCase.Win {
-					if !assert.Equal(g.Field[x][y], g.status.Field[x][y], "Fields should match") {
-						t.FailNow()
-					}
+					require.Equal(g.Field[x][y], g.status.Field[x][y], "Fields should match")
 					return
 				}
-
-				if !assert.Equal(Unknown, g.status.Field[x][y].Content, "Field should be unknown") {
-					t.FailNow()
-				}
+				require.Equal(Unknown, g.status.Field[x][y].Content, "Field should be unknown")
 			})
 
-			assert.Same(g.status, g.Status())
+			assert.Same(t, g.status, g.Status())
 		})
 	}
 }

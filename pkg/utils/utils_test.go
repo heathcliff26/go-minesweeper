@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestMake2D(t *testing.T) {
@@ -25,24 +26,19 @@ func TestMake2D(t *testing.T) {
 			m := Make2D[int](tCase.X, tCase.Y)
 
 			assert := assert.New(t)
+			require := require.New(t)
 
 			if tCase.X < 1 || tCase.Y < 1 {
 				assert.Empty(m, "Matrix should not exist")
 				return
 			}
-			if !assert.Equal(tCase.X, len(m), "Matrix should have the requested amount of rows") {
-				t.FailNow()
-			}
+			require.Equal(tCase.X, len(m), "Matrix should have the requested amount of rows")
 
 			i := 1
 			for x := 0; x < tCase.X; x++ {
-				if !assert.Equalf(tCase.Y, len(m[x]), "Row %d should have the requested amount of columns", x) {
-					t.FailNow()
-				}
+				require.Equalf(tCase.Y, len(m[x]), "Row %d should have the requested amount of columns", x)
 				for y := 0; y < tCase.Y; y++ {
-					if !assert.Zerof(m[x][y], "(%d, %d) should be zero value", x, y) {
-						t.FailNow()
-					}
+					require.Zerof(m[x][y], "(%d, %d) should be zero value", x, y)
 					m[x][y] = i
 					i++
 				}
@@ -52,9 +48,7 @@ func TestMake2D(t *testing.T) {
 			i = 1
 			for x := 0; x < len(m); x++ {
 				for y := 0; y < len(m[x]); y++ {
-					if !assert.Equalf(i, m[x][y], "(%d, %d) should equal i", x, y) {
-						t.FailNow()
-					}
+					require.Equalf(i, m[x][y], "(%d, %d) should equal i", x, y)
 					i++
 				}
 			}

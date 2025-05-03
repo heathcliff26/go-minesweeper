@@ -8,6 +8,7 @@ import (
 
 	"github.com/heathcliff26/go-minesweeper/pkg/minesweeper"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type assistedModeTestConfig struct {
@@ -163,9 +164,7 @@ func TestUpdateFromStatus(t *testing.T) {
 	difficulties := minesweeper.Difficulties()
 	for _, i := range []int{10, 11, 25, 30, 50} {
 		d, err := minesweeper.NewCustomDifficulty((i*i)/2, i, i)
-		if err != nil {
-			t.Fatalf("Failed to create custom difficulty %dx%d: %v", i, i, err)
-		}
+		require.NoErrorf(t, err, "Should create custom difficulty %dx%d", i, i)
 		d.Name = fmt.Sprintf("%dx%d", i, i)
 		difficulties = append(difficulties, d)
 	}
@@ -211,9 +210,7 @@ func TestAssistedMode(t *testing.T) {
 	assert := assert.New(t)
 
 	g, testConfig, err := loadAssistedModeTest("../minesweeper/testdata/assisted_mode_1", true)
-	if !assert.Nil(err, "Should have loaded the test") {
-		t.Fatal(err)
-	}
+	require.NoError(t, err, "Should have loaded the test")
 
 	for _, step := range testConfig {
 		g.TappedTile(step.CheckPos)
@@ -255,9 +252,7 @@ func TestHint(t *testing.T) {
 		assert := assert.New(t)
 
 		g, err := createGridFromSave("testdata/hint.sav", false)
-		if !assert.Nil(err, "Should load savegame") {
-			t.Fatal(err)
-		}
+		require.NoError(t, err, "Should load savegame")
 
 		assert.NotPanics(func() {
 			assert.False(g.Hint(), "Should not be able to display hint on game without status")
@@ -267,20 +262,17 @@ func TestHint(t *testing.T) {
 		assert := assert.New(t)
 
 		g, err := createGridFromSave("testdata/hint.sav", false)
-		if !assert.Nil(err, "Should load savegame") {
-			t.Fatal(err)
-		}
+		require.NoError(t, err, "Should load savegame")
 
 		g.TappedTile(minesweeper.NewPos(15, 6))
 		assert.False(g.Hint(), "Should not be able to display hint on failed game")
 	})
 	t.Run("DisplayHint", func(t *testing.T) {
 		assert := assert.New(t)
+		require := require.New(t)
 
 		g, testConfig, err := loadAssistedModeTest("testdata/hint", false)
-		if !assert.Nil(err, "Should have loaded the test") {
-			t.Fatal(err)
-		}
+		require.NoError(err, "Should have loaded the test")
 		step := testConfig[0]
 
 		g.TappedTile(step.CheckPos)
@@ -296,9 +288,7 @@ func TestHint(t *testing.T) {
 					if tile.Flagged() || tile.Checked() {
 						continue
 					}
-					if !assert.Equalf(HelpMarkingNone, tile.Marking(), "No other tiles should be marked, tile=%s, mine=%s", minesweeper.NewPos(x, y).String(), mine.String()) {
-						t.FailNow()
-					}
+					require.Equalf(HelpMarkingNone, tile.Marking(), "No other tiles should be marked, tile=%s, mine=%s", minesweeper.NewPos(x, y).String(), mine.String())
 				}
 			}
 		}
@@ -311,9 +301,7 @@ func TestHint(t *testing.T) {
 				if tile.Flagged() || tile.Checked() || p == step.SafePos[0] {
 					continue
 				}
-				if !assert.Equalf(HelpMarkingNone, tile.Marking(), "No other tiles should be marked, tile=%s", p.String()) {
-					t.FailNow()
-				}
+				require.Equalf(HelpMarkingNone, tile.Marking(), "No other tiles should be marked, tile=%s", p.String())
 			}
 		}
 	})
@@ -321,9 +309,7 @@ func TestHint(t *testing.T) {
 		assert := assert.New(t)
 
 		g, err := createGridFromSave("testdata/no-hints.sav", false)
-		if !assert.Nil(err, "Should load savegame") {
-			t.Fatal(err)
-		}
+		require.NoError(t, err, "Should load savegame")
 		g.TappedTile(minesweeper.NewPos(0, 0))
 
 		assert.False(g.Hint(), "Should find no hints")
@@ -420,9 +406,7 @@ func TestAutosolve(t *testing.T) {
 
 			path := "testdata/autosolve_" + tCase.Name
 			g, err := createGridFromSave(path+".sav", false)
-			if !assert.Nil(err, "Should load savegame") {
-				t.Fatal(err)
-			}
+			require.NoError(t, err, "Should load savegame")
 			g.TappedTile(minesweeper.NewPos(0, 0))
 
 			assert.True(g.Autosolve(0), "Should run autosolve")
@@ -456,9 +440,7 @@ func TestAutosolve(t *testing.T) {
 		assert := assert.New(t)
 
 		g, err := createGridFromSave("testdata/autosolve_unfinished.sav", false)
-		if !assert.Nil(err, "Should load savegame") {
-			t.Fatal(err)
-		}
+		require.NoError(t, err, "Should load savegame")
 		g.TappedTile(minesweeper.NewPos(0, 0))
 
 		assert.True(g.Autosolve(0), "Should run autosolve")

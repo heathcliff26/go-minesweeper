@@ -101,7 +101,7 @@ func TestNewCustomDifficulty(t *testing.T) {
 			assert := assert.New(t)
 
 			if tCase.Error == nil {
-				assert.Nil(err)
+				assert.NoError(err)
 				res := tCase.Difficulty
 				res.Name = "Custom"
 				assert.Equal(res, d)
