@@ -175,7 +175,7 @@ func TestDoubleTapped(t *testing.T) {
 		}
 		game := save.Game()
 
-		g := NewMinesweeperGrid(game.Difficulty, false)
+		g := NewMinesweeperGrid(game.Difficulty(), false)
 		for _, row := range g.Tiles {
 			for _, tile := range row {
 				tile.CreateRenderer()

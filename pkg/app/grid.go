@@ -44,6 +44,8 @@ type MinesweeperGrid struct {
 	AssistedMode  bool
 	GameAlgorithm int
 
+	solver *minesweeper.Solver
+
 	Timer       *Timer
 	MineCount   *Counter
 	ResetButton *Button
@@ -196,17 +198,22 @@ func (g *MinesweeperGrid) updateFromStatus(s *minesweeper.Status) {
 		}
 		g.Timer.Stop()
 	} else if g.AssistedMode {
+		if g.solver == nil {
+			g.solver = minesweeper.NewSolver(g.Game)
+		}
+		g.solver.Update()
+
 		wg.Add(2)
 		slog.Debug("Creating Markers for Assisted Mode")
 		go func() {
 			defer wg.Done()
-			for _, p := range s.ObviousMines() {
+			for _, p := range g.solver.KnownMines() {
 				g.Tiles[p.X][p.Y].Mark(HelpMarkingMine)
 			}
 		}()
 		go func() {
 			defer wg.Done()
-			for _, p := range s.ObviousSafePos() {
+			for _, p := range g.solver.NextSteps() {
 				g.Tiles[p.X][p.Y].Mark(HelpMarkingSafe)
 			}
 		}()
@@ -274,6 +281,7 @@ func (g *MinesweeperGrid) NewGame() {
 
 	slog.Info("Preparing for new game")
 	g.Game = nil
+	g.solver = nil
 	g.Reset()
 }
 
@@ -321,18 +329,25 @@ func (g *MinesweeperGrid) Hint() bool {
 		g.lGame.Unlock()
 		return false
 	}
-	s := g.Game.Status()
 
-	g.lGame.Unlock()
+	status := g.Game.Status()
 
-	if s == nil || s.GameOver() || s.GameWon() {
+	if status == nil || status.GameOver() || status.GameWon() {
+		g.lGame.Unlock()
 		return false
 	}
+
+	if g.solver == nil {
+		g.solver = minesweeper.NewSolver(g.Game)
+	}
+	g.solver.Update()
+
+	g.lGame.Unlock()
 
 	g.lUpdate.Lock()
 	defer g.lUpdate.Unlock()
 
-	for _, mine := range s.ObviousMines() {
+	for _, mine := range g.solver.KnownMines() {
 		tile := g.Tiles[mine.X][mine.Y]
 		if tile.Flagged() {
 			continue
@@ -340,7 +355,7 @@ func (g *MinesweeperGrid) Hint() bool {
 		tile.Mark(HelpMarkingMine)
 		return true
 	}
-	safePos := s.ObviousSafePos()
+	safePos := g.solver.NextSteps()
 	if len(safePos) > 0 {
 		g.Tiles[safePos[0].X][safePos[0].Y].Mark(HelpMarkingSafe)
 		return true
@@ -379,8 +394,13 @@ func (g *MinesweeperGrid) Autosolve(delay time.Duration) bool {
 	}()
 	g.updateFromStatus(s)
 
-	for i, safePos := 0, s.ObviousSafePos(); len(safePos) > 0 && !s.GameOver() && !s.GameWon(); safePos = s.ObviousSafePos() {
-		mines := s.ObviousMines()
+	if g.solver == nil {
+		g.solver = minesweeper.NewSolver(g.Game)
+	}
+	g.solver.Update()
+
+	for i, safePos := 0, g.solver.NextSteps(); len(safePos) > 0 && !s.GameOver() && !s.GameWon(); safePos = g.solver.NextSteps() {
+		mines := g.solver.KnownMines()
 
 		slog.Debug("Autosolve: Checking safe positions", slog.Int("iteration", i))
 		for _, p := range safePos {
@@ -404,6 +424,7 @@ func (g *MinesweeperGrid) Autosolve(delay time.Duration) bool {
 			tile.Flag(true)
 		}
 
+		g.solver.Update()
 		i++
 	}
 
@@ -413,7 +434,7 @@ func (g *MinesweeperGrid) Autosolve(delay time.Duration) bool {
 	}
 
 	slog.Info("Autosolve: Flagging mines a final time")
-	for _, mine := range s.ObviousMines() {
+	for _, mine := range g.solver.KnownMines() {
 		tile := g.Tiles[mine.X][mine.Y]
 		tile.Flag(true)
 	}

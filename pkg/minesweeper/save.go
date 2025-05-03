@@ -26,7 +26,7 @@ type saveData struct {
 func NewSave(game *LocalGame) (*Save, error) {
 	data := saveData{
 		Mines:      game.getMines(),
-		Difficulty: game.Difficulty,
+		Difficulty: game.Difficulty(),
 	}
 
 	buf, err := json.Marshal(data)

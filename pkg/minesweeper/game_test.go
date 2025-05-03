@@ -25,7 +25,7 @@ func TestNewGameWithSafePos(t *testing.T) {
 
 			assert.Equal(d.Row, len(g.Field), "Should have the given number of rows")
 			assert.Equal(d.Col, len(g.Field[0]), "Should have the given number of columns")
-			assert.Equal(d, g.Difficulty, "Should have the given difficulty")
+			assert.Equal(d, g.Difficulty(), "Should have the given difficulty")
 			assert.False(g.GameOver, "Should not be Game Over")
 			assert.False(g.GameWon, "Game should not be won")
 			assert.NotEqual(Mine, g.Field[p.X][p.Y].Content, "Safe position should not be a mine")
@@ -61,7 +61,7 @@ func TestNewGameWithSafeArea(t *testing.T) {
 
 			assert.Equal(d.Row, len(g.Field), "Should have the given number of rows")
 			assert.Equal(d.Col, len(g.Field[0]), "Should have the given number of columns")
-			assert.Equal(d, g.Difficulty, "Should have the given difficulty")
+			assert.Equal(d, g.Difficulty(), "Should have the given difficulty")
 			assert.False(g.GameOver, "Should not be Game Over")
 			assert.False(g.GameWon, "Game should not be won")
 			for x := -1; x < 2; x++ {
@@ -101,11 +101,13 @@ func TestNewGameSolvable(t *testing.T) {
 
 			assert.Equal(d.Row, len(g.Field), "Should have the given number of rows")
 			assert.Equal(d.Col, len(g.Field[0]), "Should have the given number of columns")
-			assert.Equal(d, g.Difficulty, "Should have the given difficulty")
+			assert.Equal(d, g.Difficulty(), "Should have the given difficulty")
 			assert.False(g.GameOver, "Should not be Game Over")
 			assert.False(g.GameWon, "Game should not be won")
 
-			assert.True(autosolve(g, p), "Should be autosolvable")
+			solver := NewSolver(g)
+
+			assert.True(solver.Autosolve(p), "Should be autosolvable")
 
 			mines := 0
 			g.walkField(func(x, y int) {
@@ -304,8 +306,6 @@ func TestCheckField(t *testing.T) {
 	t.Run("AlreadyChecked", func(t *testing.T) {
 		g := NewGameWithSafePos(difficulties[DifficultyIntermediate], NewPos(0, 0))
 
-		g.UpdateStatus().actionsUpdated = true
-
 		g.CheckField(NewPos(0, 0))
 		_, ok := g.CheckField(NewPos(0, 0))
 
@@ -315,7 +315,7 @@ func TestCheckField(t *testing.T) {
 
 func TestOutOfBounds(t *testing.T) {
 	g := NewGameWithSafePos(difficulties[DifficultyExpert], NewPos(2, 2))
-	d := g.Difficulty
+	d := g.Difficulty()
 
 	assert := assert.New(t)
 
@@ -377,7 +377,6 @@ func TestStatus(t *testing.T) {
 			})
 
 			assert.Same(g.status, g.Status())
-			assert.False(g.status.actionsUpdated)
 		})
 	}
 }
