@@ -40,7 +40,7 @@ func (s *Solver) Update() {
 	defer s.lock.Unlock()
 
 	status := s.game.Status()
-	if status.GameOver() || status.GameWon() {
+	if status == nil || status.GameOver() || status.GameWon() {
 		return
 	}
 
