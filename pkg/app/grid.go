@@ -323,26 +323,11 @@ func (g *MinesweeperGrid) OutOfBounds(p minesweeper.Pos) bool {
 // Display a single hint on the grid.
 // Returns false if no hint could be displayed.
 func (g *MinesweeperGrid) Hint() bool {
-	g.lGame.Lock()
-
-	if g.Game == nil {
-		g.lGame.Unlock()
+	if !g.gameRunning() {
 		return false
 	}
 
-	status := g.Game.Status()
-
-	if status == nil || status.GameOver() || status.GameWon() {
-		g.lGame.Unlock()
-		return false
-	}
-
-	if g.solver == nil {
-		g.solver = minesweeper.NewSolver(g.Game)
-	}
-	g.solver.Update()
-
-	g.lGame.Unlock()
+	g.updateSolver()
 
 	g.lUpdate.Lock()
 	defer g.lUpdate.Unlock()
@@ -367,25 +352,19 @@ func (g *MinesweeperGrid) Hint() bool {
 // Returns false if it can't run autosolve, otherwise true.
 // If there are no steps to be taken, still
 func (g *MinesweeperGrid) Autosolve(delay time.Duration) bool {
-	g.lGame.Lock()
-
-	if g.Game == nil {
+	if !g.gameRunning() {
 		slog.Info("Autosolve failed because no game is running")
-		g.lGame.Unlock()
 		return false
 	}
-	s := g.Game.Status()
 
-	g.lGame.Unlock()
+	s := g.gameStatus()
 
 	if s == nil {
 		slog.Info("Autosolve failed because game does not have a status yet")
 		return false
 	}
-	if s.GameWon() || s.GameOver() {
-		slog.Info("Not running autosolve because the game is already over")
-		return false
-	}
+
+	g.updateSolver()
 
 	oldAssistedModeStatus := g.AssistedMode
 	g.AssistedMode = true
@@ -393,11 +372,6 @@ func (g *MinesweeperGrid) Autosolve(delay time.Duration) bool {
 		g.AssistedMode = oldAssistedModeStatus
 	}()
 	g.updateFromStatus(s)
-
-	if g.solver == nil {
-		g.solver = minesweeper.NewSolver(g.Game)
-	}
-	g.solver.Update()
 
 	for i, safePos := 0, g.solver.NextSteps(); len(safePos) > 0 && !s.GameOver() && !s.GameWon(); safePos = g.solver.NextSteps() {
 		mines := g.solver.KnownMines()
@@ -424,7 +398,7 @@ func (g *MinesweeperGrid) Autosolve(delay time.Duration) bool {
 			tile.Flag(true)
 		}
 
-		g.solver.Update()
+		g.updateSolver()
 		i++
 	}
 
@@ -441,4 +415,40 @@ func (g *MinesweeperGrid) Autosolve(delay time.Duration) bool {
 
 	slog.Debug("Autosolve finished")
 	return true
+}
+
+// Check if a game is currently running
+func (g *MinesweeperGrid) gameRunning() bool {
+	g.lGame.Lock()
+	defer g.lGame.Unlock()
+
+	if g.Game == nil {
+		return false
+	}
+	return g.Game != nil && !g.Game.Won() && !g.Game.Lost()
+}
+
+// Update the autosolver.
+// Initializes the solver if it is nil.
+// Expects the game to be != nil
+func (g *MinesweeperGrid) updateSolver() {
+	g.lGame.Lock()
+	defer g.lGame.Unlock()
+
+	if g.solver == nil {
+		g.solver = minesweeper.NewSolver(g.Game)
+	}
+	g.solver.Update()
+}
+
+// Return the current games status.
+// Can return nil.
+func (g *MinesweeperGrid) gameStatus() *minesweeper.Status {
+	g.lGame.Lock()
+	defer g.lGame.Unlock()
+
+	if g.Game == nil {
+		return nil
+	}
+	return g.Game.Status()
 }

@@ -93,10 +93,11 @@ func TestNewGame(t *testing.T) {
 		}
 	}
 
-	assert.Nil(g.Game)
-	assert.Equal(g.Difficulty.Mines, g.MineCount.Count)
-	assert.False(g.Timer.running)
-	assert.Equal(ResetDefaultText, g.ResetButton.Label.Text)
+	assert.Nil(g.Game, "Game should be nil")
+	assert.Equal(g.Difficulty.Mines, g.MineCount.Count, "Mine count should be reset")
+	assert.False(g.Timer.running, "Timer should be stopped")
+	assert.Equal(ResetDefaultText, g.ResetButton.Label.Text, "Reset button should have default text")
+	assert.Nil(g.solver, "Solver should be nil")
 }
 
 func TestReplay(t *testing.T) {
@@ -258,7 +259,9 @@ func TestHint(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		assert.False(g.Hint(), "Should not be able to display hint on game without status")
+		assert.NotPanics(func() {
+			assert.False(g.Hint(), "Should not be able to display hint on game without status")
+		}, "Should not panic when game is nil")
 	})
 	t.Run("GameOver", func(t *testing.T) {
 		assert := assert.New(t)
@@ -466,6 +469,22 @@ func TestAutosolve(t *testing.T) {
 			assert.True(g.Tiles[p.X][p.Y].Flagged(), "Tile should be flagged, tile="+p.String())
 		}
 	})
+}
+
+func TestGridGetGameStatus(t *testing.T) {
+	assert := assert.New(t)
+
+	g := &MinesweeperGrid{}
+
+	assert.NotPanics(func() {
+		assert.Nil(g.gameStatus(), "Game status should return nil when game is nil")
+	}, "Test should not panic")
+
+	g.Game = minesweeper.NewGameWithSafePos(minesweeper.Difficulties()[0], minesweeper.NewPos(0, 0))
+
+	expectedStatus, _ := g.Game.CheckField(minesweeper.NewPos(0, 0))
+
+	assert.Equal(expectedStatus, g.gameStatus(), "Should return the game status")
 }
 
 func createGridFromSave(path string, assistedMode bool) (*MinesweeperGrid, error) {
