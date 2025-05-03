@@ -8,6 +8,7 @@ import (
 	"fyne.io/fyne/v2/test"
 	"github.com/heathcliff26/go-minesweeper/pkg/minesweeper"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func init() {
@@ -77,20 +78,17 @@ func TestApp(t *testing.T) {
 		for _, opt := range a.gameMenu[:2] {
 			t.Run(opt.Label, func(t *testing.T) {
 				assert := assert.New(t)
+				require := require.New(t)
 
 				a.grid.TappedTile(minesweeper.NewPos(0, 0))
-				if !assert.True(a.grid.Timer.Running(), "Assert that a game is running") {
-					t.FailNow()
-				}
+				require.True(a.grid.Timer.Running(), "The timer should be running")
 
 				opt.Action()
 				assert.False(a.grid.Timer.Running(), "Game should not be running")
 
 				a.NewGrid(minesweeper.Difficulties()[DEFAULT_DIFFICULTY])
 				a.grid.TappedTile(minesweeper.NewPos(0, 0))
-				if !assert.True(a.grid.Timer.Running(), "Assert that a game is running") {
-					t.FailNow()
-				}
+				require.True(a.grid.Timer.Running(), "The timer should be running")
 
 				opt.Action()
 				assert.False(a.grid.Timer.Running(), "Game should not be running")

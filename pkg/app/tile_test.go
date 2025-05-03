@@ -9,6 +9,7 @@ import (
 	"github.com/heathcliff26/go-minesweeper/assets"
 	"github.com/heathcliff26/go-minesweeper/pkg/minesweeper"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNewTile(t *testing.T) {
@@ -170,9 +171,7 @@ func TestDoubleTapped(t *testing.T) {
 		assert := assert.New(t)
 
 		save, err := minesweeper.LoadSave("testdata/double-tapped_checked.sav")
-		if !assert.Nil(err, "Should load savegame") {
-			t.FailNow()
-		}
+		require.NoError(t, err, "Should load savegame")
 		game := save.Game()
 
 		g := NewMinesweeperGrid(game.Difficulty(), false)

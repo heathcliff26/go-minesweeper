@@ -8,15 +8,15 @@ import (
 
 	"github.com/heathcliff26/go-minesweeper/pkg/utils"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestSolverAutosolve(t *testing.T) {
 	for i := 1; i < 6; i++ {
 		t.Run("Solvable-"+strconv.Itoa(i), func(t *testing.T) {
 			s, err := LoadSave("testdata/autosolve-solvable-" + strconv.Itoa(i) + ".sav")
-			if err != nil {
-				t.Fatalf("Failed to load savegame: %v", err)
-			}
+			require.NoError(t, err, "Failed to load savegame")
+
 			g := s.Game()
 			solver := NewSolver(g)
 			assert.True(t, solver.Autosolve(NewPos(0, 0)))
@@ -26,9 +26,8 @@ func TestSolverAutosolve(t *testing.T) {
 	for i := 1; i < 6; i++ {
 		t.Run("Unsolvable-"+strconv.Itoa(i), func(t *testing.T) {
 			s, err := LoadSave("testdata/autosolve-unsolvable-" + strconv.Itoa(i) + ".sav")
-			if err != nil {
-				t.Fatalf("Failed to load savegame: %v", err)
-			}
+			require.NoError(t, err, "Failed to load savegame")
+
 			g := s.Game()
 			solver := NewSolver(g)
 			assert.False(t, solver.Autosolve(NewPos(0, 0)))
@@ -42,26 +41,21 @@ func TestAssistedMode(t *testing.T) {
 	for _, tCase := range tMatrix {
 		t.Run(tCase, func(t *testing.T) {
 			assert := assert.New(t)
+			require := require.New(t)
 
 			save, err := LoadSave("testdata/" + tCase + ".sav")
-			if !assert.Nil(err, "Should load savegame") {
-				t.FailNow()
-			}
+			require.NoError(err, "Should load savegame")
 			game := save.Game()
 
 			buf, err := os.ReadFile("testdata/" + tCase + ".json")
-			if !assert.Nil(err, "Should load test config") {
-				t.FailNow()
-			}
+			require.NoError(err, "Should load test config")
 			var testConfig []struct {
 				CheckPos Pos
 				Mines    []Pos
 				SafePos  []Pos
 			}
 			err = json.Unmarshal(buf, &testConfig)
-			if !assert.Nil(err, "Should parse test config") {
-				t.FailNow()
-			}
+			require.NoError(err, "Should parse test config")
 
 			s := NewSolver(game)
 
