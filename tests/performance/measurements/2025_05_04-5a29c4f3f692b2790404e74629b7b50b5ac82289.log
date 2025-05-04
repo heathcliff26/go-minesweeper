@@ -1,0 +1,65 @@
+Settings: threads=10, iterations=10000
+
+Measuring "NewGameWithSafePos" using 10000 iterations
+Finished measuring NewGameWithSafePos, calculating result
+
+Name: NewGameWithSafePos
+Max: 1322µs
+Min: 281µs
+Average: 638µs
+
+Measuring "NewGameWithSafeArea" using 10000 iterations
+Finished measuring NewGameWithSafeArea, calculating result
+
+Name: NewGameWithSafeArea
+Max: 1248µs
+Min: 272µs
+Average: 581µs
+
+Measuring "NewGameSolvable" using 10000 iterations
+Finished measuring NewGameSolvable, calculating result
+
+Name: NewGameSolvable
+Max: 214883µs
+Min: 33816µs
+Average: 60932µs
+
+Measuring "AssistedMode" using 10000 iterations
+Finished measuring AssistedMode, calculating result
+
+Name: AssistedMode
+Max: 1875µs
+Min: 708µs
+Average: 1171µs
+
+Measuring "Autosolve - classic" using 10000 iterations
+Finished measuring Autosolve - classic, calculating result
+
+Name: Autosolve - classic
+Max: 528µs
+Min: 58µs
+Average: 145µs
+
+Measuring "Autosolve - beginner" using 10000 iterations
+Finished measuring Autosolve - beginner, calculating result
+
+Name: Autosolve - beginner
+Max: 402µs
+Min: 36µs
+Average: 83µs
+
+Measuring "Autosolve - intermediate" using 10000 iterations
+Finished measuring Autosolve - intermediate, calculating result
+
+Name: Autosolve - intermediate
+Max: 2865µs
+Min: 426µs
+Average: 872µs
+
+Measuring "Autosolve - expert" using 10000 iterations
+Finished measuring Autosolve - expert, calculating result
+
+Name: Autosolve - expert
+Max: 6581µs
+Min: 3852µs
+Average: 5115µs
