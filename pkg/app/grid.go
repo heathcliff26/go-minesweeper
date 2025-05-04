@@ -50,8 +50,12 @@ type MinesweeperGrid struct {
 	MineCount   *Counter
 	ResetButton *Button
 
-	lUpdate sync.Mutex
-	lGame   sync.Mutex
+	lUpdate    sync.Mutex
+	lGame      sync.Mutex
+	lAutosolve sync.Mutex
+
+	autosolveBreak chan bool
+	autosolveDone  chan bool
 
 	testChannel chan string
 }
@@ -276,29 +280,46 @@ func (g *MinesweeperGrid) Col() int {
 
 // Start a new game
 func (g *MinesweeperGrid) NewGame() {
-	g.lGame.Lock()
-	defer g.lGame.Unlock()
+	// Ensure that the game lock is released before calling reset.
+	// This ensures that no deadlock occurs when autosolve is running.
+	func() {
+		g.lGame.Lock()
+		defer g.lGame.Unlock()
 
-	slog.Info("Preparing for new game")
-	g.Game = nil
-	g.solver = nil
+		slog.Info("Preparing for new game")
+		g.Game = nil
+		g.solver = nil
+	}()
 	g.Reset()
 }
 
 // Replay the current game
 func (g *MinesweeperGrid) Replay() {
-	g.lGame.Lock()
-	defer g.lGame.Unlock()
+	// Ensure that the game lock is released before calling reset.
+	// This ensures that no deadlock occurs when autosolve is running.
+	func() {
+		g.lGame.Lock()
+		defer g.lGame.Unlock()
 
-	slog.Info("Preparing for replay of current game")
-	if g.Game != nil {
-		g.Game.Replay()
-	}
+		slog.Info("Preparing for replay of current game")
+		if g.Game != nil {
+			g.Game.Replay()
+		}
+	}()
+
 	g.Reset()
 }
 
 // Reset Grid
 func (g *MinesweeperGrid) Reset() {
+	g.lAutosolve.Lock()
+	defer g.lAutosolve.Unlock()
+
+	if g.autosolveBreak != nil && g.autosolveDone != nil {
+		close(g.autosolveBreak)
+		<-g.autosolveDone
+	}
+
 	g.lUpdate.Lock()
 	defer g.lUpdate.Unlock()
 
@@ -350,7 +371,7 @@ func (g *MinesweeperGrid) Hint() bool {
 
 // Autosolve the current running game, delay is the time between steps
 // Returns false if it can't run autosolve, otherwise true.
-// If there are no steps to be taken, still
+// If there are no steps to be taken, still returns true.
 func (g *MinesweeperGrid) Autosolve(delay time.Duration) bool {
 	if !g.gameRunning() {
 		slog.Info("Autosolve failed because no game is running")
@@ -363,6 +384,36 @@ func (g *MinesweeperGrid) Autosolve(delay time.Duration) bool {
 		slog.Info("Autosolve failed because game does not have a status yet")
 		return false
 	}
+
+	autosolveBreak := make(chan bool, 1)
+	autosolveDone := make(chan bool, 1)
+	alreadyRunning := false
+	func() {
+		g.lAutosolve.Lock()
+		defer g.lAutosolve.Unlock()
+
+		if g.autosolveBreak != nil && g.autosolveDone != nil {
+			alreadyRunning = true
+		} else {
+			g.autosolveBreak = autosolveBreak
+			g.autosolveDone = autosolveDone
+		}
+	}()
+
+	if alreadyRunning {
+		slog.Debug("Autosolve already running, aborting")
+		return false
+	}
+
+	defer func() {
+		close(autosolveDone)
+
+		g.lAutosolve.Lock()
+		defer g.lAutosolve.Unlock()
+
+		g.autosolveBreak = nil
+		g.autosolveDone = nil
+	}()
 
 	g.updateSolver()
 
@@ -396,6 +447,13 @@ func (g *MinesweeperGrid) Autosolve(delay time.Duration) bool {
 			}
 			tile := g.Tiles[mine.X][mine.Y]
 			tile.Flag(true)
+		}
+
+		select {
+		case <-autosolveBreak:
+			slog.Debug("Autosolve interrupted")
+			return true
+		default:
 		}
 
 		g.updateSolver()
