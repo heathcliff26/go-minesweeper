@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"log/slog"
 	"os"
 	"strconv"
 	"time"
@@ -34,6 +35,7 @@ func main() {
 		flag.Usage()
 		os.Exit(0)
 	}
+	slog.SetLogLoggerLevel(slog.LevelError)
 
 	fmt.Printf("Settings: threads=%d, iterations=%d\n\n", workerThreads, iterationsPerMeasureLoop)
 
@@ -48,13 +50,24 @@ func main() {
 			minesweeper.NewGameWithSafeArea(difficulty, minesweeper.NewPos(50, 50))
 		})
 	})
+	measureLoop("NewGameSolvable", iterationsPerMeasureLoop, func(res chan time.Duration) {
+		measure(res, func() {
+			minesweeper.NewGameSolvable(difficulty, minesweeper.NewPos(50, 50))
+		})
+	})
 
 	measureLoop("AssistedMode", iterationsPerMeasureLoop, measureAssistedMode)
+
+	for _, difficulty := range []string{"classic", "beginner", "intermediate", "expert"} {
+		measureLoop("Autosolve - "+difficulty, iterationsPerMeasureLoop, func(res chan time.Duration) {
+			measureAutosolve(res, fmt.Sprintf("testdata/autosolve-%s.sav", difficulty))
+		})
+	}
 }
 
 // Run the measurement multiple times, running in parallel as set by workerThreads
 func measureLoop(name string, iterations int, f func(res chan time.Duration)) string {
-	fmt.Printf("Measuring %s using %d iterations\n", name, iterations)
+	fmt.Printf("Measuring \"%s\" using %d iterations\n", name, iterations)
 
 	rest := iterations % workerThreads
 
@@ -160,5 +173,20 @@ func measureAssistedMode(res chan time.Duration) {
 			fmt.Println("Something unexpected happened, the game finished")
 		}
 	}
+	res <- time.Since(start)
+}
+
+func measureAutosolve(res chan time.Duration, savepath string) {
+	save, err := minesweeper.LoadSave(savepath)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	game := save.Game()
+
+	solver := minesweeper.NewSolver(game)
+
+	start := time.Now()
+	solver.Autosolve(minesweeper.NewPos(0, 0))
 	res <- time.Since(start)
 }
