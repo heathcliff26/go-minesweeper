@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/heathcliff26/go-minesweeper/pkg/minesweeper"
 	"github.com/stretchr/testify/assert"
@@ -392,14 +393,14 @@ func TestAutosolve(t *testing.T) {
 		}
 	})
 
-	tMatrix := []struct {
+	tMatrix1 := []struct {
 		Name string
 		Won  bool
 	}{
 		{"win", true},
 		{"unfinished", false},
 	}
-	for _, tCase := range tMatrix {
+	for _, tCase := range tMatrix1 {
 		t.Run("Solve_"+tCase.Name, func(t *testing.T) {
 			t.Parallel()
 			assert := assert.New(t)
@@ -427,6 +428,8 @@ func TestAutosolve(t *testing.T) {
 				}
 				assert.Greater(count, 0, "Should have flagged some mines")
 				assert.Less(count, len(mines), "Should not have flagged all mines")
+				assert.Nil(g.autosolveBreak, "Should have reset the autosolveBreak channel")
+				assert.Nil(g.autosolveDone, "Should have reset the autosolveDone channel")
 			} else {
 				for _, p := range g.solver.KnownMines() {
 					assert.True(g.Tiles[p.X][p.Y].Flagged(), "Tile should be flagged, tile="+p.String())
@@ -451,6 +454,96 @@ func TestAutosolve(t *testing.T) {
 			assert.True(g.Tiles[p.X][p.Y].Flagged(), "Tile should be flagged, tile="+p.String())
 		}
 	})
+
+	tMatrix2 := []struct {
+		Name     string
+		testFunc func(g *MinesweeperGrid)
+	}{
+		{"NewGame", func(g *MinesweeperGrid) {
+			g.NewGame()
+		}},
+		{"Replay", func(g *MinesweeperGrid) {
+			g.Replay()
+		}},
+		{"Reset", func(g *MinesweeperGrid) {
+			g.Reset()
+		}},
+	}
+
+	for _, tCase := range tMatrix2 {
+		t.Run("QuitOn"+tCase.Name, func(t *testing.T) {
+			t.Parallel()
+			require := require.New(t)
+
+			g, err := createGridFromSave("testdata/autosolve_win.sav", false)
+			require.NoError(err, "Should load savegame")
+			g.TappedTile(minesweeper.NewPos(0, 0))
+
+			res := make(chan bool)
+
+			go func() {
+				res <- g.Autosolve(DEFAULT_AUTOSOLVE_DELAY)
+			}()
+
+			require.Eventually(func() bool {
+				return g.Tiles[5][0].Checked()
+			}, 5*time.Second, 200*time.Millisecond, "Should have started to run autosolve")
+
+			resetDone := make(chan bool)
+			go func() {
+				tCase.testFunc(g)
+				resetDone <- true
+			}()
+
+			require.Eventually(func() bool {
+				select {
+				case r := <-resetDone:
+					return r
+				default:
+					return false
+				}
+			}, 5*time.Second, 200*time.Millisecond, "Should have reset the game")
+
+			require.Eventually(func() bool {
+				select {
+				case r := <-res:
+					return r
+				default:
+					return false
+				}
+			}, 5*time.Second, 200*time.Millisecond, "Should have stopped running autosolve")
+
+			isReset := true
+			for x := 0; x < g.Row(); x++ {
+				for y := 0; y < g.Col(); y++ {
+					if g.Tiles[x][y].Checked() {
+						isReset = false
+						break
+					}
+				}
+			}
+			assert.True(t, isReset, "Should have reset all tiles")
+		})
+	}
+
+	t.Run("OnlyRunOneAutosolve", func(t *testing.T) {
+		t.Parallel()
+		assert := assert.New(t)
+
+		g := NewMinesweeperGrid(minesweeper.Difficulties()[DEFAULT_DIFFICULTY], false)
+		for _, row := range g.Tiles {
+			for _, tile := range row {
+				tile.CreateRenderer()
+			}
+		}
+		g.TappedTile(minesweeper.NewPos(0, 0))
+
+		g.autosolveBreak = make(chan bool, 1)
+		g.autosolveDone = make(chan bool, 1)
+
+		assert.False(g.Autosolve(0), "Should not run autosolve")
+	})
+
 }
 
 func TestGridGetGameStatus(t *testing.T) {
