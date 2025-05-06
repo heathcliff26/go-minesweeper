@@ -3,6 +3,7 @@ package app
 import (
 	"log/slog"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"fyne.io/fyne/v2/test"
@@ -157,4 +158,58 @@ func TestAppWithPreferences(t *testing.T) {
 	}
 	assert.Equal(p.GameAlgorithm, a.grid.GameAlgorithm, "The grid should have the correct game algorithm selected")
 	assert.Equal(p.AssistedMode, a.assistedMode.Checked, "Assisted Mode should be selected")
+}
+
+func TestSaveGame(t *testing.T) {
+	overrideSettingsPath = "not-a-file.yaml"
+	t.Cleanup(func() {
+		overrideSettingsPath = ""
+	})
+
+	newApp = test.NewApp
+
+	a := New()
+	a.grid.TappedTile(minesweeper.NewPos(0, 0))
+
+	dir := t.TempDir()
+
+	t.Run("NewSave", func(t *testing.T) {
+		assert := assert.New(t)
+
+		savePath := filepath.Join(dir, "new-save.sav")
+
+		a.saveGameCallback(savePath, nil)
+
+		assert.FileExists(savePath, "Save file should exist")
+		_, err := minesweeper.LoadSave(savePath)
+		assert.NoError(err, "Should be able to load the save file")
+	})
+
+	t.Run("OverwriteSave", func(t *testing.T) {
+		assert := assert.New(t)
+
+		savePath := filepath.Join(dir, "overwrite-save.sav")
+
+		require.NoError(t, os.WriteFile(savePath, []byte("test"), 0644), "Should create an empty file")
+
+		a.saveGameCallback(savePath, nil)
+
+		assert.FileExists(savePath, "Save file should exist")
+		_, err := minesweeper.LoadSave(savePath)
+		assert.NoError(err, "Should be able to load the save file")
+	})
+}
+
+func TestLoadSave(t *testing.T) {
+	overrideSettingsPath = "not-a-file.yaml"
+	t.Cleanup(func() {
+		overrideSettingsPath = ""
+	})
+
+	newApp = test.NewApp
+
+	a := New()
+
+	a.loadSaveCallback("testdata/hint.sav", nil)
+	assert.NotNil(t, a.grid.Game, "Game should be loaded")
 }
