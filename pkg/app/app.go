@@ -2,7 +2,6 @@ package app
 
 import (
 	"log/slog"
-	"os"
 	"time"
 
 	"fyne.io/fyne/v2"
@@ -206,28 +205,30 @@ func (a *App) loadSave() {
 		return
 	}
 
-	filedialog.FileOpen("Open Savegame", saveDir, []string{minesweeper.SaveFileExtension}, func(path string, err error) {
-		if err != nil {
-			dialog.ShowError(err, a.main)
-			return
-		}
-		if path == "" {
-			return
-		}
+	filedialog.FileOpen("Open Savegame", saveDir, []string{minesweeper.SaveFileExtension}, a.loadSaveCallback)
+}
 
-		save, err := minesweeper.LoadSave(path)
-		if err != nil {
-			dialog.ShowError(err, a.main)
-			return
-		}
+func (a *App) loadSaveCallback(path string, err error) {
+	if err != nil {
+		dialog.ShowError(err, a.main)
+		return
+	}
+	if path == "" {
+		return
+	}
 
-		for _, i := range a.difficulties {
-			i.Checked = (i.Label == save.Data.Difficulty.Name)
-		}
-		a.NewGrid(save.Data.Difficulty)
+	save, err := minesweeper.LoadSave(path)
+	if err != nil {
+		dialog.ShowError(err, a.main)
+		return
+	}
 
-		a.grid.Game = save.Game()
-	})
+	for _, i := range a.difficulties {
+		i.Checked = (i.Label == save.Data.Difficulty.Name)
+	}
+	a.NewGrid(save.Data.Difficulty)
+
+	a.grid.Game = save.Game()
 }
 
 func (a *App) saveGame() {
@@ -242,33 +243,29 @@ func (a *App) saveGame() {
 		return
 	}
 
-	filedialog.FileSave("Save Game", saveDir, []string{minesweeper.SaveFileExtension}, func(path string, err error) {
-		if err != nil {
-			dialog.ShowError(err, a.main)
-			return
-		}
-		if path == "" {
-			return
-		}
+	filedialog.FileSave("Save Game", saveDir, []string{minesweeper.SaveFileExtension}, a.saveGameCallback)
+}
 
-		err = os.Remove(path)
-		if err != nil {
-			dialog.ShowError(err, a.main)
-			return
-		}
+func (a *App) saveGameCallback(path string, err error) {
+	if err != nil {
+		dialog.ShowError(err, a.main)
+		return
+	}
+	if path == "" {
+		return
+	}
 
-		save, err := a.grid.Game.ToSave()
-		if err != nil {
-			dialog.ShowError(err, a.main)
-			return
-		}
+	save, err := a.grid.Game.ToSave()
+	if err != nil {
+		dialog.ShowError(err, a.main)
+		return
+	}
 
-		err = save.Save(path)
-		if err != nil {
-			dialog.ShowError(err, a.main)
-			return
-		}
-	})
+	err = save.Save(path)
+	if err != nil {
+		dialog.ShowError(err, a.main)
+		return
+	}
 }
 
 func (a *App) NewGrid(d minesweeper.Difficulty) {
