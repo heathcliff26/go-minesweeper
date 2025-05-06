@@ -55,7 +55,7 @@
 			<div id="nav">
 				<select id="files">
 				
-				<option value="file0">github.com/heathcliff26/go-minesweeper/pkg/app/app.go (48.0%)</option>
+				<option value="file0">github.com/heathcliff26/go-minesweeper/pkg/app/app.go (59.0%)</option>
 				
 				<option value="file1">github.com/heathcliff26/go-minesweeper/pkg/app/button.go (100.0%)</option>
 				
@@ -120,7 +120,6 @@
 
 import (
         "log/slog"
-        "os"
         "time"
 
         "fyne.io/fyne/v2"
@@ -157,15 +156,15 @@ type App struct {
 }
 
 // Create a new App
-func New() *App <span class="cov3" title="3">{
+func New() *App <span class="cov4" title="5">{
         preferences, err := LoadPreferences()
-        if err != nil </span><span class="cov2" title="2">{
+        if err != nil </span><span class="cov4" title="4">{
                 slog.Info("Failed to load preferences, falling back to defaults", "err", err)
         }</span> else<span class="cov1" title="1"> {
                 slog.Debug("Loaded preferences", "preferences", preferences)
         }</span>
 
-        <span class="cov3" title="3">app := newApp()
+        <span class="cov4" title="5">app := newApp()
         version := getVersion(app)
         main := app.NewWindow(version.Name)
         app.Settings().SetTheme(mainTheme{})
@@ -200,36 +199,36 @@ func (a *App) Run() <span class="cov0" title="0">{
 }
 
 // Create the main menu bar
-func (a *App) makeMenu(preferences Preferences) <span class="cov3" title="3">{
+func (a *App) makeMenu(preferences Preferences) <span class="cov4" title="5">{
         // Can't assign grid functions directly, as the instance of grid may change
         newGameOption := fyne.NewMenuItem("New", func() </span><span class="cov2" title="2">{
                 a.grid.NewGame()
         }</span>)
-        <span class="cov3" title="3">replayOption := fyne.NewMenuItem("Replay", func() </span><span class="cov2" title="2">{
+        <span class="cov4" title="5">replayOption := fyne.NewMenuItem("Replay", func() </span><span class="cov2" title="2">{
                 a.grid.Replay()
         }</span>)
-        <span class="cov3" title="3">loadOption := fyne.NewMenuItem("Load", a.loadSave)
+        <span class="cov4" title="5">loadOption := fyne.NewMenuItem("Load", a.loadSave)
         saveOption := fyne.NewMenuItem("Save", a.saveGame)
         a.gameMenu = []*fyne.MenuItem{newGameOption, replayOption, fyne.NewMenuItemSeparator(), loadOption, saveOption}
         gameMenu := fyne.NewMenu("Game", a.gameMenu...)
 
         difficulties := minesweeper.Difficulties()
         diffItems := make([]*fyne.MenuItem, 0, len(difficulties)+2)
-        for _, d := range difficulties </span><span class="cov7" title="12">{
+        for _, d := range difficulties </span><span class="cov8" title="20">{
                 item := fyne.NewMenuItem(d.Name, nil)
                 item.Action = func() </span><span class="cov4" title="4">{
                         if item.Checked </span><span class="cov0" title="0">{
                                 return
                         }</span>
-                        <span class="cov4" title="4">for _, i := range a.difficulties </span><span class="cov9" title="24">{
+                        <span class="cov4" title="4">for _, i := range a.difficulties </span><span class="cov8" title="24">{
                                 i.Checked = (i.Label == d.Name)
                         }</span>
                         <span class="cov4" title="4">a.NewGrid(d)</span>
                 }
-                <span class="cov7" title="12">item.Checked = (d == preferences.Difficulty())
+                <span class="cov8" title="20">item.Checked = (d == preferences.Difficulty())
                 diffItems = append(diffItems, item)</span>
         }
-        <span class="cov3" title="3">diffItems = append(diffItems, fyne.NewMenuItemSeparator())
+        <span class="cov4" title="5">diffItems = append(diffItems, fyne.NewMenuItemSeparator())
         diffItems = append(diffItems, fyne.NewMenuItem("Custom", a.customDifficultyDialog))
         a.difficulties = diffItems
         diffMenu := fyne.NewMenu("Difficulties", diffItems...)
@@ -241,18 +240,18 @@ func (a *App) makeMenu(preferences Preferences) <span class="cov3" title="3">{
                         go a.grid.updateFromStatus(a.grid.Game.Status())
                 }</span>
         })
-        <span class="cov3" title="3">a.assistedMode.Checked = preferences.AssistedMode
+        <span class="cov4" title="5">a.assistedMode.Checked = preferences.AssistedMode
         a.gameAlgorithms = make([]*fyne.MenuItem, 3)
         a.gameAlgorithms[0] = fyne.NewMenuItem("Safe Position", func() </span><span class="cov1" title="1">{
                 a.setGameAlgorithm(GameAlgorithmSafePos)
         }</span>)
-        <span class="cov3" title="3">a.gameAlgorithms[1] = fyne.NewMenuItem("Safe Area", func() </span><span class="cov1" title="1">{
+        <span class="cov4" title="5">a.gameAlgorithms[1] = fyne.NewMenuItem("Safe Area", func() </span><span class="cov1" title="1">{
                 a.setGameAlgorithm(GameAlgorithmSafeArea)
         }</span>)
-        <span class="cov3" title="3">a.gameAlgorithms[2] = fyne.NewMenuItem("Solvable", func() </span><span class="cov1" title="1">{
+        <span class="cov4" title="5">a.gameAlgorithms[2] = fyne.NewMenuItem("Solvable", func() </span><span class="cov1" title="1">{
                 a.setGameAlgorithm(GameAlgorithmSolvable)
         }</span>)
-        <span class="cov3" title="3">gameAlgorithmSubMenu := fyne.NewMenuItem("Creation Algorithm", nil)
+        <span class="cov4" title="5">gameAlgorithmSubMenu := fyne.NewMenuItem("Creation Algorithm", nil)
         gameAlgorithmSubMenu.ChildMenu = fyne.NewMenu("Creation Algorithm", a.gameAlgorithms...)
         autosolve := fyne.NewMenuItem("Autosolve", func() </span><span class="cov0" title="0">{
                 go func() </span><span class="cov0" title="0">{
@@ -261,7 +260,7 @@ func (a *App) makeMenu(preferences Preferences) <span class="cov3" title="3">{
                         }</span>
                 }()
         })
-        <span class="cov3" title="3">optionsMenu := fyne.NewMenu("Options", a.assistedMode, gameAlgorithmSubMenu, autosolve)
+        <span class="cov4" title="5">optionsMenu := fyne.NewMenu("Options", a.assistedMode, gameAlgorithmSubMenu, autosolve)
 
         hint := fyne.NewMenuItem("Hint", func() </span><span class="cov0" title="0">{
                 go func() </span><span class="cov0" title="0">{
@@ -270,17 +269,17 @@ func (a *App) makeMenu(preferences Preferences) <span class="cov3" title="3">{
                         }</span>
                 }()
         })
-        <span class="cov3" title="3">about := fyne.NewMenuItem("About", func() </span><span class="cov0" title="0">{
+        <span class="cov4" title="5">about := fyne.NewMenuItem("About", func() </span><span class="cov0" title="0">{
                 vInfo := dialog.NewCustom(a.Version.Name, "close", getVersionContent(a.Version), a.main)
                 vInfo.Show()
         }</span>)
-        <span class="cov3" title="3">helpMenu := fyne.NewMenu("Help", hint, about)
+        <span class="cov4" title="5">helpMenu := fyne.NewMenu("Help", hint, about)
 
         a.main.SetMainMenu(fyne.NewMainMenu(gameMenu, diffMenu, optionsMenu, helpMenu))</span>
 }
 
 // Update the content of the app and resize the window to make it fit
-func (a *App) setContent() <span class="cov7" title="11">{
+func (a *App) setContent() <span class="cov7" title="14">{
         content := container.NewPadded(a.grid.GetCanvasObject())
         content.Resize(content.MinSize())
 
@@ -324,28 +323,30 @@ func (a *App) loadSave() <span class="cov0" title="0">{
                 return
         }</span>
 
-        <span class="cov0" title="0">filedialog.FileOpen("Open Savegame", saveDir, []string{minesweeper.SaveFileExtension}, func(path string, err error) </span><span class="cov0" title="0">{
-                if err != nil </span><span class="cov0" title="0">{
-                        dialog.ShowError(err, a.main)
-                        return
-                }</span>
-                <span class="cov0" title="0">if path == "" </span><span class="cov0" title="0">{
-                        return
-                }</span>
+        <span class="cov0" title="0">filedialog.FileOpen("Open Savegame", saveDir, []string{minesweeper.SaveFileExtension}, a.loadSaveCallback)</span>
+}
 
-                <span class="cov0" title="0">save, err := minesweeper.LoadSave(path)
-                if err != nil </span><span class="cov0" title="0">{
-                        dialog.ShowError(err, a.main)
-                        return
-                }</span>
+func (a *App) loadSaveCallback(path string, err error) <span class="cov1" title="1">{
+        if err != nil </span><span class="cov0" title="0">{
+                dialog.ShowError(err, a.main)
+                return
+        }</span>
+        <span class="cov1" title="1">if path == "" </span><span class="cov0" title="0">{
+                return
+        }</span>
 
-                <span class="cov0" title="0">for _, i := range a.difficulties </span><span class="cov0" title="0">{
-                        i.Checked = (i.Label == save.Data.Difficulty.Name)
-                }</span>
-                <span class="cov0" title="0">a.NewGrid(save.Data.Difficulty)
+        <span class="cov1" title="1">save, err := minesweeper.LoadSave(path)
+        if err != nil </span><span class="cov0" title="0">{
+                dialog.ShowError(err, a.main)
+                return
+        }</span>
 
-                a.grid.Game = save.Game()</span>
-        })
+        <span class="cov1" title="1">for _, i := range a.difficulties </span><span class="cov5" title="6">{
+                i.Checked = (i.Label == save.Data.Difficulty.Name)
+        }</span>
+        <span class="cov1" title="1">a.NewGrid(save.Data.Difficulty)
+
+        a.grid.Game = save.Game()</span>
 }
 
 func (a *App) saveGame() <span class="cov0" title="0">{
@@ -360,50 +361,46 @@ func (a *App) saveGame() <span class="cov0" title="0">{
                 return
         }</span>
 
-        <span class="cov0" title="0">filedialog.FileSave("Save Game", saveDir, []string{minesweeper.SaveFileExtension}, func(path string, err error) </span><span class="cov0" title="0">{
-                if err != nil </span><span class="cov0" title="0">{
-                        dialog.ShowError(err, a.main)
-                        return
-                }</span>
-                <span class="cov0" title="0">if path == "" </span><span class="cov0" title="0">{
-                        return
-                }</span>
-
-                <span class="cov0" title="0">err = os.Remove(path)
-                if err != nil </span><span class="cov0" title="0">{
-                        dialog.ShowError(err, a.main)
-                        return
-                }</span>
-
-                <span class="cov0" title="0">save, err := a.grid.Game.ToSave()
-                if err != nil </span><span class="cov0" title="0">{
-                        dialog.ShowError(err, a.main)
-                        return
-                }</span>
-
-                <span class="cov0" title="0">err = save.Save(path)
-                if err != nil </span><span class="cov0" title="0">{
-                        dialog.ShowError(err, a.main)
-                        return
-                }</span>
-        })
+        <span class="cov0" title="0">filedialog.FileSave("Save Game", saveDir, []string{minesweeper.SaveFileExtension}, a.saveGameCallback)</span>
 }
 
-func (a *App) NewGrid(d minesweeper.Difficulty) <span class="cov7" title="10">{
+func (a *App) saveGameCallback(path string, err error) <span class="cov2" title="2">{
+        if err != nil </span><span class="cov0" title="0">{
+                dialog.ShowError(err, a.main)
+                return
+        }</span>
+        <span class="cov2" title="2">if path == "" </span><span class="cov0" title="0">{
+                return
+        }</span>
+
+        <span class="cov2" title="2">save, err := a.grid.Game.ToSave()
+        if err != nil </span><span class="cov0" title="0">{
+                dialog.ShowError(err, a.main)
+                return
+        }</span>
+
+        <span class="cov2" title="2">err = save.Save(path)
+        if err != nil </span><span class="cov0" title="0">{
+                dialog.ShowError(err, a.main)
+                return
+        }</span>
+}
+
+func (a *App) NewGrid(d minesweeper.Difficulty) <span class="cov7" title="13">{
         a.grid = NewMinesweeperGrid(d, a.assistedMode.Checked)
-        for i, item := range a.gameAlgorithms </span><span class="cov10" title="30">{
-                if item.Checked </span><span class="cov6" title="7">{
+        for i, item := range a.gameAlgorithms </span><span class="cov10" title="39">{
+                if item.Checked </span><span class="cov6" title="8">{
                         a.grid.GameAlgorithm = i
                 }</span>
         }
-        <span class="cov7" title="10">a.setContent()</span>
+        <span class="cov7" title="13">a.setContent()</span>
 }
 
-func (a *App) setGameAlgorithm(id int) <span class="cov5" title="6">{
-        for i, item := range a.gameAlgorithms </span><span class="cov8" title="18">{
+func (a *App) setGameAlgorithm(id int) <span class="cov6" title="8">{
+        for i, item := range a.gameAlgorithms </span><span class="cov8" title="24">{
                 item.Checked = i == id
         }</span>
-        <span class="cov5" title="6">a.grid.GameAlgorithm = id</span>
+        <span class="cov6" title="8">a.grid.GameAlgorithm = id</span>
 }
 </pre>
 		
@@ -427,7 +424,7 @@ type Button struct {
 }
 
 // Create a new button from the given text, color and function
-func NewButton(text string, color color.Color, action func()) *Button <span class="cov10" title="56">{
+func NewButton(text string, color color.Color, action func()) *Button <span class="cov10" title="59">{
         b := &amp;Button{
                 Label:  canvas.NewText(text, color),
                 Action: action,
@@ -437,7 +434,7 @@ func NewButton(text string, color color.Color, action func()) *Button <span clas
 }</span>
 
 // Function to create renderer needed to implement widget
-func (b *Button) CreateRenderer() fyne.WidgetRenderer <span class="cov7" title="21">{
+func (b *Button) CreateRenderer() fyne.WidgetRenderer <span class="cov8" title="25">{
         return widget.NewSimpleRenderer(b.Label)
 }</span>
 
@@ -450,7 +447,7 @@ func (b *Button) Tapped(_ *fyne.PointEvent) <span class="cov1" title="1">{
 func (b *Button) TappedSecondary(_ *fyne.PointEvent) {<span class="cov0" title="0">}</span>
 
 // Set label text to the given string and refresh widget
-func (b *Button) SetText(text string) <span class="cov7" title="19">{
+func (b *Button) SetText(text string) <span class="cov7" title="20">{
         b.Label.Text = text
         fyne.Do(b.Refresh)
 }</span>
@@ -476,7 +473,7 @@ type Counter struct {
 }
 
 // Create new counter
-func NewCounter(count int) *Counter <span class="cov8" title="57">{
+func NewCounter(count int) *Counter <span class="cov8" title="60">{
         return &amp;Counter{
                 Label: newGridLabel(strconv.Itoa(count)),
                 Count: count,
@@ -493,13 +490,13 @@ func (m *Counter) SetCount(c int) <span class="cov5" title="15">{
 }</span>
 
 // Redraw the counter from the current count
-func (m *Counter) refresh() <span class="cov10" title="157">{
+func (m *Counter) refresh() <span class="cov10" title="149">{
         if m.Count &lt; 0 </span><span class="cov1" title="1">{
                 m.Label.Text = "00"
-        }</span> else<span class="cov9" title="156"> {
+        }</span> else<span class="cov9" title="148"> {
                 m.Label.Text = fmt.Sprintf("%02d", m.Count)
         }</span>
-        <span class="cov10" title="157">fyne.Do(m.Label.Refresh)</span>
+        <span class="cov10" title="149">fyne.Do(m.Label.Refresh)</span>
 }
 
 // Increase the counter
@@ -512,7 +509,7 @@ func (m *Counter) Inc() <span class="cov6" title="17">{
 }</span>
 
 // Decrease the counter
-func (m *Counter) Dec() <span class="cov9" title="125">{
+func (m *Counter) Dec() <span class="cov9" title="117">{
         m.lock.Lock()
         defer m.lock.Unlock()
 
@@ -682,7 +679,7 @@ type MinesweeperGrid struct {
 }
 
 // Create a new grid suitable for the give difficulty
-func NewMinesweeperGrid(d minesweeper.Difficulty, assistedMode bool) *MinesweeperGrid <span class="cov4" title="55">{
+func NewMinesweeperGrid(d minesweeper.Difficulty, assistedMode bool) *MinesweeperGrid <span class="cov4" title="58">{
         tiles := utils.Make2D[*Tile](d.Row, d.Col)
         grid := &amp;MinesweeperGrid{
                 Tiles:         tiles,
@@ -695,17 +692,17 @@ func NewMinesweeperGrid(d minesweeper.Difficulty, assistedMode bool) *Minesweepe
         grid.ResetButton = NewButton(ResetDefaultText, color.RGBA{}, grid.NewGame)
         grid.ResetButton.Label.TextSize = ResetTextSize
 
-        for x := 0; x &lt; grid.Row(); x++ </span><span class="cov6" title="664">{
-                for y := 0; y &lt; grid.Col(); y++ </span><span class="cov8" title="11054">{
+        for x := 0; x &lt; grid.Row(); x++ </span><span class="cov6" title="698">{
+                for y := 0; y &lt; grid.Col(); y++ </span><span class="cov8" title="11472">{
                         grid.Tiles[x][y] = NewTile(x, y, grid)
                 }</span>
         }
 
-        <span class="cov4" title="55">return grid</span>
+        <span class="cov4" title="58">return grid</span>
 }
 
 // Get the graphical representation of the grid
-func (g *MinesweeperGrid) GetCanvasObject() fyne.CanvasObject <span class="cov2" title="11">{
+func (g *MinesweeperGrid) GetCanvasObject() fyne.CanvasObject <span class="cov3" title="14">{
         mineCount := container.NewHBox(layout.NewSpacer(), container.NewCenter(newBorder(g.MineCount.Label)))
         reset := container.NewCenter(g.ResetButton)
         timer := container.NewHBox(container.NewCenter(newBorder(g.Timer.Label)), layout.NewSpacer())
@@ -714,29 +711,29 @@ func (g *MinesweeperGrid) GetCanvasObject() fyne.CanvasObject <span class="cov2"
 
         rows := make([]fyne.CanvasObject, len(g.Tiles))
 
-        for x := 0; x &lt; g.Row(); x++ </span><span class="cov4" title="111">{
+        for x := 0; x &lt; g.Row(); x++ </span><span class="cov5" title="145">{
                 col := make([]fyne.CanvasObject, g.Col())
-                for y := 0; y &lt; g.Col(); y++ </span><span class="cov6" title="1431">{
+                for y := 0; y &lt; g.Col(); y++ </span><span class="cov7" title="1849">{
                         col[y] = g.Tiles[x][y]
                 }</span>
-                <span class="cov4" title="111">rows[x] = container.NewGridWithColumns(g.Col(), col...)</span>
+                <span class="cov5" title="145">rows[x] = container.NewGridWithColumns(g.Col(), col...)</span>
         }
-        <span class="cov2" title="11">body := newBorder(container.NewGridWithRows(g.Row(), rows...))
+        <span class="cov3" title="14">body := newBorder(container.NewGridWithRows(g.Row(), rows...))
         return container.NewVBox(head, body)</span>
 }
 
 // Called by the child tiles to signal they have been tapped.
 // Checks the given tile and then updates the display according to the new state.
 // Starts a new game when no game is currently running.
-func (g *MinesweeperGrid) TappedTile(pos minesweeper.Pos) <span class="cov5" title="255">{
+func (g *MinesweeperGrid) TappedTile(pos minesweeper.Pos) <span class="cov5" title="239">{
         g.lGame.Lock()
         defer g.lGame.Unlock()
 
-        if g.Game == nil </span><span class="cov3" title="18">{
+        if g.Game == nil </span><span class="cov3" title="19">{
                 switch g.GameAlgorithm </span>{
                 case GameAlgorithmSafePos:<span class="cov1" title="1">
                         g.Game = minesweeper.NewGameWithSafePos(g.Difficulty, pos)</span>
-                case GameAlgorithmSafeArea:<span class="cov3" title="15">
+                case GameAlgorithmSafeArea:<span class="cov3" title="16">
                         g.Game = minesweeper.NewGameWithSafeArea(g.Difficulty, pos)</span>
                 case GameAlgorithmSolvable:<span class="cov1" title="1">
                         g.Game = minesweeper.NewGameSolvable(g.Difficulty, pos)</span>
@@ -745,19 +742,19 @@ func (g *MinesweeperGrid) TappedTile(pos minesweeper.Pos) <span class="cov5" tit
                         return</span>
                 }
         }
-        <span class="cov5" title="254">if !g.Timer.Running() </span><span class="cov3" title="27">{
+        <span class="cov5" title="238">if !g.Timer.Running() </span><span class="cov3" title="28">{
                 g.Timer.Start()
         }</span>
 
-        <span class="cov5" title="254">slog.Info("Checking field", slog.String("pos", pos.String()))
+        <span class="cov5" title="238">slog.Info("Checking field", slog.String("pos", pos.String()))
 
         s, changed := g.Game.CheckField(pos)
-        if changed </span><span class="cov5" title="254">{
+        if changed </span><span class="cov5" title="238">{
                 slog.Debug("Checked field, updating tiles")
                 g.updateFromStatus(s)
         }</span>
 
-        <span class="cov5" title="254">if g.testChannel != nil </span><span class="cov1" title="1">{
+        <span class="cov5" title="238">if g.testChannel != nil </span><span class="cov1" title="1">{
                 g.testChannel &lt;- "TappedTile"
         }</span>
 }
@@ -802,100 +799,100 @@ func (g *MinesweeperGrid) TapNeighbours(pos minesweeper.Pos) <span class="cov1" 
 }
 
 // Update the grid from the given status
-func (g *MinesweeperGrid) updateFromStatus(s *minesweeper.Status) <span class="cov5" title="276">{
+func (g *MinesweeperGrid) updateFromStatus(s *minesweeper.Status) <span class="cov5" title="260">{
         if s == nil </span><span class="cov1" title="1">{
                 return
         }</span>
 
-        <span class="cov5" title="275">g.lUpdate.Lock()
+        <span class="cov5" title="259">g.lUpdate.Lock()
         defer g.lUpdate.Unlock()
 
         var wg sync.WaitGroup
 
-        if s.GameOver() || s.GameWon() </span><span class="cov2" title="5">{
+        if s.GameOver() || s.GameWon() </span><span class="cov2" title="6">{
                 switch </span>{
-                case s.GameWon():<span class="cov1" title="3">
+                case s.GameWon():<span class="cov2" title="4">
                         slog.Info("Win")
                         g.ResetButton.SetText(ResetGameWonText)</span>
                 case s.GameOver():<span class="cov1" title="2">
                         slog.Info("Game Over")
                         g.ResetButton.SetText(ResetGameOverText)</span>
                 }
-                <span class="cov2" title="5">g.Timer.Stop()</span>
-        } else<span class="cov5" title="270"> if g.AssistedMode </span><span class="cov5" title="236">{
+                <span class="cov2" title="6">g.Timer.Stop()</span>
+        } else<span class="cov5" title="253"> if g.AssistedMode </span><span class="cov5" title="218">{
                 if g.solver == nil </span><span class="cov1" title="2">{
                         g.solver = minesweeper.NewSolver(g.Game)
                 }</span>
-                <span class="cov5" title="236">g.solver.Update()
+                <span class="cov5" title="218">g.solver.Update()
 
                 wg.Add(2)
                 slog.Debug("Creating Markers for Assisted Mode")
-                go func() </span><span class="cov5" title="236">{
+                go func() </span><span class="cov5" title="218">{
                         defer wg.Done()
-                        for _, p := range g.solver.KnownMines() </span><span class="cov7" title="4029">{
+                        for _, p := range g.solver.KnownMines() </span><span class="cov7" title="3936">{
                                 g.Tiles[p.X][p.Y].Mark(HelpMarkingMine)
                         }</span>
                 }()
-                <span class="cov5" title="236">go func() </span><span class="cov5" title="236">{
+                <span class="cov5" title="218">go func() </span><span class="cov5" title="218">{
                         defer wg.Done()
-                        for _, p := range g.solver.NextSteps() </span><span class="cov7" title="2640">{
+                        for _, p := range g.solver.NextSteps() </span><span class="cov7" title="2476">{
                                 g.Tiles[p.X][p.Y].Mark(HelpMarkingSafe)
                         }</span>
                 }()
         }
 
-        <span class="cov5" title="275">for x := 0; x &lt;= g.Row()/ChunkSize; x++ </span><span class="cov6" title="500">{
+        <span class="cov5" title="259">for x := 0; x &lt;= g.Row()/ChunkSize; x++ </span><span class="cov6" title="484">{
                 chunkSizeX := ChunkSize
-                if x == g.Row()/ChunkSize </span><span class="cov5" title="275">{
+                if x == g.Row()/ChunkSize </span><span class="cov5" title="259">{
                         if g.Row()%ChunkSize == 0 </span><span class="cov1" title="3">{
                                 continue</span>
-                        } else<span class="cov5" title="272"> {
+                        } else<span class="cov5" title="256"> {
                                 chunkSizeX = g.Row() % ChunkSize
                         }</span>
                 }
-                <span class="cov6" title="497">startX := x * ChunkSize
+                <span class="cov6" title="481">startX := x * ChunkSize
 
-                for y := 0; y &lt;= g.Col()/ChunkSize; y++ </span><span class="cov6" title="974">{
+                for y := 0; y &lt;= g.Col()/ChunkSize; y++ </span><span class="cov6" title="958">{
                         chunkSizeY := ChunkSize
-                        if y == g.Col()/ChunkSize </span><span class="cov6" title="497">{
+                        if y == g.Col()/ChunkSize </span><span class="cov6" title="481">{
                                 if g.Col()%ChunkSize == 0 </span><span class="cov3" title="13">{
                                         continue</span>
-                                } else<span class="cov6" title="484"> {
+                                } else<span class="cov6" title="468"> {
                                         chunkSizeY = g.Col() % ChunkSize
                                 }</span>
                         }
 
-                        <span class="cov6" title="961">startY := y * ChunkSize
+                        <span class="cov6" title="945">startY := y * ChunkSize
 
                         wg.Add(1)
                         go g.updateChunk(startX, startY, startX+chunkSizeX, startY+chunkSizeY, s, &amp;wg)</span>
                 }
         }
 
-        <span class="cov5" title="275">wg.Wait()
+        <span class="cov5" title="259">wg.Wait()
         slog.Debug("Finished Update")</span>
 }
 
 // Update a single chunk defined by the given dimensions
-func (g *MinesweeperGrid) updateChunk(startX, startY, endX, endY int, s *minesweeper.Status, wg *sync.WaitGroup) <span class="cov6" title="961">{
+func (g *MinesweeperGrid) updateChunk(startX, startY, endX, endY int, s *minesweeper.Status, wg *sync.WaitGroup) <span class="cov6" title="945">{
         defer wg.Done()
-        for x := startX; x &lt; endX; x++ </span><span class="cov8" title="7785">{
-                for y := startY; y &lt; endY; y++ </span><span class="cov10" title="63508">{
-                        if s.Field[x][y].Content == minesweeper.Unknown </span><span class="cov9" title="32898">{
+        for x := startX; x &lt; endX; x++ </span><span class="cov8" title="7641">{
+                for y := startY; y &lt; endY; y++ </span><span class="cov10" title="62212">{
+                        if s.Field[x][y].Content == minesweeper.Unknown </span><span class="cov9" title="32073">{
                                 continue</span>
                         }
-                        <span class="cov9" title="30610">g.Tiles[x][y].SetField(s.Field[x][y])</span>
+                        <span class="cov9" title="30139">g.Tiles[x][y].SetField(s.Field[x][y])</span>
                 }
         }
 }
 
 // Return the number of rows in the grid
-func (g *MinesweeperGrid) Row() int <span class="cov7" title="3362">{
+func (g *MinesweeperGrid) Row() int <span class="cov7" title="3359">{
         return g.Difficulty.Row
 }</span>
 
 // Return the number of columns in the grid
-func (g *MinesweeperGrid) Col() int <span class="cov9" title="31351">{
+func (g *MinesweeperGrid) Col() int <span class="cov9" title="32243">{
         return g.Difficulty.Col
 }</span>
 
@@ -1045,54 +1042,54 @@ func (g *MinesweeperGrid) Autosolve(delay time.Duration) bool <span class="cov3"
         }</span>()
         <span class="cov2" title="9">g.updateFromStatus(s)
 
-        for i, safePos := 0, g.solver.NextSteps(); len(safePos) &gt; 0 &amp;&amp; !s.GameOver() &amp;&amp; !s.GameWon(); safePos = g.solver.NextSteps() </span><span class="cov3" title="33">{
+        for i, safePos := 0, g.solver.NextSteps(); len(safePos) &gt; 0 &amp;&amp; !s.GameOver() &amp;&amp; !s.GameWon(); safePos = g.solver.NextSteps() </span><span class="cov3" title="29">{
                 mines := g.solver.KnownMines()
 
                 slog.Debug("Autosolve: Checking safe positions", slog.Int("iteration", i))
-                for _, p := range safePos </span><span class="cov5" title="247">{
+                for _, p := range safePos </span><span class="cov5" title="222">{
                         if s.GameOver() || s.GameWon() </span><span class="cov0" title="0">{
                                 break</span>
                         }
 
-                        <span class="cov5" title="247">if g.Tiles[p.X][p.Y].Checked() </span><span class="cov3" title="29">{
+                        <span class="cov5" title="222">if g.Tiles[p.X][p.Y].Checked() </span><span class="cov3" title="21">{
                                 continue</span>
                         }
-                        <span class="cov5" title="218">g.TappedTile(p)
+                        <span class="cov5" title="201">g.TappedTile(p)
                         time.Sleep(delay)</span>
                 }
 
-                <span class="cov3" title="33">slog.Info("Autosolve: Flagging mines", slog.Int("iteration", i))
-                for _, mine := range mines </span><span class="cov5" title="420">{
-                        if s.GameOver() || s.GameWon() </span><span class="cov1" title="1">{
+                <span class="cov3" title="29">slog.Info("Autosolve: Flagging mines", slog.Int("iteration", i))
+                for _, mine := range mines </span><span class="cov5" title="387">{
+                        if s.GameOver() || s.GameWon() </span><span class="cov1" title="2">{
                                 break</span>
                         }
-                        <span class="cov5" title="419">tile := g.Tiles[mine.X][mine.Y]
+                        <span class="cov5" title="385">tile := g.Tiles[mine.X][mine.Y]
                         tile.Flag(true)</span>
                 }
 
-                <span class="cov3" title="33">select </span>{
+                <span class="cov3" title="29">select </span>{
                 case &lt;-autosolveBreak:<span class="cov1" title="3">
                         slog.Debug("Autosolve interrupted")
                         return true</span>
-                default:<span class="cov3" title="30"></span>
+                default:<span class="cov3" title="26"></span>
                 }
 
-                <span class="cov3" title="30">g.updateSolver()
+                <span class="cov3" title="26">g.updateSolver()
                 i++</span>
         }
 
-        <span class="cov2" title="6">if s.GameOver() || s.GameWon() </span><span class="cov1" title="1">{
+        <span class="cov2" title="6">if s.GameOver() || s.GameWon() </span><span class="cov1" title="2">{
                 slog.Debug("Autosolve finished")
                 return true
         }</span>
 
-        <span class="cov2" title="5">slog.Info("Autosolve: Flagging mines a final time")
-        for _, mine := range g.solver.KnownMines() </span><span class="cov4" title="90">{
+        <span class="cov2" title="4">slog.Info("Autosolve: Flagging mines a final time")
+        for _, mine := range g.solver.KnownMines() </span><span class="cov4" title="82">{
                 tile := g.Tiles[mine.X][mine.Y]
                 tile.Flag(true)
         }</span>
 
-        <span class="cov2" title="5">slog.Debug("Autosolve finished")
+        <span class="cov2" title="4">slog.Debug("Autosolve finished")
         return true</span>
 }
 
@@ -1110,14 +1107,14 @@ func (g *MinesweeperGrid) gameRunning() bool <span class="cov3" title="27">{
 // Update the autosolver.
 // Initializes the solver if it is nil.
 // Expects the game to be != nil
-func (g *MinesweeperGrid) updateSolver() <span class="cov4" title="50">{
+func (g *MinesweeperGrid) updateSolver() <span class="cov4" title="46">{
         g.lGame.Lock()
         defer g.lGame.Unlock()
 
         if g.solver == nil </span><span class="cov2" title="11">{
                 g.solver = minesweeper.NewSolver(g.Game)
         }</span>
-        <span class="cov4" title="50">g.solver.Update()</span>
+        <span class="cov4" title="46">g.solver.Update()</span>
 }
 
 // Return the current games status.
@@ -1165,8 +1162,8 @@ func SaveFolder() (string, error) <span class="cov3" title="2">{
         return os.Getwd()</span>
 }
 
-func SettingsFile() (string, error) <span class="cov10" title="10">{
-        if settingsFile != "" </span><span class="cov9" title="8">{
+func SettingsFile() (string, error) <span class="cov10" title="12">{
+        if settingsFile != "" </span><span class="cov9" title="10">{
                 return settingsFile, nil
         }</span>
 
@@ -1241,7 +1238,7 @@ type Preferences struct {
 // Only used for testing, as we don't want to touch the actual file that might be on the system.
 var overrideSettingsPath = ""
 
-func defaultPreferences() Preferences <span class="cov8" title="11">{
+func defaultPreferences() Preferences <span class="cov7" title="13">{
         return Preferences{
                 DifficultyInt: DEFAULT_DIFFICULTY,
                 AssistedMode:  false,
@@ -1251,32 +1248,32 @@ func defaultPreferences() Preferences <span class="cov8" title="11">{
 
 // Load the preferences from the settings file.
 // Return default values when an error occurs.
-func LoadPreferences() (Preferences, error) <span class="cov6" title="7">{
+func LoadPreferences() (Preferences, error) <span class="cov6" title="9">{
         path, err := locations.SettingsFile()
         if err != nil </span><span class="cov0" title="0">{
                 return defaultPreferences(), err
         }</span>
-        <span class="cov6" title="7">if overrideSettingsPath != "" </span><span class="cov6" title="6">{
+        <span class="cov6" title="9">if overrideSettingsPath != "" </span><span class="cov6" title="8">{
                 path = overrideSettingsPath
         }</span>
 
         // #nosec G304 -- File path is hardcoded relative to user directory.
-        <span class="cov6" title="7">f, err := os.ReadFile(path)
-        if err != nil </span><span class="cov4" title="3">{
+        <span class="cov6" title="9">f, err := os.ReadFile(path)
+        if err != nil </span><span class="cov5" title="5">{
                 return defaultPreferences(), err
         }</span>
 
-        <span class="cov5" title="4">p := defaultPreferences()
+        <span class="cov4" title="4">p := defaultPreferences()
         err = yaml.Unmarshal(f, &amp;p)
         if err != nil </span><span class="cov1" title="1">{
                 return defaultPreferences(), err
         }</span>
 
-        <span class="cov4" title="3">return p, nil</span>
+        <span class="cov3" title="3">return p, nil</span>
 }
 
 // Convert the current app state to preferences that can be saved.
-func CreatePreferencesFromApp(app *App) Preferences <span class="cov3" title="2">{
+func CreatePreferencesFromApp(app *App) Preferences <span class="cov2" title="2">{
         difficulty := DEFAULT_DIFFICULTY
         for i, d := range app.difficulties </span><span class="cov6" title="7">{
                 if d.Checked </span><span class="cov1" title="1">{
@@ -1285,15 +1282,15 @@ func CreatePreferencesFromApp(app *App) Preferences <span class="cov3" title="2"
                 }
         }
 
-        <span class="cov3" title="2">gameAlgorithm := DEFAULT_GAME_ALGORITHM
-        for i, algorithm := range app.gameAlgorithms </span><span class="cov5" title="4">{
+        <span class="cov2" title="2">gameAlgorithm := DEFAULT_GAME_ALGORITHM
+        for i, algorithm := range app.gameAlgorithms </span><span class="cov4" title="4">{
                 if algorithm.Checked </span><span class="cov1" title="1">{
                         gameAlgorithm = i
                         break</span>
                 }
         }
 
-        <span class="cov3" title="2">return Preferences{
+        <span class="cov2" title="2">return Preferences{
                 DifficultyInt: difficulty,
                 AssistedMode:  app.assistedMode.Checked,
                 GameAlgorithm: gameAlgorithm,
@@ -1301,13 +1298,13 @@ func CreatePreferencesFromApp(app *App) Preferences <span class="cov3" title="2"
 }
 
 // Convert the saved difficulty number to an actual difficulty
-func (p Preferences) Difficulty() minesweeper.Difficulty <span class="cov10" title="19">{
+func (p Preferences) Difficulty() minesweeper.Difficulty <span class="cov10" title="29">{
         difficulties := minesweeper.Difficulties()
 
-        if p.DifficultyInt &lt; 0 || p.DifficultyInt &gt;= len(difficulties) </span><span class="cov3" title="2">{
+        if p.DifficultyInt &lt; 0 || p.DifficultyInt &gt;= len(difficulties) </span><span class="cov2" title="2">{
                 return difficulties[DEFAULT_DIFFICULTY]
         }</span>
-        <span class="cov9" title="17">return difficulties[p.DifficultyInt]</span>
+        <span class="cov9" title="27">return difficulties[p.DifficultyInt]</span>
 }
 
 // Save the preferences to the settings file
@@ -1355,11 +1352,11 @@ var (
 
 type mainTheme struct{}
 
-func (mainTheme) Color(name fyne.ThemeColorName, variant fyne.ThemeVariant) color.Color <span class="cov8" title="9468">{
+func (mainTheme) Color(name fyne.ThemeColorName, variant fyne.ThemeVariant) color.Color <span class="cov8" title="11336">{
         if variant == theme.VariantLight &amp;&amp; name == theme.ColorNameBackground </span><span class="cov1" title="3">{
                 return lightGray
         }</span>
-        <span class="cov8" title="9465">if name == colorNameTileDefault </span><span class="cov8" title="8956">{
+        <span class="cov8" title="11333">if name == colorNameTileDefault </span><span class="cov8" title="10686">{
                 switch variant </span>{
                 case theme.VariantLight:<span class="cov1" title="1">
                         return tileDefaultColorVariantLight</span>
@@ -1367,10 +1364,10 @@ func (mainTheme) Color(name fyne.ThemeColorName, variant fyne.ThemeVariant) colo
                         return tileDefaultColorVariantDark</span>
                 }
         }
-        <span class="cov8" title="9463">return theme.DefaultTheme().Color(name, variant)</span>
+        <span class="cov8" title="11331">return theme.DefaultTheme().Color(name, variant)</span>
 }
 
-func (mainTheme) Font(style fyne.TextStyle) fyne.Resource <span class="cov2" title="6">{
+func (mainTheme) Font(style fyne.TextStyle) fyne.Resource <span class="cov2" title="10">{
         return theme.DefaultTheme().Font(style)
 }</span>
 
@@ -1378,7 +1375,7 @@ func (mainTheme) Icon(name fyne.ThemeIconName) fyne.Resource <span class="cov1" 
         return theme.DefaultTheme().Icon(name)
 }</span>
 
-func (mainTheme) Size(name fyne.ThemeSizeName) float32 <span class="cov10" title="74355">{
+func (mainTheme) Size(name fyne.ThemeSizeName) float32 <span class="cov10" title="95475">{
         return theme.DefaultTheme().Size(name)
 }</span>
 
@@ -1386,8 +1383,8 @@ type borderTheme struct {
         mainTheme
 }
 
-func (borderTheme) Color(name fyne.ThemeColorName, variant fyne.ThemeVariant) color.Color <span class="cov6" title="510">{
-        if name == theme.ColorNameShadow </span><span class="cov5" title="156">{
+func (borderTheme) Color(name fyne.ThemeColorName, variant fyne.ThemeVariant) color.Color <span class="cov6" title="648">{
+        if name == theme.ColorNameShadow </span><span class="cov5" title="198">{
                 switch variant </span>{
                 case theme.VariantLight:<span class="cov1" title="1">
                         return color.Black</span>
@@ -1395,7 +1392,7 @@ func (borderTheme) Color(name fyne.ThemeColorName, variant fyne.ThemeVariant) co
                         return color.White</span>
                 }
         }
-        <span class="cov5" title="508">return mainTheme{}.Color(name, variant)</span>
+        <span class="cov6" title="646">return mainTheme{}.Color(name, variant)</span>
 }
 </pre>
 		
@@ -1478,7 +1475,7 @@ type Tile struct {
 }
 
 // Create a new Tile with a reference to it's parent grid, as well as knowledge of it's own position in the Grid
-func NewTile(x, y int, grid *MinesweeperGrid) *Tile <span class="cov9" title="11054">{
+func NewTile(x, y int, grid *MinesweeperGrid) *Tile <span class="cov9" title="11472">{
         t := &amp;Tile{
                 pos: minesweeper.NewPos(x, y),
                 field: minesweeper.Field{
@@ -1493,7 +1490,7 @@ func NewTile(x, y int, grid *MinesweeperGrid) *Tile <span class="cov9" title="11
 }</span>
 
 // Function to create renderer needed to implement widget
-func (t *Tile) CreateRenderer() fyne.WidgetRenderer <span class="cov9" title="10330">{
+func (t *Tile) CreateRenderer() fyne.WidgetRenderer <span class="cov9" title="10748">{
         t.ExtendBaseWidget(t)
 
         t.background = canvas.NewRectangle(theme.Color(colorNameTileDefault))
@@ -1545,7 +1542,7 @@ func (t *Tile) DoubleTapped(_ *fyne.PointEvent) <span class="cov1" title="3">{
 
 // Update the tile render depending on the current state of it's backing Field.
 // Calls to this function should wrap it in fyne.Do
-func (t *Tile) Refresh() <span class="cov9" title="13561">{
+func (t *Tile) Refresh() <span class="cov9" title="14925">{
         t.lUpdate.Lock()
         defer t.lUpdate.Unlock()
 
@@ -1556,32 +1553,32 @@ func (t *Tile) Refresh() <span class="cov9" title="13561">{
         t.background.FillColor = theme.Color(colorNameTileDefault)
 
         switch </span>{
-        case t.Flagged() &amp;&amp; !t.Checked():<span class="cov5" title="166">
+        case t.Flagged() &amp;&amp; !t.Checked():<span class="cov5" title="157">
                 switch </span>{
                 case t.Content() == minesweeper.Mine &amp;&amp; t.Marking() != HelpMarkingMine:<span class="cov1" title="2">
                         t.icon.SetResource(assets.ResourceFlagSuccessPng)</span>
-                case t.Marking() == HelpMarkingMine:<span class="cov5" title="153">
+                case t.Marking() == HelpMarkingMine:<span class="cov5" title="145">
                         t.icon.SetResource(assets.ResourceFlagAssistedPng)</span>
-                default:<span class="cov3" title="11">
+                default:<span class="cov2" title="10">
                         t.icon.SetResource(assets.ResourceFlagPng)</span>
                 }
-                <span class="cov5" title="166">t.icon.Hidden = false</span>
-        case t.Marking() != HelpMarkingNone &amp;&amp; !t.Flagged() &amp;&amp; !t.Checked() &amp;&amp; t.Content() == minesweeper.Unknown:<span class="cov6" title="453">
+                <span class="cov5" title="157">t.icon.Hidden = false</span>
+        case t.Marking() != HelpMarkingNone &amp;&amp; !t.Flagged() &amp;&amp; !t.Checked() &amp;&amp; t.Content() == minesweeper.Unknown:<span class="cov6" title="444">
                 t.label.Text = HelperMarkerSymbols[t.Marking()]
                 t.label.Color = HelperMarkerColors[t.Marking()]
                 t.label.Hidden = false</span>
-        case t.Content() == minesweeper.Mine:<span class="cov8" title="5186">
+        case t.Content() == minesweeper.Mine:<span class="cov8" title="5196">
                 t.icon.SetResource(assets.ResourceMinePng)
                 t.icon.Hidden = false
                 if t.Checked() </span><span class="cov8" title="5131">{
                         t.background.FillColor = TileExplodedColor
                 }</span>
-        case t.Checked() &amp;&amp; t.Content() &gt; 0 &amp;&amp; t.Content() &lt; 9:<span class="cov6" title="726">
+        case t.Checked() &amp;&amp; t.Content() &gt; 0 &amp;&amp; t.Content() &lt; 9:<span class="cov6" title="770">
                 t.label.Text = t.Content().String()
                 t.label.Color = TileTextColor[t.Content()]
                 t.label.Hidden = false
                 t.background.FillColor = TileBackgroundColor</span>
-        case t.Checked():<span class="cov6" title="465">
+        case t.Checked():<span class="cov6" title="557">
                 t.background.FillColor = TileBackgroundColor</span>
         }
 }
@@ -1596,26 +1593,26 @@ func (t *Tile) Reset() <span class="cov7" title="1978">{
 }</span>
 
 // Returns if the tiles field is checked
-func (t *Tile) Checked() bool <span class="cov9" title="30177">{
+func (t *Tile) Checked() bool <span class="cov10" title="32832">{
         return t.field.Checked
 }</span>
 
 // Returns the field content
-func (t *Tile) Content() minesweeper.FieldContent <span class="cov9" title="16947">{
+func (t *Tile) Content() minesweeper.FieldContent <span class="cov9" title="18589">{
         return t.field.Content
 }</span>
 
 // Set the content of the field
-func (t *Tile) SetField(f minesweeper.Field) <span class="cov10" title="30610">{
-        if f == t.field </span><span class="cov9" title="23942">{
+func (t *Tile) SetField(f minesweeper.Field) <span class="cov9" title="30139">{
+        if f == t.field </span><span class="cov9" title="23343">{
                 return
         }</span>
-        <span class="cov8" title="6668">t.field = f
+        <span class="cov8" title="6796">t.field = f
         fyne.Do(t.Refresh)</span>
 }
 
 // Returns if the tile is flagged as a suspected mine
-func (t *Tile) Flagged() bool <span class="cov9" title="16825">{
+func (t *Tile) Flagged() bool <span class="cov9" title="18168">{
         t.lFlag.Lock()
         defer t.lFlag.Unlock()
 
@@ -1623,35 +1620,35 @@ func (t *Tile) Flagged() bool <span class="cov9" title="16825">{
 }</span>
 
 // Flag the tile as a suspected mine
-func (t *Tile) Flag(v bool) <span class="cov6" title="535">{
+func (t *Tile) Flag(v bool) <span class="cov6" title="493">{
         t.lFlag.Lock()
-        if v == t.flagged </span><span class="cov6" title="405">{
+        if v == t.flagged </span><span class="cov6" title="371">{
                 t.lFlag.Unlock()
                 return
         }</span>
 
-        <span class="cov5" title="130">if t.flagged </span><span class="cov2" title="6">{
+        <span class="cov5" title="122">if t.flagged </span><span class="cov2" title="6">{
                 t.grid.MineCount.Inc()
-        }</span> else<span class="cov5" title="124"> {
+        }</span> else<span class="cov5" title="116"> {
                 t.grid.MineCount.Dec()
         }</span>
-        <span class="cov5" title="130">t.flagged = v
+        <span class="cov5" title="122">t.flagged = v
 
         t.lFlag.Unlock()
         fyne.Do(t.Refresh)</span>
 }
 
 // Returns the marking of the tile
-func (t *Tile) Marking() HelpMarking <span class="cov9" title="23180">{
+func (t *Tile) Marking() HelpMarking <span class="cov9" title="24269">{
         return t.marking
 }</span>
 
 // Mark the tile
-func (t *Tile) Mark(m HelpMarking) <span class="cov8" title="6681">{
-        if m == t.Marking() </span><span class="cov8" title="6218">{
+func (t *Tile) Mark(m HelpMarking) <span class="cov8" title="6424">{
+        if m == t.Marking() </span><span class="cov8" title="5971">{
                 return
         }</span>
-        <span class="cov6" title="463">t.marking = m
+        <span class="cov6" title="453">t.marking = m
         fyne.Do(t.Refresh)</span>
 }
 
@@ -1691,7 +1688,7 @@ type Timer struct {
 }
 
 // Create new timer
-func NewTimer() *Timer <span class="cov5" title="59">{
+func NewTimer() *Timer <span class="cov5" title="62">{
         return &amp;Timer{
                 Label:      newGridLabel("0000"),
                 Seconds:    0,
@@ -1700,7 +1697,7 @@ func NewTimer() *Timer <span class="cov5" title="59">{
 }</span>
 
 // Start the timer, runs concurrently
-func (t *Timer) Start() <span class="cov5" title="31">{
+func (t *Timer) Start() <span class="cov5" title="32">{
         t.lock.Lock()
         defer t.lock.Unlock()
 
@@ -1708,16 +1705,16 @@ func (t *Timer) Start() <span class="cov5" title="31">{
                 return
         }</span>
 
-        <span class="cov5" title="30">ticker := time.NewTicker(time.Second)
+        <span class="cov5" title="31">ticker := time.NewTicker(time.Second)
         t.running = true
-        go func() </span><span class="cov5" title="30">{
+        go func() </span><span class="cov5" title="31">{
                 slog.Debug("Started timer")
-                for </span><span class="cov10" title="1636">{
+                for </span><span class="cov10" title="1719">{
                         select </span>{
-                        case &lt;-t.stopSignal:<span class="cov4" title="19">
+                        case &lt;-t.stopSignal:<span class="cov4" title="20">
                                 ticker.Stop()
                                 return</span>
-                        case &lt;-ticker.C:<span class="cov9" title="1606">
+                        case &lt;-ticker.C:<span class="cov9" title="1688">
                                 t.Seconds++
                                 t.refresh()</span>
                         }
@@ -1726,7 +1723,7 @@ func (t *Timer) Start() <span class="cov5" title="31">{
 }
 
 // Stop the timer
-func (t *Timer) Stop() <span class="cov3" title="7">{
+func (t *Timer) Stop() <span class="cov3" title="8">{
         t.lock.Lock()
         defer t.lock.Unlock()
 
@@ -1744,8 +1741,8 @@ func (t *Timer) Reset() <span class="cov4" title="14">{
 }</span>
 
 // Actual stop logic, put here so lock can be aquired first by caller
-func (t *Timer) stop() <span class="cov4" title="21">{
-        if t.Running() </span><span class="cov4" title="19">{
+func (t *Timer) stop() <span class="cov4" title="22">{
+        if t.Running() </span><span class="cov4" title="20">{
                 t.stopSignal &lt;- true
                 t.running = false
                 slog.Info("Stopped timer", slog.Int("seconds", t.Seconds))
@@ -1753,12 +1750,12 @@ func (t *Timer) stop() <span class="cov4" title="21">{
 }
 
 // Check if the timer is running
-func (t *Timer) Running() bool <span class="cov7" title="283">{
+func (t *Timer) Running() bool <span class="cov7" title="268">{
         return t.running
 }</span>
 
 // Refresh the timer from it's current values
-func (t *Timer) refresh() <span class="cov9" title="1620">{
+func (t *Timer) refresh() <span class="cov9" title="1702">{
         t.Label.Text = fmt.Sprintf("%04d", t.Seconds)
         fyne.Do(t.Label.Refresh)
 }</span>
@@ -1785,27 +1782,27 @@ type Version struct {
 }
 
 // Extract the version information from app
-func getVersion(app fyne.App) Version <span class="cov4" title="5">{
+func getVersion(app fyne.App) Version <span class="cov4" title="7">{
         var commit string
         buildinfo, _ := debug.ReadBuildInfo()
-        for _, item := range buildinfo.Settings </span><span class="cov8" title="60">{
+        for _, item := range buildinfo.Settings </span><span class="cov9" title="84">{
                 if item.Key == "vcs.revision" </span><span class="cov0" title="0">{
                         commit = item.Value
                         break</span>
                 }
         }
-        <span class="cov4" title="5">if len(commit) &gt; 7 </span><span class="cov0" title="0">{
+        <span class="cov4" title="7">if len(commit) &gt; 7 </span><span class="cov0" title="0">{
                 commit = commit[:7]
         }</span>
 
-        <span class="cov4" title="5">metadata := app.Metadata()
+        <span class="cov4" title="7">metadata := app.Metadata()
 
         name, _ := strings.CutSuffix(metadata.Name, ".exe")
-        if name == "" </span><span class="cov4" title="5">{
+        if name == "" </span><span class="cov4" title="7">{
                 name = filepath.Base(os.Args[0])
         }</span>
 
-        <span class="cov4" title="5">return Version{
+        <span class="cov4" title="7">return Version{
                 Name:    name,
                 Version: "v" + metadata.Version,
                 Commit:  commit,
@@ -1843,7 +1840,7 @@ func getVersionContent(v Version) fyne.CanvasObject <span class="cov0" title="0"
 }
 
 // Wrap the objects in a box with border lines
-func newBorder(content ...fyne.CanvasObject) fyne.CanvasObject <span class="cov8" title="44">{
+func newBorder(content ...fyne.CanvasObject) fyne.CanvasObject <span class="cov8" title="56">{
         contentContainer := container.NewThemeOverride(container.NewPadded(content...), mainTheme{})
         border := widget.NewCard("", "", contentContainer)
 
@@ -1851,7 +1848,7 @@ func newBorder(content ...fyne.CanvasObject) fyne.CanvasObject <span class="cov8
 }</span>
 
 // Create a new label used in the grid, with preset color, text size and text style
-func newGridLabel(text string) *canvas.Text <span class="cov10" title="117">{
+func newGridLabel(text string) *canvas.Text <span class="cov10" title="123">{
         label := canvas.NewText(text, GridLabelColor)
         label.TextSize = GridLabelSize
         label.TextStyle.Bold = true
@@ -1911,7 +1908,7 @@ var difficulties []Difficulty = []Difficulty{
 }
 
 // Exposes pre-defined difficulties in a way that does not allow the original array to be modified
-func Difficulties() []Difficulty <span class="cov10" title="67">{
+func Difficulties() []Difficulty <span class="cov10" title="79">{
         list := make([]Difficulty, len(difficulties))
         copy(list, difficulties)
         return list
@@ -2027,7 +2024,7 @@ type LocalGame struct {
 }
 
 // Utility function to create empty game
-func blankGame(d Difficulty) *LocalGame <span class="cov4" title="730">{
+func blankGame(d Difficulty) *LocalGame <span class="cov4" title="850">{
         return &amp;LocalGame{
                 Field:      utils.Make2D[Field](d.Row, d.Col),
                 difficulty: d,
@@ -2037,14 +2034,14 @@ func blankGame(d Difficulty) *LocalGame <span class="cov4" title="730">{
 }</span>
 
 // Create a new game with the mines in the given positions
-func newGame(d Difficulty, mines []Pos) *LocalGame <span class="cov4" title="705">{
+func newGame(d Difficulty, mines []Pos) *LocalGame <span class="cov4" title="824">{
         g := blankGame(d)
 
-        for _, mine := range mines </span><span class="cov7" title="66727">{
+        for _, mine := range mines </span><span class="cov7" title="77794">{
                 g.Field[mine.X][mine.Y].Content = Mine
         }</span>
 
-        <span class="cov4" title="705">g.calculateFieldContent()
+        <span class="cov4" title="824">g.calculateFieldContent()
 
         return g</span>
 }
@@ -2057,7 +2054,7 @@ func NewGameWithSafePos(d Difficulty, p Pos) *LocalGame <span class="cov3" title
 }</span>
 
 // Create a new game with mines seeded randomly in the map, with the exception of a 3x3 area around the given position.
-func NewGameWithSafeArea(d Difficulty, p Pos) *LocalGame <span class="cov2" title="20">{
+func NewGameWithSafeArea(d Difficulty, p Pos) *LocalGame <span class="cov2" title="21">{
         mines := CreateMines(d, areaAroundPos(d, p))
 
         return newGame(d, mines)
@@ -2069,7 +2066,7 @@ func NewGameSolvable(d Difficulty, p Pos) *LocalGame <span class="cov1" title="6
 
         var mines []Pos
         var success bool
-        for i := 0; i &lt; 10000; i++ </span><span class="cov4" title="639">{
+        for i := 0; i &lt; 10000; i++ </span><span class="cov4" title="757">{
                 mines = CreateMines(d, area)
                 g := newGame(d, mines)
                 s := NewSolver(g)
@@ -2089,46 +2086,46 @@ func NewGameSolvable(d Difficulty, p Pos) *LocalGame <span class="cov1" title="6
 
 // Check a given field and recursevly reveal all neighboring fields that should be revield.
 // Returns the resulting new status of the game and a boolean indicating if there where changes.
-func (g *LocalGame) CheckField(p Pos) (*Status, bool) <span class="cov6" title="23906">{
-        if g.Lost() || g.Won() || g.Field[p.X][p.Y].Checked </span><span class="cov5" title="1978">{
+func (g *LocalGame) CheckField(p Pos) (*Status, bool) <span class="cov6" title="27085">{
+        if g.Lost() || g.Won() || g.Field[p.X][p.Y].Checked </span><span class="cov5" title="2238">{
                 return g.Status(), false
         }</span>
 
-        <span class="cov6" title="21928">g.Field[p.X][p.Y].Checked = true
+        <span class="cov6" title="24847">g.Field[p.X][p.Y].Checked = true
 
         if g.Field[p.X][p.Y].Content == Mine </span><span class="cov1" title="2">{
                 g.GameOver = true
                 return g.UpdateStatus(), true
         }</span>
 
-        <span class="cov6" title="21926">g.revealField(p)
+        <span class="cov6" title="24845">g.revealField(p)
 
         return g.UpdateStatus(), true</span>
 }
 
 // Recursive function to reveal all neighbouring fields that can be safely reveald.
 // Stops when a field has not exactly zero neighbouring mines
-func (g *LocalGame) revealField(p Pos) <span class="cov7" title="54617">{
+func (g *LocalGame) revealField(p Pos) <span class="cov7" title="62057">{
         slog.Debug("Reveal field", slog.String("pos", p.String()), slog.String("content", g.Field[p.X][p.Y].Content.String()))
 
         g.Field[p.X][p.Y].Checked = true
 
-        if g.Field[p.X][p.Y].Content != 0 </span><span class="cov6" title="39404">{
+        if g.Field[p.X][p.Y].Content != 0 </span><span class="cov6" title="44700">{
                 return
         }</span>
 
-        <span class="cov6" title="15213">slog.Debug("Revealing fields neigbhours", slog.String("pos", p.String()))
+        <span class="cov6" title="17357">slog.Debug("Revealing fields neigbhours", slog.String("pos", p.String()))
 
-        for m := -1; m &lt; 2; m++ </span><span class="cov6" title="45639">{
-                for n := -1; n &lt; 2; n++ </span><span class="cov7" title="136917">{
-                        if m == 0 &amp;&amp; n == 0 </span><span class="cov6" title="15213">{
+        for m := -1; m &lt; 2; m++ </span><span class="cov6" title="52071">{
+                for n := -1; n &lt; 2; n++ </span><span class="cov7" title="156213">{
+                        if m == 0 &amp;&amp; n == 0 </span><span class="cov6" title="17357">{
                                 continue</span>
                         }
-                        <span class="cov7" title="121704">i := NewPos(p.X+m, p.Y+n)
-                        if g.OutOfBounds(i) </span><span class="cov6" title="20320">{
+                        <span class="cov7" title="138856">i := NewPos(p.X+m, p.Y+n)
+                        if g.OutOfBounds(i) </span><span class="cov6" title="23180">{
                                 continue</span>
                         }
-                        <span class="cov7" title="101384">if !g.Field[i.X][i.Y].Checked </span><span class="cov6" title="32691">{
+                        <span class="cov7" title="115676">if !g.Field[i.X][i.Y].Checked </span><span class="cov6" title="37212">{
                                 g.revealField(i)
                         }</span>
                 }
@@ -2136,27 +2133,27 @@ func (g *LocalGame) revealField(p Pos) <span class="cov7" title="54617">{
 }
 
 // Check if the given position is out of bounds
-func (g *LocalGame) OutOfBounds(p Pos) bool <span class="cov9" title="2480845">{
+func (g *LocalGame) OutOfBounds(p Pos) bool <span class="cov9" title="2887346">{
         if g == nil </span><span class="cov1" title="1">{
                 return true
         }</span>
-        <span class="cov9" title="2480844">return OutOfBounds(p, g.Difficulty())</span>
+        <span class="cov9" title="2887345">return OutOfBounds(p, g.Difficulty())</span>
 }
 
 // Returns the current status of the game. Only contains the knowledge a player should have.
-func (g *LocalGame) Status() *Status <span class="cov5" title="7112">{
+func (g *LocalGame) Status() *Status <span class="cov5" title="7882">{
         return g.status
 }</span>
 
 // Return the difficulty of the game
-func (g *LocalGame) Difficulty() Difficulty <span class="cov10" title="11109525">{
+func (g *LocalGame) Difficulty() Difficulty <span class="cov10" title="12250360">{
         return g.difficulty
 }</span>
 
 // Update the status from the current state of the game.
 // Returns status for convenience.
-func (g *LocalGame) UpdateStatus() *Status <span class="cov6" title="21947">{
-        if g.status == nil </span><span class="cov4" title="712">{
+func (g *LocalGame) UpdateStatus() *Status <span class="cov6" title="24866">{
+        if g.status == nil </span><span class="cov4" title="831">{
                 g.status = &amp;Status{
                         Field:    utils.Make2D[Field](g.difficulty.Row, g.difficulty.Col),
                         gameOver: g.Lost(),
@@ -2164,41 +2161,41 @@ func (g *LocalGame) UpdateStatus() *Status <span class="cov6" title="21947">{
                 }
         }</span>
 
-        <span class="cov6" title="21947">wasWon := g.Won()
+        <span class="cov6" title="24866">wasWon := g.Won()
         isWon := true
 
-        g.walkField(func(x, y int) </span><span class="cov9" title="10303284">{
+        g.walkField(func(x, y int) </span><span class="cov9" title="11643340">{
                 g.status.Field[x][y].Checked = g.Field[x][y].Checked
-                if g.Field[x][y].Checked || g.Lost() || g.Won() </span><span class="cov9" title="2949804">{
+                if g.Field[x][y].Checked || g.Lost() || g.Won() </span><span class="cov9" title="3269714">{
                         g.status.Field[x][y].Content = g.Field[x][y].Content
-                }</span> else<span class="cov9" title="7353480"> {
+                }</span> else<span class="cov9" title="8373626"> {
                         g.status.Field[x][y].Content = Unknown
                 }</span>
-                <span class="cov9" title="10303284">if !g.Field[x][y].Checked &amp;&amp; g.Field[x][y].Content != Mine </span><span class="cov9" title="5239167">{
+                <span class="cov9" title="11643340">if !g.Field[x][y].Checked &amp;&amp; g.Field[x][y].Content != Mine </span><span class="cov9" title="5985530">{
                         isWon = false
                 }</span>
         })
 
-        <span class="cov6" title="21947">if !wasWon &amp;&amp; isWon </span><span class="cov2" title="19">{
+        <span class="cov6" title="24866">if !wasWon &amp;&amp; isWon </span><span class="cov2" title="20">{
                 g.GameWon = isWon
-                for x := 0; x &lt; g.difficulty.Row; x++ </span><span class="cov4" title="282">{
+                for x := 0; x &lt; g.difficulty.Row; x++ </span><span class="cov4" title="291">{
                         copy(g.status.Field[x], g.Field[x])
                 }</span>
         }
 
-        <span class="cov6" title="21947">g.status.gameOver = g.GameOver
+        <span class="cov6" title="24866">g.status.gameOver = g.GameOver
         g.status.gameWon = g.GameWon
 
         return g.status</span>
 }
 
 // Check if Game Over
-func (g *LocalGame) Lost() bool <span class="cov9" title="7379720">{
+func (g *LocalGame) Lost() bool <span class="cov9" title="8403128">{
         return g.GameOver
 }</span>
 
 // Check if the game is won
-func (g *LocalGame) Won() bool <span class="cov9" title="7404513">{
+func (g *LocalGame) Won() bool <span class="cov9" title="8431390">{
         return g.GameWon
 }</span>
 
@@ -2220,52 +2217,52 @@ func (g *LocalGame) IsReplay() bool <span class="cov1" title="4">{
 }</span>
 
 // Generate a save from the game
-func (g *LocalGame) ToSave() (*Save, error) <span class="cov1" title="1">{
+func (g *LocalGame) ToSave() (*Save, error) <span class="cov1" title="3">{
         g.replay = true
         return NewSave(g)
 }</span>
 
 // Walk through all fields of the game and call the given function
-func (g *LocalGame) walkField(f func(x, y int)) <span class="cov6" title="22716">{
+func (g *LocalGame) walkField(f func(x, y int)) <span class="cov6" title="25757">{
         walkField(f, g.difficulty.Row, g.difficulty.Col)
 }</span>
 
 // Count the the number of mines in the neighboring fields
-func (g *LocalGame) countNearbyMines(p Pos) int <span class="cov7" title="261857">{
+func (g *LocalGame) countNearbyMines(p Pos) int <span class="cov7" title="305118">{
         c := 0
-        for m := -1; m &lt; 2; m++ </span><span class="cov8" title="785571">{
-                for n := -1; n &lt; 2; n++ </span><span class="cov9" title="2356713">{
-                        if g.OutOfBounds(NewPos(p.X+m, p.Y+n)) </span><span class="cov7" title="153060">{
+        for m := -1; m &lt; 2; m++ </span><span class="cov8" title="915354">{
+                for n := -1; n &lt; 2; n++ </span><span class="cov9" title="2746062">{
+                        if g.OutOfBounds(NewPos(p.X+m, p.Y+n)) </span><span class="cov7" title="178107">{
                                 continue</span>
                         }
-                        <span class="cov9" title="2203653">if g.Field[p.X+m][p.Y+n].Content == Mine </span><span class="cov8" title="401964">{
+                        <span class="cov9" title="2567955">if g.Field[p.X+m][p.Y+n].Content == Mine </span><span class="cov8" title="467403">{
                                 c++
                         }</span>
                 }
         }
-        <span class="cov7" title="261857">return c</span>
+        <span class="cov7" title="305118">return c</span>
 }
 
 // Get a list of all mines in the game
-func (g *LocalGame) getMines() []Pos <span class="cov1" title="1">{
+func (g *LocalGame) getMines() []Pos <span class="cov1" title="3">{
         mines := make([]Pos, 0, g.difficulty.Mines)
 
-        g.walkField(func(x, y int) </span><span class="cov4" title="256">{
-                if g.Field[x][y].Content == Mine </span><span class="cov3" title="40">{
+        g.walkField(func(x, y int) </span><span class="cov4" title="418">{
+                if g.Field[x][y].Content == Mine </span><span class="cov3" title="60">{
                         mines = append(mines, NewPos(x, y))
                 }</span>
         })
-        <span class="cov1" title="1">return mines</span>
+        <span class="cov1" title="3">return mines</span>
 }
 
 // Calculate all fields with the count of neighbouring mines
-func (g *LocalGame) calculateFieldContent() <span class="cov4" title="730">{
-        g.walkField(func(x, y int) </span><span class="cov8" title="326525">{
-                if g.Field[x][y].Content == Mine </span><span class="cov7" title="67980">{
+func (g *LocalGame) calculateFieldContent() <span class="cov4" title="850">{
+        g.walkField(func(x, y int) </span><span class="cov8" title="380893">{
+                if g.Field[x][y].Content == Mine </span><span class="cov7" title="79087">{
                         return
                 }</span>
 
-                <span class="cov7" title="258545">g.Field[x][y].Content = FieldContent(g.countNearbyMines(NewPos(x, y)))</span>
+                <span class="cov7" title="301806">g.Field[x][y].Content = FieldContent(g.countNearbyMines(NewPos(x, y)))</span>
         })
 }
 </pre>
@@ -2295,7 +2292,7 @@ type saveData struct {
 }
 
 // Create a new save from the given game
-func NewSave(game *LocalGame) (*Save, error) <span class="cov1" title="1">{
+func NewSave(game *LocalGame) (*Save, error) <span class="cov2" title="3">{
         data := saveData{
                 Mines:      game.getMines(),
                 Difficulty: game.Difficulty(),
@@ -2305,7 +2302,7 @@ func NewSave(game *LocalGame) (*Save, error) <span class="cov1" title="1">{
         if err != nil </span><span class="cov0" title="0">{
                 return nil, err
         }</span>
-        <span class="cov1" title="1">hash := sha512.Sum512(buf)
+        <span class="cov2" title="3">hash := sha512.Sum512(buf)
 
         return &amp;Save{
                 ID:   hex.EncodeToString(hash[:]),
@@ -2314,48 +2311,48 @@ func NewSave(game *LocalGame) (*Save, error) <span class="cov1" title="1">{
 }
 
 // Load a save file from the given path
-func LoadSave(path string) (*Save, error) <span class="cov5" title="25">{
+func LoadSave(path string) (*Save, error) <span class="cov5" title="28">{
         // #nosec G304 -- Local users can decide on their file path themselves.
         buf, err := os.ReadFile(path)
         if err != nil </span><span class="cov0" title="0">{
                 return nil, err
         }</span>
 
-        <span class="cov5" title="25">var save Save
+        <span class="cov5" title="28">var save Save
         err = json.Unmarshal(buf, &amp;save)
         if err != nil </span><span class="cov0" title="0">{
                 return nil, err
         }</span>
 
-        <span class="cov5" title="25">return &amp;save, nil</span>
+        <span class="cov5" title="28">return &amp;save, nil</span>
 }
 
 // Write save file to the given path.
 // Needs to have the correct extension.
-func (s *Save) Save(path string) error <span class="cov1" title="2">{
+func (s *Save) Save(path string) error <span class="cov2" title="4">{
         if filepath.Ext(path) != SaveFileExtension </span><span class="cov1" title="1">{
                 path += SaveFileExtension
         }</span>
 
-        <span class="cov1" title="2">data, err := json.MarshalIndent(s, "", "    ")
+        <span class="cov2" title="4">data, err := json.MarshalIndent(s, "", "    ")
         if err != nil </span><span class="cov0" title="0">{
                 return err
         }</span>
 
         // #nosec G306 -- File permission should be determined by umask.
-        <span class="cov1" title="2">return os.WriteFile(path, data, 0644)</span>
+        <span class="cov2" title="4">return os.WriteFile(path, data, 0644)</span>
 }
 
 // Creates a LocalGame from the save.
 // The game will be considered a replay
-func (s *Save) Game() *LocalGame <span class="cov5" title="25">{
+func (s *Save) Game() *LocalGame <span class="cov5" title="26">{
         g := blankGame(s.Data.Difficulty)
 
-        for _, p := range s.Data.Mines </span><span class="cov10" title="1253">{
+        for _, p := range s.Data.Mines </span><span class="cov10" title="1293">{
                 g.Field[p.X][p.Y].Content = Mine
         }</span>
 
-        <span class="cov5" title="25">g.calculateFieldContent()
+        <span class="cov5" title="26">g.calculateFieldContent()
 
         g.replay = true
 
@@ -2380,84 +2377,84 @@ type Solver struct {
         lock sync.RWMutex
 }
 
-func NewSolver(g Game) *Solver <span class="cov4" title="672">{
+func NewSolver(g Game) *Solver <span class="cov4" title="790">{
         return &amp;Solver{
                 game: g,
         }
 }</span>
 
-func (s *Solver) NextSteps() []Pos <span class="cov5" title="5210">{
+func (s *Solver) NextSteps() []Pos <span class="cov5" title="5720">{
         s.lock.RLock()
         defer s.lock.RUnlock()
 
         return s.nextSteps
 }</span>
 
-func (s *Solver) KnownMines() []Pos <span class="cov5" title="1447">{
+func (s *Solver) KnownMines() []Pos <span class="cov5" title="1424">{
         s.lock.RLock()
         defer s.lock.RUnlock()
 
         return s.mines
 }</span>
 
-func (s *Solver) Update() <span class="cov5" title="5114">{
+func (s *Solver) Update() <span class="cov5" title="5624">{
         s.lock.Lock()
         defer s.lock.Unlock()
 
         status := s.game.Status()
-        if status == nil || status.GameOver() || status.GameWon() </span><span class="cov2" title="18">{
+        if status == nil || status.GameOver() || status.GameWon() </span><span class="cov2" title="19">{
                 return
         }</span>
 
-        <span class="cov5" title="5096">if s.mines == nil </span><span class="cov4" title="671">{
+        <span class="cov5" title="5605">if s.mines == nil </span><span class="cov4" title="789">{
                 s.mines = make([]Pos, 0, s.game.Difficulty().Mines)
         }</span>
-        <span class="cov5" title="5096">nextSteps := make([]Pos, 0, 25)
-        for _, p := range s.nextSteps </span><span class="cov6" title="26342">{
-                if !status.Field[p.X][p.Y].Checked </span><span class="cov5" title="3095">{
+        <span class="cov5" title="5605">nextSteps := make([]Pos, 0, 25)
+        for _, p := range s.nextSteps </span><span class="cov6" title="33203">{
+                if !status.Field[p.X][p.Y].Checked </span><span class="cov5" title="6918">{
                         nextSteps = append(nextSteps, p)
                 }</span>
         }
-        <span class="cov5" title="5096">s.nextSteps = nextSteps
+        <span class="cov5" title="5605">s.nextSteps = nextSteps
 
         i := 0
         oldLenMines := -1
         oldLenSafe := -1
-        for len(s.mines) &gt; oldLenMines || len(s.nextSteps) &gt; oldLenSafe </span><span class="cov6" title="11874">{
+        for len(s.mines) &gt; oldLenMines || len(s.nextSteps) &gt; oldLenSafe </span><span class="cov6" title="13158">{
                 i++
                 oldLenMines = len(s.mines)
                 oldLenSafe = len(s.nextSteps)
-                walkField(func(x, y int) </span><span class="cov9" title="5075695">{
-                        if !status.Field[x][y].Checked || status.Field[x][y].Content &lt;= 0 </span><span class="cov9" title="4119668">{
+                walkField(func(x, y int) </span><span class="cov9" title="5660306">{
+                        if !status.Field[x][y].Checked || status.Field[x][y].Content &lt;= 0 </span><span class="cov9" title="4622985">{
                                 return
                         }</span>
 
-                        <span class="cov8" title="956027">unchecked := FieldContent(0)
+                        <span class="cov8" title="1037321">unchecked := FieldContent(0)
                         mines := FieldContent(0)
                         safePos := FieldContent(0)
                         newPos := make([]Pos, 0, 8)
-                        for m := -1; m &lt; 2; m++ </span><span class="cov9" title="2868081">{
-                                for n := -1; n &lt; 2; n++ </span><span class="cov10" title="8604243">{
+                        for m := -1; m &lt; 2; m++ </span><span class="cov9" title="3111963">{
+                                for n := -1; n &lt; 2; n++ </span><span class="cov10" title="9335889">{
                                         p := NewPos(x+m, y+n)
-                                        if OutOfBounds(p, s.game.Difficulty()) </span><span class="cov8" title="306994">{
+                                        if OutOfBounds(p, s.game.Difficulty()) </span><span class="cov8" title="339901">{
                                                 continue</span>
                                         }
-                                        <span class="cov9" title="8297249">if !status.Field[p.X][p.Y].Checked </span><span class="cov9" title="2020845">{
+                                        <span class="cov9" title="8995988">if !status.Field[p.X][p.Y].Checked </span><span class="cov9" title="2185481">{
                                                 unchecked++
-                                                if slices.Contains(s.mines, p) </span><span class="cov9" title="1499963">{
+                                                if slices.Contains(s.mines, p) </span><span class="cov9" title="1620661">{
                                                         mines++
-                                                }</span> else<span class="cov8" title="520882"> if !slices.Contains(s.nextSteps, p) </span><span class="cov8" title="379873">{
+                                                }</span> else<span class="cov8" title="564820"> if !slices.Contains(s.nextSteps, p) </span><span class="cov8" title="401198">{
                                                         newPos = append(newPos, p)
-                                                }</span> else<span class="cov7" title="141009"> {
+                                                }</span> else<span class="cov7" title="163622"> {
                                                         safePos++
                                                 }</span>
                                         }
                                 }
                         }
-                        <span class="cov8" title="956027">if len(newPos) == 0 </span><span class="cov8" title="811649">{
+                        <span class="cov8" title="1037321">if len(newPos) == 0 </span><span class="cov8" title="883112">{
                                 return
                         }</span>
-                        <span class="cov7" title="144378">if unchecked-safePos == status.Field[x][y].Content &amp;&amp; mines != status.Field[x][y].Content </span><span class="cov6" title="9260">{
+                        <span class="cov7" title="154209">if unchecked-safePos == status.Field[x][y].Content &amp;&amp; mines != status.Field[x][y].Content </span><span class="cov6" title="10405">{
                                 slog.Debug("Assisted Mode: Found mines near field",
                                         slog.String("pos", NewPos(x, y).String()),
                                         slog.Int("mines", int(mines)),
@@ -2466,7 +2463,7 @@ func (s *Solver) Update() <span class="cov5" title="5114">{
                                         slog.Any("newPos", newPos),
                                 )
                                 s.mines = append(s.mines, newPos...)
-                        }</span> else<span class="cov7" title="135118"> if mines == status.Field[x][y].Content &amp;&amp; unchecked &gt; status.Field[x][y].Content </span><span class="cov6" title="14578">{
+                        }</span> else<span class="cov7" title="143804"> if mines == status.Field[x][y].Content &amp;&amp; unchecked &gt; status.Field[x][y].Content </span><span class="cov6" title="16555">{
                                 slog.Debug("Assisted Mode: Found safe positions near field",
                                         slog.String("pos", NewPos(x, y).String()),
                                         slog.Int("mines", int(mines)),
@@ -2479,24 +2476,24 @@ func (s *Solver) Update() <span class="cov5" title="5114">{
                 }, s.game.Difficulty().Row, s.game.Difficulty().Col)
         }
 
-        <span class="cov5" title="5096">slog.Debug("Assisted Mode: Mines and safe Positions found", slog.Any("mines", s.mines), slog.Any("safe", s.nextSteps), slog.Int("iterations", i))</span>
+        <span class="cov5" title="5605">slog.Debug("Assisted Mode: Mines and safe Positions found", slog.Any("mines", s.mines), slog.Any("safe", s.nextSteps), slog.Int("iterations", i))</span>
 }
 
 // Autosolve the game.
 // Returns if the game can be autosolved
-func (s *Solver) Autosolve(startPos Pos) bool <span class="cov4" title="654">{
+func (s *Solver) Autosolve(startPos Pos) bool <span class="cov4" title="772">{
         s.game.CheckField(startPos)
 
         s.Update()
 
-        for safePos := s.NextSteps(); len(safePos) &gt; 0 &amp;&amp; !s.game.Won(); safePos = s.NextSteps() </span><span class="cov5" title="3119">{
-                for _, p := range safePos </span><span class="cov6" title="22925">{
+        for safePos := s.NextSteps(); len(safePos) &gt; 0 &amp;&amp; !s.game.Won(); safePos = s.NextSteps() </span><span class="cov5" title="3533">{
+                for _, p := range safePos </span><span class="cov6" title="26002">{
                         s.game.CheckField(p)
                 }</span>
-                <span class="cov5" title="3119">s.Update()</span>
+                <span class="cov5" title="3533">s.Update()</span>
         }
 
-        <span class="cov4" title="654">return s.game.Won()</span>
+        <span class="cov4" title="772">return s.game.Won()</span>
 }
 </pre>
 		
@@ -2514,12 +2511,12 @@ type Status struct {
 }
 
 // Returns if the game is lost
-func (s *Status) GameOver() bool <span class="cov9" title="6099">{
+func (s *Status) GameOver() bool <span class="cov9" title="6532">{
         return s.gameOver
 }</span>
 
 // Returns if the game is won
-func (s *Status) GameWon() bool <span class="cov10" title="6102">{
+func (s *Status) GameWon() bool <span class="cov10" title="6536">{
         return s.gameWon
 }</span>
 </pre>
@@ -2539,46 +2536,46 @@ type Pos struct {
 }
 
 // Create a new Position from the given coordinates
-func NewPos(x, y int) Pos <span class="cov9" title="11460304">{
+func NewPos(x, y int) Pos <span class="cov9" title="12657928">{
         return Pos{x, y}
 }</span>
 
 // Returns a random position inside the provided limits
-func RandomPos(maxX, maxY int) Pos <span class="cov7" title="77590">{
+func RandomPos(maxX, maxY int) Pos <span class="cov7" title="90236">{
         // #nosec G304,G404 -- This is not a security sensitive task, so using the less resource intensive pseudo-random algorithm is fine.
         return NewPos(rand.IntN(maxX), rand.IntN(maxY))
 }</span>
 
 // Returns a string representation of the position
-func (p Pos) String() string <span class="cov7" title="98664">{
+func (p Pos) String() string <span class="cov7" title="111354">{
         return fmt.Sprintf("(%d, %d)", p.X, p.Y)
 }</span>
 
 // Randomly create mines for the given difficulty.
 // Does not create a mine on the given positions.
-func CreateMines(d Difficulty, safe []Pos) []Pos <span class="cov4" title="704">{
+func CreateMines(d Difficulty, safe []Pos) []Pos <span class="cov4" title="823">{
         var p Pos
         mines := make([]Pos, 0, d.Mines+len(safe))
 
         mines = append(mines, safe...)
-        for i := 0; i &lt; d.Mines; i++ </span><span class="cov7" title="67618">{
+        for i := 0; i &lt; d.Mines; i++ </span><span class="cov7" title="78685">{
                 p = RandomPos(d.Row, d.Col)
-                for slices.Contains(mines, p) </span><span class="cov6" title="9967">{
+                for slices.Contains(mines, p) </span><span class="cov6" title="11546">{
                         p = RandomPos(d.Row, d.Col)
                 }</span>
-                <span class="cov7" title="67618">mines = append(mines, p)</span>
+                <span class="cov7" title="78685">mines = append(mines, p)</span>
         }
-        <span class="cov4" title="704">return mines[len(safe):]</span>
+        <span class="cov4" title="823">return mines[len(safe):]</span>
 }
 
 // Convert FieldContent to string for logging
-func (fc FieldContent) String() string <span class="cov6" title="55356">{
+func (fc FieldContent) String() string <span class="cov6" title="62840">{
         switch </span>{
         case fc == Mine:<span class="cov1" title="1">
                 return "Mine"</span>
         case fc == Unknown:<span class="cov1" title="1">
                 return "Unknown"</span>
-        case fc &gt;= 0 &amp;&amp; fc &lt; 9:<span class="cov6" title="55352">
+        case fc &gt;= 0 &amp;&amp; fc &lt; 9:<span class="cov6" title="62836">
                 return strconv.Itoa(int(fc))</span>
         default:<span class="cov1" title="2">
                 return fmt.Sprintf("%d is not a valid FieldContent", fc)</span>
@@ -2586,49 +2583,49 @@ func (fc FieldContent) String() string <span class="cov6" title="55356">{
 }
 
 // Check if a position is out of bounds on the given difficulty
-func OutOfBounds(p Pos, d Difficulty) bool <span class="cov9" title="11085321">{
+func OutOfBounds(p Pos, d Difficulty) bool <span class="cov9" title="12223477">{
         return p.X &lt; 0 || p.X &gt; d.Row-1 || p.Y &lt; 0 || p.Y &gt; d.Col-1
 }</span>
 
 // Walk through all fields in the given dimension and call the given function
-func walkField(f func(x, y int), limitX, limitY int) <span class="cov6" title="34590">{
-        for x := 0; x &lt; limitX; x++ </span><span class="cov8" title="916982">{
-                for y := 0; y &lt; limitY; y++ </span><span class="cov10" title="15713736">{
+func walkField(f func(x, y int), limitX, limitY int) <span class="cov6" title="38915">{
+        for x := 0; x &lt; limitX; x++ </span><span class="cov8" title="761755">{
+                for y := 0; y &lt; limitY; y++ </span><span class="cov10" title="17692933">{
                         f(x, y)
                 }</span>
         }
 }
 
 // Create an array of positions with 3x3, centered around the given position
-func areaAroundPos(d Difficulty, p Pos) []Pos <span class="cov2" title="26">{
+func areaAroundPos(d Difficulty, p Pos) []Pos <span class="cov2" title="27">{
         area := make([]Pos, 0, 9)
-        for x := -1; x &lt; 2; x++ </span><span class="cov3" title="78">{
-                for y := -1; y &lt; 2; y++ </span><span class="cov3" title="234">{
+        for x := -1; x &lt; 2; x++ </span><span class="cov3" title="81">{
+                for y := -1; y &lt; 2; y++ </span><span class="cov3" title="243">{
                         p := NewPos(p.X+x, p.Y+y)
-                        if !OutOfBounds(p, d) </span><span class="cov3" title="164">{
+                        if !OutOfBounds(p, d) </span><span class="cov3" title="168">{
                                 area = append(area, p)
                         }</span>
                 }
         }
-        <span class="cov2" title="26">return area</span>
+        <span class="cov2" title="27">return area</span>
 }
 </pre>
 		
 		<pre class="file" id="file19" style="display: none">package utils
 
 // Create a new, empty 2 dimensional array of the given type and dimensions.
-func Make2D[T any](x, y int) [][]T <span class="cov7" title="1509">{
+func Make2D[T any](x, y int) [][]T <span class="cov7" title="1751">{
         if x &lt; 1 || y &lt; 1 </span><span class="cov2" title="6">{
                 return [][]T{}
         }</span>
 
-        <span class="cov7" title="1503">matrix := make([][]T, x)
+        <span class="cov7" title="1745">matrix := make([][]T, x)
         rows := make([]T, x*y)
 
-        for i := 0; i &lt; x; i++ </span><span class="cov10" title="39241">{
+        for i := 0; i &lt; x; i++ </span><span class="cov10" title="33207">{
                 matrix[i] = rows[i*y : (i+1)*y]
         }</span>
-        <span class="cov7" title="1503">return matrix</span>
+        <span class="cov7" title="1745">return matrix</span>
 }
 </pre>
 		
