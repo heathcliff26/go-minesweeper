@@ -48,7 +48,7 @@ jobs:
     permissions:
       contents: read
     with:
-      cmd: go test -v -timeout 300s ./...
+      cmd: go test -v -race -timeout 300s ./...
       os: windows-latest
 
   validate:
