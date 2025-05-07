@@ -198,6 +198,19 @@ func TestSaveGame(t *testing.T) {
 		_, err := minesweeper.LoadSave(savePath)
 		assert.NoError(err, "Should be able to load the save file")
 	})
+
+	t.Run("RemoveEmptyFileCreatedByFyneFileDialog", func(t *testing.T) {
+		assert := assert.New(t)
+
+		savePath := filepath.Join(dir, "empty-file")
+
+		require.NoError(t, os.WriteFile(savePath, []byte(""), 0644), "Should create an empty file")
+
+		a.saveGameCallback(savePath, nil)
+
+		assert.FileExists(savePath+".sav", "Save file should exist")
+		assert.NoFileExists(savePath, "Empty file should be removed")
+	})
 }
 
 func TestLoadSave(t *testing.T) {

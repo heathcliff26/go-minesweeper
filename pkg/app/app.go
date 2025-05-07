@@ -2,6 +2,7 @@ package app
 
 import (
 	"log/slog"
+	"os"
 	"time"
 
 	"fyne.io/fyne/v2"
@@ -252,6 +253,14 @@ func (a *App) saveGameCallback(path string, err error) {
 		return
 	}
 	if path == "" {
+		return
+	}
+
+	// Ensure that empty files created by fynes file dialog are removed before creating the save.
+	// This ensures that no empty files without ".sav" extension are created.
+	err = os.Remove(path)
+	if err != nil && !os.IsNotExist(err) {
+		dialog.ShowError(err, a.main)
 		return
 	}
 
