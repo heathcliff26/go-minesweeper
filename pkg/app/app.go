@@ -25,6 +25,10 @@ const DEFAULT_AUTOSOLVE_DELAY = 500 * time.Millisecond
 // Used to change the new app function for testing
 var newApp = fApp.New
 
+var saveFileFilters = filedialog.FileFilter{
+	"Save File": []string{minesweeper.SaveFileExtension},
+}
+
 // Struct representing the current app.
 // There should only ever be a single instance during runtime.
 type App struct {
@@ -206,7 +210,7 @@ func (a *App) loadSave() {
 		return
 	}
 
-	filedialog.FileOpen("Open Savegame", saveDir, []string{minesweeper.SaveFileExtension}, a.loadSaveCallback)
+	filedialog.FileOpen("Open Savegame", saveDir, saveFileFilters, a.loadSaveCallback)
 }
 
 func (a *App) loadSaveCallback(path string, err error) {
@@ -227,7 +231,9 @@ func (a *App) loadSaveCallback(path string, err error) {
 	for _, i := range a.difficulties {
 		i.Checked = (i.Label == save.Data.Difficulty.Name)
 	}
-	a.NewGrid(save.Data.Difficulty)
+	fyne.DoAndWait(func() {
+		a.NewGrid(save.Data.Difficulty)
+	})
 
 	a.grid.Game = save.Game()
 }
@@ -244,7 +250,7 @@ func (a *App) saveGame() {
 		return
 	}
 
-	filedialog.FileSave("Save Game", saveDir, []string{minesweeper.SaveFileExtension}, a.saveGameCallback)
+	filedialog.FileSave("Save Game", saveDir, saveFileFilters, a.saveGameCallback)
 }
 
 func (a *App) saveGameCallback(path string, err error) {

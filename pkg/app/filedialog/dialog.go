@@ -1,6 +1,8 @@
 package filedialog
 
 import (
+	"fmt"
+
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/storage"
@@ -11,45 +13,36 @@ const (
 	DialogWidth  = 600
 )
 
-// Show a file open dialog in a new window and return path.
-func FileOpen(name string, startLocation string, extensions []string, cb func(string, error)) {
+type FileFilter map[string][]string
+
+type GenericURICloser interface {
+	Close() error
+	URI() fyne.URI
+}
+
+// Use internal fyne file dialog to open a file.
+func internalFileOpen(name string, startLocation string, filters FileFilter, cb func(string, error)) {
 	w := fyne.CurrentApp().NewWindow(name)
 	d := dialog.NewFileOpen(func(uri fyne.URIReadCloser, err error) {
-		if err != nil {
-			cb("", err)
-			return
-		}
-		if uri == nil {
-			cb("", err)
-			return
-		}
-
-		cb(uri.URI().Path(), nil)
+		// Ensure this runs in a goroutine as we call fyne.DoAndWait in the callback
+		go callCallback(cb, uri, err)
 	}, w)
 
-	err := showFileDialog(startLocation, extensions, d, w)
+	err := showFileDialog(startLocation, convertToExtensions(filters), d, w)
 	if err != nil {
 		cb("", err)
 	}
 }
 
-// Show a file save dialog in a new window and return path.
-func FileSave(name string, startLocation string, extensions []string, cb func(string, error)) {
+// Use internal fyne file dialog to save a file.
+func internalFileSave(name string, startLocation string, filters FileFilter, cb func(string, error)) {
 	w := fyne.CurrentApp().NewWindow(name)
 	d := dialog.NewFileSave(func(uri fyne.URIWriteCloser, err error) {
-		if err != nil {
-			cb("", err)
-			return
-		}
-		if uri == nil {
-			cb("", err)
-			return
-		}
-		defer uri.Close()
-		cb(uri.URI().Path(), nil)
+		// Ensure this runs in a goroutine as we call fyne.DoAndWait in the callback
+		go callCallback(cb, uri, err)
 	}, w)
 
-	err := showFileDialog(startLocation, extensions, d, w)
+	err := showFileDialog(startLocation, convertToExtensions(filters), d, w)
 	if err != nil {
 		cb("", err)
 	}
@@ -61,11 +54,11 @@ func FileSave(name string, startLocation string, extensions []string, cb func(st
 func setDialogLocationToDir(dir string, d *dialog.FileDialog) error {
 	uri, err := storage.ParseURI("file://" + dir)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to parse URI: %w", err)
 	}
 	listURI, err := storage.ListerForURI(uri)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create lister for URI: %w", err)
 	}
 	d.SetLocation(listURI)
 
@@ -93,4 +86,27 @@ func showFileDialog(startLocation string, extensions []string, d *dialog.FileDia
 	})
 
 	return nil
+}
+
+func convertToExtensions(filters FileFilter) []string {
+	var extensions []string
+	for _, filter := range filters {
+		extensions = append(extensions, filter...)
+	}
+	return extensions
+}
+
+func callCallback(cb func(string, error), uri GenericURICloser, err error) {
+	if err != nil {
+		cb("", err)
+		return
+	}
+	if uri == nil {
+		cb("", nil)
+		return
+	}
+	defer uri.Close()
+
+	path := uri.URI().Path()
+	cb(path, nil)
 }
