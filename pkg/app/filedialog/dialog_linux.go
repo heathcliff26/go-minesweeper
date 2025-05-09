@@ -5,7 +5,7 @@ package filedialog
 import "log/slog"
 
 // Show a file open dialog in a new window and return path.
-func FileOpen(name string, startLocation string, filters FileFilter, cb func(string, error)) {
+func FileOpen(name string, startLocation string, filters FileFilters, cb func(string, error)) {
 	err := dbusFileChooser(FileChooserOpenFile, name, startLocation, filters)
 	if err != nil {
 		slog.Info("Failed to open os native file dialog, falling back to internal implementation", "error", err)
@@ -17,7 +17,7 @@ func FileOpen(name string, startLocation string, filters FileFilter, cb func(str
 }
 
 // Show a file save dialog in a new window and return path.
-func FileSave(name string, startLocation string, filters FileFilter, cb func(string, error)) {
+func FileSave(name string, startLocation string, filters FileFilters, cb func(string, error)) {
 	err := dbusFileChooser(FileChooserSaveFile, name, startLocation, filters)
 	if err != nil {
 		slog.Info("Failed to open os native file dialog, falling back to internal implementation", "error", err)

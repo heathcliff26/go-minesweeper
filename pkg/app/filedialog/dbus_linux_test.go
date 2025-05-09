@@ -9,10 +9,11 @@ import (
 )
 
 func TestConvertFilters(t *testing.T) {
-	filter := FileFilter{
-		"Text Files":  []string{".txt", ".md"},
-		"Image Files": []string{".png", ".jpg"},
-		"Nothing":     []string{},
+	filter := FileFilters{
+		{"Text Files", []string{".txt", ".md"}},
+		{"Image Files", []string{".png", ".jpg"}},
+		{"Nothing", []string{}},
+		{"Nil", nil},
 	}
 	expected := []freedesktopFilter{
 		{
@@ -32,9 +33,12 @@ func TestConvertFilters(t *testing.T) {
 		{
 			Name: "Nothing",
 		},
+		{
+			Name: "Nil",
+		},
 	}
 
 	converted := convertFilters(filter)
 
-	assert.ElementsMatch(t, expected, converted, "Should convert filters correctly")
+	assert.Equal(t, expected, converted, "Should convert filters correctly")
 }

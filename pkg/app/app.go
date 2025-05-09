@@ -25,8 +25,11 @@ const DEFAULT_AUTOSOLVE_DELAY = 500 * time.Millisecond
 // Used to change the new app function for testing
 var newApp = fApp.New
 
-var saveFileFilters = filedialog.FileFilter{
-	"Save File (*" + minesweeper.SaveFileExtension + ")": []string{minesweeper.SaveFileExtension},
+var saveFileFilters = filedialog.FileFilters{
+	{
+		Description: "Save File (*" + minesweeper.SaveFileExtension + ")",
+		Extensions:  []string{minesweeper.SaveFileExtension},
+	},
 }
 
 // Struct representing the current app.

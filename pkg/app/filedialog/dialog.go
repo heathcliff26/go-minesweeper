@@ -13,36 +13,34 @@ const (
 	DialogWidth  = 600
 )
 
-type FileFilter map[string][]string
-
 type GenericURICloser interface {
 	Close() error
 	URI() fyne.URI
 }
 
 // Use internal fyne file dialog to open a file.
-func internalFileOpen(name string, startLocation string, filters FileFilter, cb func(string, error)) {
+func internalFileOpen(name string, startLocation string, filters FileFilters, cb func(string, error)) {
 	w := fyne.CurrentApp().NewWindow(name)
 	d := dialog.NewFileOpen(func(uri fyne.URIReadCloser, err error) {
 		// Ensure this runs in a goroutine as we call fyne.DoAndWait in the callback
 		go callCallback(cb, uri, err)
 	}, w)
 
-	err := showFileDialog(startLocation, convertToExtensions(filters), d, w)
+	err := showFileDialog(startLocation, filters.Extensions(), d, w)
 	if err != nil {
 		cb("", err)
 	}
 }
 
 // Use internal fyne file dialog to save a file.
-func internalFileSave(name string, startLocation string, filters FileFilter, cb func(string, error)) {
+func internalFileSave(name string, startLocation string, filters FileFilters, cb func(string, error)) {
 	w := fyne.CurrentApp().NewWindow(name)
 	d := dialog.NewFileSave(func(uri fyne.URIWriteCloser, err error) {
 		// Ensure this runs in a goroutine as we call fyne.DoAndWait in the callback
 		go callCallback(cb, uri, err)
 	}, w)
 
-	err := showFileDialog(startLocation, convertToExtensions(filters), d, w)
+	err := showFileDialog(startLocation, filters.Extensions(), d, w)
 	if err != nil {
 		cb("", err)
 	}
@@ -86,14 +84,6 @@ func showFileDialog(startLocation string, extensions []string, d *dialog.FileDia
 	})
 
 	return nil
-}
-
-func convertToExtensions(filters FileFilter) []string {
-	var extensions []string
-	for _, filter := range filters {
-		extensions = append(extensions, filter...)
-	}
-	return extensions
 }
 
 func callCallback(cb func(string, error), uri GenericURICloser, err error) {
