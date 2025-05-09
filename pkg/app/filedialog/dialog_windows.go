@@ -97,7 +97,7 @@ func init() {
 }
 
 // Show a file open dialog in a new window and return path.
-func FileOpen(name string, startLocation string, filters FileFilter, cb func(string, error)) {
+func FileOpen(name string, startLocation string, filters FileFilters, cb func(string, error)) {
 	err := getOpenFileName.Find()
 	if err != nil {
 		internalFileOpen(name, startLocation, filters, cb)
@@ -107,7 +107,7 @@ func FileOpen(name string, startLocation string, filters FileFilter, cb func(str
 }
 
 // Show a file save dialog in a new window and return path.
-func FileSave(name string, startLocation string, filters FileFilter, cb func(string, error)) {
+func FileSave(name string, startLocation string, filters FileFilters, cb func(string, error)) {
 	err := getSaveFileName.Find()
 	if err != nil {
 		internalFileSave(name, startLocation, filters, cb)
@@ -116,17 +116,17 @@ func FileSave(name string, startLocation string, filters FileFilter, cb func(str
 	go nativeFileSave(name, startLocation, filters, cb)
 }
 
-func convertFilterToUTF16(filters FileFilter) (*uint16, error) {
+func convertFilterToUTF16(filters FileFilters) (*uint16, error) {
 	res := make([]uint16, 0, len(filters)*10)
-	for name, extensions := range filters {
-		utf16Name, err := windows.UTF16FromString(name)
+	for _, filter := range filters {
+		utf16Name, err := windows.UTF16FromString(filter.Description)
 		if err != nil {
-			return nil, fmt.Errorf("failed to convert filter name '%s' to UTF16: %w", name, err)
+			return nil, fmt.Errorf("failed to convert filter name '%s' to UTF16: %w", filter.Description, err)
 		}
 		res = append(res, utf16Name...)
 
 		var extensionsStr string
-		for i, ext := range extensions {
+		for i, ext := range filter.Extensions {
 			if i > 0 {
 				extensionsStr += ";"
 			}
@@ -143,7 +143,7 @@ func convertFilterToUTF16(filters FileFilter) (*uint16, error) {
 	return &res[0], nil
 }
 
-func prepareOpenFileName(title string, startLocation string, filters FileFilter) (*OPENFILENAME, error) {
+func prepareOpenFileName(title string, startLocation string, filters FileFilters) (*OPENFILENAME, error) {
 	filterPtr, err := convertFilterToUTF16(filters)
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert filter to UTF16: %w", err)
@@ -171,7 +171,7 @@ func prepareOpenFileName(title string, startLocation string, filters FileFilter)
 	return ofn, nil
 }
 
-func nativeFileOpen(title string, startLocation string, filters FileFilter, cb func(string, error)) {
+func nativeFileOpen(title string, startLocation string, filters FileFilters, cb func(string, error)) {
 	ofn, err := prepareOpenFileName(title, startLocation, filters)
 	if err != nil {
 		cb("", err)
@@ -190,7 +190,7 @@ func nativeFileOpen(title string, startLocation string, filters FileFilter, cb f
 	cb(result, nil)
 }
 
-func nativeFileSave(title string, startLocation string, filters FileFilter, cb func(string, error)) {
+func nativeFileSave(title string, startLocation string, filters FileFilters, cb func(string, error)) {
 	ofn, err := prepareOpenFileName(title, startLocation, filters)
 	if err != nil {
 		cb("", err)

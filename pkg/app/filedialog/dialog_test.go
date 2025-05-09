@@ -31,18 +31,6 @@ func TestSetDialogLocationToDir(t *testing.T) {
 	assert.Error(setDialogLocationToDir(dir, d), "Should return an error for a non-existing directory")
 }
 
-func TestConvertToExtensions(t *testing.T) {
-	filter := FileFilter{
-		"Text Files":  []string{".txt", ".md"},
-		"Image Files": []string{".png", ".jpg"},
-		"Nothing":     []string{},
-	}
-	expected := []string{".txt", ".md", ".png", ".jpg"}
-
-	extensions := convertToExtensions(filter)
-	assert.ElementsMatch(t, expected, extensions, "Should convert to extensions correctly")
-}
-
 type MockGenericURICloser struct {
 	uri         fyne.URI
 	calledClose bool

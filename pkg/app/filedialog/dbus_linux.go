@@ -29,19 +29,19 @@ type freedesktopFilter struct {
 	Rules []freedesktopFilterRule
 }
 
-func convertFilters(filters FileFilter) []freedesktopFilter {
+func convertFilters(filters FileFilters) []freedesktopFilter {
 	var result []freedesktopFilter
-	for name, rules := range filters {
+	for _, filter := range filters {
 		var filterRules []freedesktopFilterRule
-		for _, rule := range rules {
+		for _, rule := range filter.Extensions {
 			filterRules = append(filterRules, freedesktopFilterRule{Type: 0, Pattern: "*" + rule})
 		}
-		result = append(result, freedesktopFilter{Name: name, Rules: filterRules})
+		result = append(result, freedesktopFilter{Name: filter.Description, Rules: filterRules})
 	}
 	return result
 }
 
-func dbusFileChooser(method string, title string, startLocation string, filters FileFilter) error {
+func dbusFileChooser(method string, title string, startLocation string, filters FileFilters) error {
 	freedesktopFilters := convertFilters(filters)
 
 	currentFolder := make([]byte, len(startLocation)+1)
