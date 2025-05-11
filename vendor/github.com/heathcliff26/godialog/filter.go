@@ -1,4 +1,4 @@
-package filedialog
+package godialog
 
 type FileFilter struct {
 	// A short description of this filter.

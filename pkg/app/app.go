@@ -11,9 +11,10 @@ import (
 	"fyne.io/fyne/v2/data/binding"
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/widget"
-	"github.com/heathcliff26/go-minesweeper/pkg/app/filedialog"
 	"github.com/heathcliff26/go-minesweeper/pkg/app/locations"
 	"github.com/heathcliff26/go-minesweeper/pkg/minesweeper"
+	"github.com/heathcliff26/godialog"
+	fallbackfyne "github.com/heathcliff26/godialog/fallback/fyne"
 )
 
 const DEFAULT_DIFFICULTY = minesweeper.DifficultyBeginner
@@ -25,7 +26,7 @@ const DEFAULT_AUTOSOLVE_DELAY = 500 * time.Millisecond
 // Used to change the new app function for testing
 var newApp = fApp.New
 
-var saveFileFilters = filedialog.FileFilters{
+var saveFileFilters = godialog.FileFilters{
 	{
 		Description: "Save File (*" + minesweeper.SaveFileExtension + ")",
 		Extensions:  []string{minesweeper.SaveFileExtension},
@@ -43,6 +44,7 @@ type App struct {
 	gameMenu       []*fyne.MenuItem
 	assistedMode   *fyne.MenuItem
 	gameAlgorithms []*fyne.MenuItem
+	filedialog     godialog.FileDialog
 }
 
 // Create a new App
@@ -59,10 +61,15 @@ func New() *App {
 	main := app.NewWindow(version.Name)
 	app.Settings().SetTheme(mainTheme{})
 
+	fd := godialog.NewFileDialog()
+	fd.SetFilters(saveFileFilters)
+	fd.SetFallback(fallbackfyne.NewFyneFallbackDialog(app))
+
 	a := &App{
-		app:     app,
-		main:    main,
-		Version: version,
+		app:        app,
+		main:       main,
+		Version:    version,
+		filedialog: fd,
 	}
 	a.main.SetTitle(version.Name)
 	a.makeMenu(preferences)
@@ -71,6 +78,12 @@ func New() *App {
 
 	a.main.SetFixedSize(true)
 	a.main.Show()
+
+	saveDir, err := locations.SaveFolder()
+	if err != nil {
+		dialog.ShowError(err, main)
+	}
+	a.filedialog.SetInitialDirectory(saveDir)
 
 	return a
 }
@@ -207,13 +220,7 @@ func (a *App) customDifficultyDialog() {
 }
 
 func (a *App) loadSave() {
-	saveDir, err := locations.SaveFolder()
-	if err != nil {
-		dialog.ShowError(err, a.main)
-		return
-	}
-
-	filedialog.FileOpen("Open Savegame", saveDir, saveFileFilters, a.loadSaveCallback)
+	a.filedialog.Open("Open Savegame", a.loadSaveCallback)
 }
 
 func (a *App) loadSaveCallback(path string, err error) {
@@ -247,13 +254,7 @@ func (a *App) saveGame() {
 		d.Show()
 		return
 	}
-	saveDir, err := locations.SaveFolder()
-	if err != nil {
-		dialog.ShowError(err, a.main)
-		return
-	}
-
-	filedialog.FileSave("Save Game", saveDir, saveFileFilters, a.saveGameCallback)
+	a.filedialog.Save("Save Game", a.saveGameCallback)
 }
 
 func (a *App) saveGameCallback(path string, err error) {

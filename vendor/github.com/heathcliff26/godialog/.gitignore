@@ -1,0 +1,6 @@
+# Ignore binaries
+/bin
+
+# Generated go-test coverage reports
+coverprofiles/
+coverprofile.out
