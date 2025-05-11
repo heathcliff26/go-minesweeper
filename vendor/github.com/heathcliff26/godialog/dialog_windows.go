@@ -1,9 +1,10 @@
 //go:build windows
 
-package filedialog
+package godialog
 
 import (
 	"fmt"
+	"log/slog"
 	"syscall"
 	"unsafe"
 
@@ -97,23 +98,33 @@ func init() {
 }
 
 // Show a file open dialog in a new window and return path.
-func FileOpen(name string, startLocation string, filters FileFilters, cb func(string, error)) {
+func (fd *fileDialog) Open(title string, cb DialogCallback) {
 	err := getOpenFileName.Find()
 	if err != nil {
-		internalFileOpen(name, startLocation, filters, cb)
+		if fd.fallback != nil {
+			slog.Info("Failed to open windows native file dialog, using fallback", "error", err)
+			fd.fallback.Open(title, fd.InitialDirectory(), fd.filters, cb)
+		} else {
+			go cb("", fmt.Errorf("cannot open file dialog: %w", err))
+		}
 		return
 	}
-	go nativeFileOpen(name, startLocation, filters, cb)
+	go fd.windowsFileOpen(title, cb)
 }
 
 // Show a file save dialog in a new window and return path.
-func FileSave(name string, startLocation string, filters FileFilters, cb func(string, error)) {
+func (fd *fileDialog) Save(title string, cb DialogCallback) {
 	err := getSaveFileName.Find()
 	if err != nil {
-		internalFileSave(name, startLocation, filters, cb)
+		if fd.fallback != nil {
+			slog.Info("Failed to open windows native file dialog, using fallback", "error", err)
+			fd.fallback.Save(title, fd.InitialDirectory(), fd.filters, cb)
+		} else {
+			go cb("", fmt.Errorf("cannot open file dialog: %w", err))
+		}
 		return
 	}
-	go nativeFileSave(name, startLocation, filters, cb)
+	go fd.windowsFileSave(title, cb)
 }
 
 func convertFilterToUTF16(filters FileFilters) (*uint16, error) {
@@ -143,8 +154,8 @@ func convertFilterToUTF16(filters FileFilters) (*uint16, error) {
 	return &res[0], nil
 }
 
-func prepareOpenFileName(title string, startLocation string, filters FileFilters) (*OPENFILENAME, error) {
-	filterPtr, err := convertFilterToUTF16(filters)
+func (fd *fileDialog) prepareOpenFileName(title string) (*OPENFILENAME, error) {
+	filterPtr, err := convertFilterToUTF16(fd.filters)
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert filter to UTF16: %w", err)
 	}
@@ -152,7 +163,7 @@ func prepareOpenFileName(title string, startLocation string, filters FileFilters
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert title to UTF16: %w", err)
 	}
-	startLocationPtr, err := windows.UTF16PtrFromString(startLocation)
+	startLocationPtr, err := windows.UTF16PtrFromString(fd.InitialDirectory())
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert start location to UTF16: %w", err)
 	}
@@ -171,8 +182,8 @@ func prepareOpenFileName(title string, startLocation string, filters FileFilters
 	return ofn, nil
 }
 
-func nativeFileOpen(title string, startLocation string, filters FileFilters, cb func(string, error)) {
-	ofn, err := prepareOpenFileName(title, startLocation, filters)
+func (fd *fileDialog) windowsFileOpen(title string, cb DialogCallback) {
+	ofn, err := fd.prepareOpenFileName(title)
 	if err != nil {
 		cb("", err)
 		return
@@ -190,8 +201,8 @@ func nativeFileOpen(title string, startLocation string, filters FileFilters, cb 
 	cb(result, nil)
 }
 
-func nativeFileSave(title string, startLocation string, filters FileFilters, cb func(string, error)) {
-	ofn, err := prepareOpenFileName(title, startLocation, filters)
+func (fd *fileDialog) windowsFileSave(title string, cb DialogCallback) {
+	ofn, err := fd.prepareOpenFileName(title)
 	if err != nil {
 		cb("", err)
 		return
