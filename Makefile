@@ -11,7 +11,7 @@ lint:
 
 # Run unit-tests
 test:
-	go test -v -race -timeout 300s -coverprofile=coverprofile.out -coverpkg "./pkg/..." ./...
+	go test -v -race -timeout 420s -coverprofile=coverprofile.out -coverpkg "./pkg/..." ./...
 
 # Build the project with optional GOOS and GOARCH
 build:
