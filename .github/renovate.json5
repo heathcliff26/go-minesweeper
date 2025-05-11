@@ -7,7 +7,6 @@
     ":dependencyDashboard",
     ":semanticCommits",
     ":automergeDigest",
-    "github>heathcliff26/ci//renovate/automerge-gh-actions-pr.json5",
     "github>heathcliff26/ci//renovate/commitMessage.json5",
     "github>heathcliff26/ci//renovate/customManagers.json5",
     "github>heathcliff26/ci//renovate/group-gomod.json5",
@@ -19,5 +18,4 @@
   "dependencyDashboardTitle": "Renovate Dashboard 🤖",
   "suppressNotifications": ["prIgnoreNotification"],
   "postUpdateOptions": ["gomodTidy"],
-  "automergeType": "pr",
 }
