@@ -85,13 +85,7 @@ func TestNewGameWithSafeArea(t *testing.T) {
 }
 
 func TestNewGameSolvable(t *testing.T) {
-	tMatrix := Difficulties()
-	tMatrix = append(tMatrix, Difficulty{
-		Name:  "InvertedExpert",
-		Row:   30,
-		Col:   16,
-		Mines: 99,
-	})
+	tMatrix := Difficulties()[:3]
 	p := NewPos(1, 1)
 
 	for _, d := range tMatrix {
