@@ -470,9 +470,6 @@ func TestAutosolve(t *testing.T) {
 		{"Replay", func(g *MinesweeperGrid) {
 			g.Replay()
 		}},
-		{"Reset", func(g *MinesweeperGrid) {
-			g.Reset()
-		}},
 	}
 
 	for _, tCase := range tMatrix2 {

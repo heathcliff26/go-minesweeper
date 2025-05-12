@@ -280,38 +280,31 @@ func (g *MinesweeperGrid) Col() int {
 
 // Start a new game
 func (g *MinesweeperGrid) NewGame() {
-	// Ensure that the game lock is released before calling reset.
-	// This ensures that no deadlock occurs when autosolve is running.
-	func() {
-		g.lGame.Lock()
-		defer g.lGame.Unlock()
+	g.reset()
 
-		slog.Info("Preparing for new game")
-		g.Game = nil
-		g.solver = nil
-	}()
-	g.Reset()
+	g.lGame.Lock()
+	defer g.lGame.Unlock()
+
+	slog.Info("Preparing for new game")
+	g.Game = nil
+	g.solver = nil
 }
 
 // Replay the current game
 func (g *MinesweeperGrid) Replay() {
-	// Ensure that the game lock is released before calling reset.
-	// This ensures that no deadlock occurs when autosolve is running.
-	func() {
-		g.lGame.Lock()
-		defer g.lGame.Unlock()
+	g.reset()
 
-		slog.Info("Preparing for replay of current game")
-		if g.Game != nil {
-			g.Game.Replay()
-		}
-	}()
+	g.lGame.Lock()
+	defer g.lGame.Unlock()
 
-	g.Reset()
+	slog.Info("Preparing for replay of current game")
+	if g.Game != nil {
+		g.Game.Replay()
+	}
 }
 
 // Reset Grid
-func (g *MinesweeperGrid) Reset() {
+func (g *MinesweeperGrid) reset() {
 	g.lAutosolve.Lock()
 	defer g.lAutosolve.Unlock()
 
