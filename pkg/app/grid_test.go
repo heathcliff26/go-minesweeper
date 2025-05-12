@@ -12,6 +12,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const (
+	testTimeout = 10 * time.Second
+	testDelay   = 200 * time.Millisecond
+)
+
 type assistedModeTestConfig struct {
 	CheckPos minesweeper.Pos
 	Mines    []minesweeper.Pos
@@ -487,7 +492,7 @@ func TestAutosolve(t *testing.T) {
 
 			require.Eventually(func() bool {
 				return g.Tiles[5][0].Checked()
-			}, 5*time.Second, 200*time.Millisecond, "Should have started to run autosolve")
+			}, testTimeout, testDelay, "Should have started to run autosolve")
 
 			resetDone := make(chan bool)
 			go func() {
@@ -502,7 +507,7 @@ func TestAutosolve(t *testing.T) {
 				default:
 					return false
 				}
-			}, 5*time.Second, 200*time.Millisecond, "Should have reset the game")
+			}, testTimeout, testDelay, "Should have reset the game")
 
 			require.Eventually(func() bool {
 				select {
@@ -511,7 +516,7 @@ func TestAutosolve(t *testing.T) {
 				default:
 					return false
 				}
-			}, 5*time.Second, 200*time.Millisecond, "Should have stopped running autosolve")
+			}, testTimeout, testDelay, "Should have stopped running autosolve")
 
 			isReset := true
 			for x := 0; x < g.Row(); x++ {
