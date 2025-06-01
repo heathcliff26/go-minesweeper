@@ -71,6 +71,12 @@
     </screenshots>
 
     <releases>
+        <release version="v0.9.1" date="2025-06-01" type="stable">
+            <description>
+                <p>Small performance improvements</p>
+            </description>
+            <url type="details">https://github.com/heathcliff26/go-minesweeper/releases/tag/v0.9.1</url>
+        </release>
         <release version="v0.9.0" date="2025-05-08" type="stable">
             <description>
                 <p>Switched to using OS native file dialogs, while keeping the fyne internal dialogs as a fallback.</p>
