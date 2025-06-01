@@ -4,7 +4,7 @@ go 1.24.0
 
 require (
 	fyne.io/fyne/v2 v2.6.1
-	github.com/heathcliff26/godialog v0.1.0
+	github.com/heathcliff26/godialog v0.1.1
 	github.com/stretchr/testify v1.10.0
 	sigs.k8s.io/yaml v1.4.0
 )

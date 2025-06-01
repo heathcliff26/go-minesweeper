@@ -32,8 +32,10 @@ type FileDialog interface {
 	InitialDirectory() string
 
 	// Show a file open dialog in a new window and return path.
+	// Runs asynchronously.
 	Open(title string, cb DialogCallback)
 	// Show a file save dialog in a new window and return path.
+	// Runs asynchronously.
 	Save(title string, cb DialogCallback)
 }
 

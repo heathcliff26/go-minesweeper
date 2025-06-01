@@ -5,6 +5,7 @@ package godialog
 import (
 	"fmt"
 	"log/slog"
+	"net/url"
 	"strings"
 
 	"github.com/godbus/dbus/v5"
@@ -32,34 +33,44 @@ type freedesktopFilter struct {
 
 // Show a file open dialog in a new window and return path.
 func (fd *fileDialog) Open(title string, cb DialogCallback) {
+	go fd.open(title, cb)
+}
+
+// Show a file save dialog in a new window and return path.
+func (fd *fileDialog) Save(title string, cb DialogCallback) {
+	go fd.save(title, cb)
+}
+
+// The actual implementation for Open. Should be run in a goroutine.
+func (fd *fileDialog) open(title string, cb DialogCallback) {
 	err := fd.dbusFileChooser(DBusFileChooserOpenFile, title)
 	if err != nil {
 		if fd.fallback != nil {
 			slog.Info("Failed to open linux native file dialog, using fallback", "error", err)
 			fd.fallback.Open(title, fd.InitialDirectory(), fd.filters, cb)
 		} else {
-			go cb("", fmt.Errorf("cannot open file dialog: %w", err))
+			cb("", fmt.Errorf("cannot open file dialog: %w", err))
 		}
 		return
 	}
 
-	go cb(dbusWaitForResponse())
+	cb(dbusWaitForResponse())
 }
 
-// Show a file save dialog in a new window and return path.
-func (fd *fileDialog) Save(title string, cb DialogCallback) {
+// The actual implementation for Save. Should be run in a goroutine.
+func (fd *fileDialog) save(title string, cb DialogCallback) {
 	err := fd.dbusFileChooser(DBusFileChooserSaveFile, title)
 	if err != nil {
 		if fd.fallback != nil {
 			slog.Info("Failed to open linux native file dialog, using fallback", "error", err)
 			fd.fallback.Save(title, fd.InitialDirectory(), fd.filters, cb)
 		} else {
-			go cb("", fmt.Errorf("cannot open file dialog: %w", err))
+			cb("", fmt.Errorf("cannot open file dialog: %w", err))
 		}
 		return
 	}
 
-	go cb(dbusWaitForResponse())
+	cb(dbusWaitForResponse())
 }
 
 // Call freedesktop via dbus to show a file chooser dialog.
@@ -132,5 +143,9 @@ func dbusWaitForResponse() (string, error) {
 	}
 
 	path, _ := strings.CutPrefix(uris[0], "file://")
+	path, err = url.PathUnescape(path)
+	if err != nil {
+		return "", fmt.Errorf("failed to unescape path: %w", err)
+	}
 	return path, nil
 }
