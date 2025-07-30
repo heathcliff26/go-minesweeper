@@ -19,3 +19,6 @@ if [ $rc -ne 0 ]; then
     echo "FATAL: Need to run \"make assets\""
     exit 1
 fi
+
+echo "Check if metainfo file is valid"
+make validate-metainfo

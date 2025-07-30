@@ -33,6 +33,10 @@ fmt:
 validate:
 	hack/validate.sh
 
+# Validate the appstream metainfo file
+validate-metainfo:
+	appstreamcli validate io.github.heathcliff26.go-minesweeper.metainfo.xml
+
 # Generate assets for the project
 assets:
 	hack/generate-assets.sh
@@ -44,10 +48,6 @@ update-deps:
 # Run Go generate for the project
 generate:
 	go generate ./...
-
-# Lint the metainfo file for Flatpak
-lint-metainfo:
-	flatpak run --command=flatpak-builder-lint org.flatpak.Builder appstream io.github.heathcliff26.go-minesweeper.metainfo.xml
 
 # Scan code for vulnerabilities using gosec
 gosec:
@@ -73,10 +73,10 @@ help:
 	coverprofile \
 	fmt \
 	validate \
+	validate-metainfo \
 	assets \
 	update-deps \
 	generate \
-	lint-metainfo \
 	gosec \
 	clean \
 	help \
