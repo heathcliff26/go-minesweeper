@@ -6,7 +6,7 @@ APP_ID="io.github.heathcliff26.go-minesweeper"
 DESKTOP_FILE_TARGET="${HOME}/.local/share/applications/${APP_ID}.desktop"
 
 help() {
-    echo "Integrate Yubico Authenticator with common desktop environments."
+    echo "Integrate go-minesweeper with common desktop environments."
     echo
     echo "Usage: -i | --install    -- install desktop file"
     echo "       -u | --uninstall  -- uninstall desktop file"
@@ -20,6 +20,7 @@ install() {
     if command -v xdg-desktop-menu >/dev/null 2>&1; then
         echo "Forcing desktop menu update"
         xdg-desktop-menu forceupdate
+        xdg-icon-resource forceupdate
     else
         echo "The app will not show up in the menu until the session is restarted"
     fi
