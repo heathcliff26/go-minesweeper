@@ -9,3 +9,4 @@ Keywords=minesweeper;
 Icon=io.github.heathcliff26.go-minesweeper
 Exec=go-minesweeper
 Terminal=false
+StartupWMClass=go-minesweeper
