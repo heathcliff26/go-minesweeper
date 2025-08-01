@@ -11,3 +11,6 @@ coverprofile.out
 /*.sav
 /settings.yaml
 /saves
+
+# Packit RPM builds
+/tmp

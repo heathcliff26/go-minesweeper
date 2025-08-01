@@ -15,7 +15,7 @@ test:
 
 # Build the binary
 build: tools
-	bin/fyne build -o "$(shell pwd)/bin/go-minesweeper" -release
+	"$(shell pwd)/bin/fyne" build -o "$(shell pwd)/bin/go-minesweeper" -release
 
 # Build the project for all supported platforms
 build-all:
@@ -83,5 +83,6 @@ help:
 	generate \
 	gosec \
 	clean \
+	tools \
 	help \
 	$(NULL)
