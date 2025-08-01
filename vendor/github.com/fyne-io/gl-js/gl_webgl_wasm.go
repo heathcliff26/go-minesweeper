@@ -8,135 +8,22 @@ package gl
 
 import (
 	"encoding/binary"
-	"fmt"
 	"math"
-	"reflect"
-	"runtime"
 	"strconv"
 	"syscall/js"
-	"unsafe"
 )
 
 var ContextWatcher contextWatcher
 
 type contextWatcher struct{}
 
-func (contextWatcher) OnMakeCurrent(context interface{}) {
+func (contextWatcher) OnMakeCurrent(context any) {
 	// context must be a WebGLRenderingContext js.Value.
 	c = context.(js.Value)
 }
+
 func (contextWatcher) OnDetach() {
 	c = js.Null()
-}
-
-func sliceToByteSlice(s interface{}) []byte {
-	switch s := s.(type) {
-	case []int8:
-		h := (*reflect.SliceHeader)(unsafe.Pointer(&s))
-		return *(*[]byte)(unsafe.Pointer(h))
-	case []int16:
-		h := (*reflect.SliceHeader)(unsafe.Pointer(&s))
-		h.Len *= 2
-		h.Cap *= 2
-		return *(*[]byte)(unsafe.Pointer(h))
-	case []int32:
-		h := (*reflect.SliceHeader)(unsafe.Pointer(&s))
-		h.Len *= 4
-		h.Cap *= 4
-		return *(*[]byte)(unsafe.Pointer(h))
-	case []int64:
-		h := (*reflect.SliceHeader)(unsafe.Pointer(&s))
-		h.Len *= 8
-		h.Cap *= 8
-		return *(*[]byte)(unsafe.Pointer(h))
-	case []uint8:
-		return s
-	case []uint16:
-		h := (*reflect.SliceHeader)(unsafe.Pointer(&s))
-		h.Len *= 2
-		h.Cap *= 2
-		return *(*[]byte)(unsafe.Pointer(h))
-	case []uint32:
-		h := (*reflect.SliceHeader)(unsafe.Pointer(&s))
-		h.Len *= 4
-		h.Cap *= 4
-		return *(*[]byte)(unsafe.Pointer(h))
-	case []uint64:
-		h := (*reflect.SliceHeader)(unsafe.Pointer(&s))
-		h.Len *= 8
-		h.Cap *= 8
-		return *(*[]byte)(unsafe.Pointer(h))
-	case []float32:
-		h := (*reflect.SliceHeader)(unsafe.Pointer(&s))
-		h.Len *= 4
-		h.Cap *= 4
-		return *(*[]byte)(unsafe.Pointer(h))
-	case []float64:
-		h := (*reflect.SliceHeader)(unsafe.Pointer(&s))
-		h.Len *= 8
-		h.Cap *= 8
-		return *(*[]byte)(unsafe.Pointer(h))
-	default:
-		panic(fmt.Sprintf("jsutil: unexpected value at sliceToBytesSlice: %T", s))
-	}
-}
-
-func SliceToTypedArray(s interface{}) js.Value {
-	if s == nil {
-		return js.Null()
-	}
-
-	switch s := s.(type) {
-	case []int8:
-		a := js.Global().Get("Uint8Array").New(len(s))
-		js.CopyBytesToJS(a, sliceToByteSlice(s))
-		runtime.KeepAlive(s)
-		buf := a.Get("buffer")
-		return js.Global().Get("Int8Array").New(buf, a.Get("byteOffset"), a.Get("byteLength"))
-	case []int16:
-		a := js.Global().Get("Uint8Array").New(len(s) * 2)
-		js.CopyBytesToJS(a, sliceToByteSlice(s))
-		runtime.KeepAlive(s)
-		buf := a.Get("buffer")
-		return js.Global().Get("Int16Array").New(buf, a.Get("byteOffset"), a.Get("byteLength").Int()/2)
-	case []int32:
-		a := js.Global().Get("Uint8Array").New(len(s) * 4)
-		js.CopyBytesToJS(a, sliceToByteSlice(s))
-		runtime.KeepAlive(s)
-		buf := a.Get("buffer")
-		return js.Global().Get("Int32Array").New(buf, a.Get("byteOffset"), a.Get("byteLength").Int()/4)
-	case []uint8:
-		a := js.Global().Get("Uint8Array").New(len(s))
-		js.CopyBytesToJS(a, s)
-		runtime.KeepAlive(s)
-		return a
-	case []uint16:
-		a := js.Global().Get("Uint8Array").New(len(s) * 2)
-		js.CopyBytesToJS(a, sliceToByteSlice(s))
-		runtime.KeepAlive(s)
-		buf := a.Get("buffer")
-		return js.Global().Get("Uint16Array").New(buf, a.Get("byteOffset"), a.Get("byteLength").Int()/2)
-	case []uint32:
-		a := js.Global().Get("Uint8Array").New(len(s) * 4)
-		js.CopyBytesToJS(a, sliceToByteSlice(s))
-		runtime.KeepAlive(s)
-		buf := a.Get("buffer")
-		return js.Global().Get("Uint32Array").New(buf, a.Get("byteOffset"), a.Get("byteLength").Int()/4)
-	case []float32:
-		a := js.Global().Get("Uint8Array").New(len(s) * 4)
-		js.CopyBytesToJS(a, sliceToByteSlice(s))
-		runtime.KeepAlive(s)
-		buf := a.Get("buffer")
-		return js.Global().Get("Float32Array").New(buf, a.Get("byteOffset"), a.Get("byteLength").Int()/4)
-	case []float64:
-		a := js.Global().Get("Uint8Array").New(len(s) * 8)
-		js.CopyBytesToJS(a, sliceToByteSlice(s))
-		runtime.KeepAlive(s)
-		buf := a.Get("buffer")
-		return js.Global().Get("Float64Array").New(buf, a.Get("byteOffset"), a.Get("byteLength").Int()/8)
-	default:
-		panic(fmt.Sprintf("jsutil: unexpected value at SliceToTypedArray: %T", s))
-	}
 }
 
 // c is the current WebGL context, or nil if there is no current context.
@@ -195,7 +82,7 @@ func BlitFramebuffer(srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1 int,
 	c.Call("blitFramebuffer", srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, int(mask), int(filter))
 }
 
-func BufferData(target Enum, data interface{}, usage Enum) {
+func BufferData(target Enum, data any, usage Enum) {
 	c.Call("bufferData", int(target), SliceToTypedArray(data), int(usage))
 }
 
@@ -203,7 +90,7 @@ func BufferInit(target Enum, size int, usage Enum) {
 	c.Call("bufferData", int(target), size, int(usage))
 }
 
-func BufferSubData(target Enum, offset int, data interface{}) {
+func BufferSubData(target Enum, offset int, data any) {
 	c.Call("bufferSubData", int(target), offset, SliceToTypedArray(data))
 }
 
@@ -235,11 +122,11 @@ func CompileShader(s Shader) {
 	c.Call("compileShader", s.Value)
 }
 
-func CompressedTexImage2D(target Enum, level int, internalformat Enum, width, height, border int, data interface{}) {
+func CompressedTexImage2D(target Enum, level int, internalformat Enum, width, height, border int, data any) {
 	c.Call("compressedTexImage2D", int(target), level, int(internalformat), width, height, border, SliceToTypedArray(data))
 }
 
-func CompressedTexSubImage2D(target Enum, level, xoffset, yoffset, width, height int, format Enum, data interface{}) {
+func CompressedTexSubImage2D(target Enum, level, xoffset, yoffset, width, height int, format Enum, data any) {
 	c.Call("compressedTexSubImage2D", int(target), level, xoffset, yoffset, width, height, int(format), SliceToTypedArray(data))
 }
 
@@ -662,7 +549,7 @@ func StencilOpSeparate(face, sfail, dpfail, dppass Enum) {
 	c.Call("stencilOpSeparate", int(face), int(sfail), int(dpfail), int(dppass))
 }
 
-func TexImage2D(target Enum, level int, width, height int, format Enum, ty Enum, data interface{}) {
+func TexImage2D(target Enum, level int, width, height int, format Enum, ty Enum, data any) {
 	c.Call("texImage2D", int(target), level, int(format), width, height, 0, int(format), int(ty), SliceToTypedArray(data))
 }
 
@@ -670,7 +557,7 @@ func TexImage2DMultisample(target Enum, samples int, internalformat Enum, width,
 	println("TexImage2DMultisample: not available on WebGL.")
 }
 
-func TexSubImage2D(target Enum, level int, x, y, width, height int, format, ty Enum, data interface{}) {
+func TexSubImage2D(target Enum, level int, x, y, width, height int, format, ty Enum, data any) {
 	c.Call("texSubImage2D", int(target), level, x, y, width, height, format, int(ty), SliceToTypedArray(data))
 }
 
@@ -701,7 +588,7 @@ func Uniform1f(dst Uniform, v float32) {
 }
 
 func Uniform1fv(dst Uniform, src []float32) {
-	c.Call("uniform1fv", dst.Value, SliceToTypedArray(src))
+	c.Call("uniform1fv", dst.Value, float32ToJSArray(src))
 }
 
 func Uniform1i(dst Uniform, v int) {
@@ -709,7 +596,7 @@ func Uniform1i(dst Uniform, v int) {
 }
 
 func Uniform1iv(dst Uniform, src []int32) {
-	c.Call("uniform1iv", dst.Value, SliceToTypedArray(src))
+	c.Call("uniform1iv", dst.Value, int32ToJSArray(src))
 }
 
 func Uniform2f(dst Uniform, v0, v1 float32) {
@@ -717,7 +604,7 @@ func Uniform2f(dst Uniform, v0, v1 float32) {
 }
 
 func Uniform2fv(dst Uniform, src []float32) {
-	c.Call("uniform2fv", dst.Value, SliceToTypedArray(src))
+	c.Call("uniform2fv", dst.Value, float32ToJSArray(src))
 }
 
 func Uniform2i(dst Uniform, v0, v1 int) {
@@ -725,7 +612,7 @@ func Uniform2i(dst Uniform, v0, v1 int) {
 }
 
 func Uniform2iv(dst Uniform, src []int32) {
-	c.Call("uniform2iv", dst.Value, SliceToTypedArray(src))
+	c.Call("uniform2iv", dst.Value, int32ToJSArray(src))
 }
 
 func Uniform3f(dst Uniform, v0, v1, v2 float32) {
@@ -733,7 +620,7 @@ func Uniform3f(dst Uniform, v0, v1, v2 float32) {
 }
 
 func Uniform3fv(dst Uniform, src []float32) {
-	c.Call("uniform3fv", dst.Value, SliceToTypedArray(src))
+	c.Call("uniform3fv", dst.Value, float32ToJSArray(src))
 }
 
 func Uniform3i(dst Uniform, v0, v1, v2 int32) {
@@ -741,7 +628,7 @@ func Uniform3i(dst Uniform, v0, v1, v2 int32) {
 }
 
 func Uniform3iv(dst Uniform, src []int32) {
-	c.Call("uniform3iv", dst.Value, SliceToTypedArray(src))
+	c.Call("uniform3iv", dst.Value, int32ToJSArray(src))
 }
 
 func Uniform4f(dst Uniform, v0, v1, v2, v3 float32) {
@@ -749,7 +636,7 @@ func Uniform4f(dst Uniform, v0, v1, v2, v3 float32) {
 }
 
 func Uniform4fv(dst Uniform, src []float32) {
-	c.Call("uniform4fv", dst.Value, SliceToTypedArray(src))
+	c.Call("uniform4fv", dst.Value, float32ToJSArray(src))
 }
 
 func Uniform4i(dst Uniform, v0, v1, v2, v3 int32) {
@@ -757,19 +644,19 @@ func Uniform4i(dst Uniform, v0, v1, v2, v3 int32) {
 }
 
 func Uniform4iv(dst Uniform, src []int32) {
-	c.Call("uniform4iv", dst.Value, SliceToTypedArray(src))
+	c.Call("uniform4iv", dst.Value, int32ToJSArray(src))
 }
 
 func UniformMatrix2fv(dst Uniform, src []float32) {
-	c.Call("uniformMatrix2fv", dst.Value, false, SliceToTypedArray(src))
+	c.Call("uniformMatrix2fv", dst.Value, false, float32ToJSArray(src))
 }
 
 func UniformMatrix3fv(dst Uniform, src []float32) {
-	c.Call("uniformMatrix3fv", dst.Value, false, SliceToTypedArray(src))
+	c.Call("uniformMatrix3fv", dst.Value, false, float32ToJSArray(src))
 }
 
 func UniformMatrix4fv(dst Uniform, src []float32) {
-	c.Call("uniformMatrix4fv", dst.Value, false, SliceToTypedArray(src))
+	c.Call("uniformMatrix4fv", dst.Value, false, float32ToJSArray(src))
 }
 
 func UseProgram(p Program) {
@@ -789,7 +676,7 @@ func VertexAttrib1f(dst Attrib, x float32) {
 }
 
 func VertexAttrib1fv(dst Attrib, src []float32) {
-	c.Call("vertexAttrib1fv", dst.Value, SliceToTypedArray(src))
+	c.Call("vertexAttrib1fv", dst.Value, float32ToJSArray(src))
 }
 
 func VertexAttrib2f(dst Attrib, x, y float32) {
@@ -797,7 +684,7 @@ func VertexAttrib2f(dst Attrib, x, y float32) {
 }
 
 func VertexAttrib2fv(dst Attrib, src []float32) {
-	c.Call("vertexAttrib2fv", dst.Value, SliceToTypedArray(src))
+	c.Call("vertexAttrib2fv", dst.Value, float32ToJSArray(src))
 }
 
 func VertexAttrib3f(dst Attrib, x, y, z float32) {
@@ -805,7 +692,7 @@ func VertexAttrib3f(dst Attrib, x, y, z float32) {
 }
 
 func VertexAttrib3fv(dst Attrib, src []float32) {
-	c.Call("vertexAttrib3fv", dst.Value, SliceToTypedArray(src))
+	c.Call("vertexAttrib3fv", dst.Value, float32ToJSArray(src))
 }
 
 func VertexAttrib4f(dst Attrib, x, y, z, w float32) {
@@ -813,7 +700,7 @@ func VertexAttrib4f(dst Attrib, x, y, z, w float32) {
 }
 
 func VertexAttrib4fv(dst Attrib, src []float32) {
-	c.Call("vertexAttrib4fv", dst.Value, SliceToTypedArray(src))
+	c.Call("vertexAttrib4fv", dst.Value, float32ToJSArray(src))
 }
 
 func VertexAttribPointer(dst Attrib, size int, ty Enum, normalized bool, stride, offset int) {

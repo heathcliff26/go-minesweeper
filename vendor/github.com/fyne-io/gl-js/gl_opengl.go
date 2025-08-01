@@ -18,7 +18,7 @@ type contextWatcher struct {
 	initGL bool
 }
 
-func (cw *contextWatcher) OnMakeCurrent(context interface{}) {
+func (cw *contextWatcher) OnMakeCurrent(context any) {
 	if !cw.initGL {
 		// Initialise gl bindings using the current context.
 		err := gl.Init()

@@ -68,14 +68,16 @@ type Object interface {
 	Name() uint32
 }
 
-var NoAttrib Attrib
-var NoProgram Program
-var NoShader Shader
-var NoBuffer Buffer
-var NoFramebuffer Framebuffer
-var NoRenderbuffer Renderbuffer
-var NoTexture Texture
-var NoUniform Uniform
+var (
+	NoAttrib       Attrib
+	NoProgram      Program
+	NoShader       Shader
+	NoBuffer       Buffer
+	NoFramebuffer  Framebuffer
+	NoRenderbuffer Renderbuffer
+	NoTexture      Texture
+	NoUniform      Uniform
+)
 
 func (v Attrib) c() C.GLuint       { return C.GLuint(v.Value) }
 func (v Enum) c() C.GLenum         { return C.GLenum(v) }
@@ -104,6 +106,7 @@ func glBoolean(b bool) C.GLboolean {
 func blendColor(r, g, b, a float32) {
 	C.blendColor(C.GLfloat(r), C.GLfloat(g), C.GLfloat(b), C.GLfloat(a))
 }
+
 func clearColor(r, g, b, a float32) {
 	C.clearColor(C.GLfloat(r), C.GLfloat(g), C.GLfloat(b), C.GLfloat(a))
 }
