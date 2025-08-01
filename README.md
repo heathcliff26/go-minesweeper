@@ -19,6 +19,9 @@ This is an implementation of minesweeper in golang, made with the ui framework f
     - [Controls](#controls)
     - [Game options](#game-options)
     - [Changing difficulty](#changing-difficulty)
+  - [Installation](#installation)
+    - [Download binary](#download-binary)
+      - [Uninstalling](#uninstalling)
   - [Screenshots](#screenshots)
   - [Potential features](#potential-features)
 
@@ -54,6 +57,28 @@ To change the difficulty, select a new difficulty in the menu.
 
 The custom option will open a dialog where you can create a custom difficulty.
 It will tell you if your options don't work.
+
+## Installation
+
+### Download binary
+
+1. Download the [latest release](https://github.com/heathcliff26/go-minesweeper/releases/latest)
+2. Unpack the archive
+3. Install the app for your user by running:
+   - You can install it globally by running the script with `sudo`
+```bash
+./install.sh -i
+```
+
+#### Uninstalling
+
+1. Switch to the folder where you have the installation script
+2. Uninstall by running:
+   - Run as `sudo` if you installed it globally
+```bash
+./install.sh -u
+```
+3. Delete the folder.
 
 ## Screenshots
 
