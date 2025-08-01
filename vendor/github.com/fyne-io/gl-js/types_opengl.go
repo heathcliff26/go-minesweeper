@@ -46,14 +46,16 @@ type Uniform struct {
 	Value int32
 }
 
-var NoAttrib Attrib
-var NoProgram Program
-var NoShader Shader
-var NoBuffer Buffer
-var NoFramebuffer Framebuffer
-var NoRenderbuffer Renderbuffer
-var NoTexture Texture
-var NoUniform Uniform
+var (
+	NoAttrib       Attrib
+	NoProgram      Program
+	NoShader       Shader
+	NoBuffer       Buffer
+	NoFramebuffer  Framebuffer
+	NoRenderbuffer Renderbuffer
+	NoTexture      Texture
+	NoUniform      Uniform
+)
 
 // Object is a generic interface for OpenGL objects
 type Object interface {

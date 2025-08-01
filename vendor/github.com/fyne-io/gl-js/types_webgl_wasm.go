@@ -42,14 +42,16 @@ type Uniform struct {
 	js.Value
 }
 
-var NoAttrib Attrib
-var NoProgram = Program{js.Null()}
-var NoShader = Shader{js.Null()}
-var NoBuffer = Buffer{js.Null()}
-var NoFramebuffer = Framebuffer{js.Null()}
-var NoRenderbuffer = Renderbuffer{js.Null()}
-var NoTexture = Texture{js.Null()}
-var NoUniform = Uniform{js.Null()}
+var (
+	NoAttrib       Attrib
+	NoProgram      = Program{js.Null()}
+	NoShader       = Shader{js.Null()}
+	NoBuffer       = Buffer{js.Null()}
+	NoFramebuffer  = Framebuffer{js.Null()}
+	NoRenderbuffer = Renderbuffer{js.Null()}
+	NoTexture      = Texture{js.Null()}
+	NoUniform      = Uniform{js.Null()}
+)
 
 func (v Attrib) IsValid() bool       { return v != NoAttrib }
 func (v Program) IsValid() bool      { return !v.Equal(NoProgram.Value) }
