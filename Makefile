@@ -13,9 +13,9 @@ lint:
 test:
 	go test -v -race -timeout 300s -coverprofile=coverprofile.out -coverpkg "./pkg/..." ./...
 
-# Build the project with optional GOOS and GOARCH
-build:
-	( GOOS="$(GOOS)" GOARCH="$(GOARCH)" GO_BUILD_FLAGS=$(GO_BUILD_FLAGS) hack/build.sh )
+# Build the binary
+build: tools
+	bin/fyne build -o "$(shell pwd)/bin/go-minesweeper" -release
 
 # Build the project for all supported platforms
 build-all:
@@ -56,6 +56,10 @@ gosec:
 # Clean up build artifacts and temporary files
 clean:
 	hack/clean.sh
+
+# Install the tools required for building the app
+tools:
+	GOBIN="$(shell pwd)/bin" go install tool
 
 # Show this help message
 help:
