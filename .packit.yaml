@@ -1,0 +1,33 @@
+# See the documentation for more information:
+# https://packit.dev/docs/configuration/
+
+specfile_path: tmp/go-minesweeper.spec
+actions:
+  post-upstream-clone:
+    - mkdir -p tmp
+    - cp tools/go-minesweeper.spec tmp/
+
+# name in upstream package repository or registry (e.g. in PyPI)
+upstream_package_name: go-minesweeper
+# downstream (Fedora) RPM package name
+downstream_package_name: go-minesweeper
+
+jobs:
+  - job: copr_build
+    trigger: pull_request
+    branch: main
+    targets:
+      - fedora-42-x86_64
+      - fedora-42-aarch64
+      - fedora-rawhide-x86_64
+      - fedora-rawhide-aarch64
+
+  - job: copr_build
+    trigger: release
+    targets:
+      - fedora-42-x86_64
+      - fedora-42-aarch64
+      - fedora-rawhide-x86_64
+      - fedora-rawhide-aarch64
+    owner: heathcliff26
+    project: games
