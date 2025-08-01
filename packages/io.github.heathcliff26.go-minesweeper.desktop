@@ -6,6 +6,6 @@ Comment=A minesweeper implementation in golang
 Categories=Game;
 Keywords=minesweeper;
 
-Icon=@BASE_DIR/io.github.heathcliff26.go-minesweeper.png
-Exec=@BASE_DIR/go-minesweeper
+Icon=io.github.heathcliff26.go-minesweeper
+Exec=go-minesweeper
 Terminal=false
