@@ -159,7 +159,9 @@ func (a *App) makeMenu(preferences Preferences) {
 	autosolve := fyne.NewMenuItem("Autosolve", func() {
 		go func() {
 			if !a.grid.Autosolve(DEFAULT_AUTOSOLVE_DELAY) {
-				dialog.ShowInformation("Autosolve", "Failed to run autosolve, please ensure that a game is currently running.", a.main)
+				fyne.Do(func() {
+					dialog.ShowInformation("Autosolve", "Failed to run autosolve, please ensure that a game is currently running.", a.main)
+				})
 			}
 		}()
 	})
@@ -168,7 +170,9 @@ func (a *App) makeMenu(preferences Preferences) {
 	hint := fyne.NewMenuItem("Hint", func() {
 		go func() {
 			if !a.grid.Hint() {
-				dialog.NewInformation("No hint found", "Could not find any hints to give.", a.main).Show()
+				fyne.Do(func() {
+					dialog.NewInformation("No hint found", "Could not find any hints to give.", a.main).Show()
+				})
 			}
 		}()
 	})
