@@ -22,6 +22,7 @@ This is an implementation of minesweeper in golang, made with the ui framework f
   - [Installation](#installation)
     - [Download binary](#download-binary)
       - [Uninstalling](#uninstalling)
+    - [Fedora Copr](#fedora-copr)
   - [Screenshots](#screenshots)
   - [Potential features](#potential-features)
 
@@ -79,6 +80,18 @@ It will tell you if your options don't work.
 ./install.sh -u
 ```
 3. Delete the folder.
+
+### Fedora Copr
+
+The app is available as an rpm by using the fedora copr repository [heathcliff26/games](https://copr.fedorainfracloud.org/coprs/heathcliff26/games/).
+1. Enable the copr repository
+```bash
+sudo dnf copr enable heathcliff26/games
+```
+2. Install the app
+```bash
+sudo dnf install go-minesweeper
+```
 
 ## Screenshots
 
