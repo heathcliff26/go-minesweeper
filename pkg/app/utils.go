@@ -13,6 +13,29 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
+// NOTE: The $Format strings are replaced during 'git archive' thanks to the
+// companion .gitattributes file containing 'export-subst' in this same
+// directory.  See also https://git-scm.com/docs/gitattributes
+var gitCommit string = "$Format:%H$" // sha1 from git, output of $(git rev-parse HEAD)
+
+func init() {
+	initGitCommit()
+}
+
+func initGitCommit() {
+	if strings.HasPrefix(gitCommit, "$Format") {
+		var commit string
+		buildinfo, _ := debug.ReadBuildInfo()
+		for _, item := range buildinfo.Settings {
+			if item.Key == "vcs.revision" {
+				commit = item.Value
+				break
+			}
+		}
+		gitCommit = commit
+	}
+}
+
 // Struct for containing the current version of the app
 type Version struct {
 	Name, Version, Commit, Go string
@@ -20,14 +43,7 @@ type Version struct {
 
 // Extract the version information from app
 func getVersion(app fyne.App) Version {
-	var commit string
-	buildinfo, _ := debug.ReadBuildInfo()
-	for _, item := range buildinfo.Settings {
-		if item.Key == "vcs.revision" {
-			commit = item.Value
-			break
-		}
-	}
+	commit := gitCommit
 	if len(commit) > 7 {
 		commit = commit[:7]
 	}

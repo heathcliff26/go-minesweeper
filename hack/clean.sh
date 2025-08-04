@@ -4,7 +4,7 @@ set -e
 
 base_dir="$(dirname "${BASH_SOURCE[0]}" | xargs realpath)/.."
 
-folders=("fyne-cross" "bin" "coverprofiles" "dist" "saves" "tmp")
+folders=("fyne-cross" "bin" "coverprofiles" "dist" "saves" "tmp" "x86_64" "aarch64")
 files=("settings.yaml" "coverprofile.out")
 
 for folder in "${folders[@]}"; do
