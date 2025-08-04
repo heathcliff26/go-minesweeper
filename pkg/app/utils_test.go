@@ -10,6 +10,11 @@ import (
 )
 
 func TestGetVersion(t *testing.T) {
+	oldGitCommit := gitCommit
+	defer func() { gitCommit = oldGitCommit }()
+
+	gitCommit = "1234567890abcdef"
+
 	a := test.NewApp()
 	v := getVersion(a)
 
@@ -21,7 +26,7 @@ func TestGetVersion(t *testing.T) {
 		assert.Contains(os.Args[0], v.Name)
 	}
 	assert.Equal("v"+a.Metadata().Version, v.Version)
-	assert.LessOrEqual(len(v.Commit), 7)
+	assert.Equal("1234567", v.Commit, "commit hash should be truncated")
 	assert.Equal(runtime.Version(), v.Go)
 }
 
@@ -34,4 +39,18 @@ func TestNewGridLabel(t *testing.T) {
 	assert.Equal(GridLabelColor, l.Color)
 	assert.Equal(GridLabelSize, l.TextSize)
 	assert.True(l.TextStyle.Bold)
+}
+
+func TestInitGitCommit(t *testing.T) {
+	oldGitCommit := gitCommit
+	defer func() { gitCommit = oldGitCommit }()
+	assert := assert.New(t)
+
+	gitCommit = "1234567890abcdef"
+	initGitCommit()
+	assert.Equal("1234567890abcdef", gitCommit, "gitCommit should not be changed")
+
+	gitCommit = "$Format:%H$"
+	initGitCommit()
+	assert.NotEqual("$Format:%H$", gitCommit, "gitCommit should be changed")
 }
