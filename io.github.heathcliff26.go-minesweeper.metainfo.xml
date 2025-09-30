@@ -71,6 +71,13 @@
     </screenshots>
 
     <releases>
+        <release version="v0.9.3" date="2025-09-30" type="stable">
+            <description>
+                <p>Fixed missing version in rpm package</p>
+                <p>Bumped framework version</p>
+            </description>
+            <url type="details">https://github.com/heathcliff26/go-minesweeper/releases/tag/v0.9.3</url>
+        </release>
         <release version="v0.9.2" date="2025-08-01" type="stable">
             <description>
                 <p>Improved installation experience for tarball installs on linux.</p>
