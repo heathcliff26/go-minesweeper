@@ -3,15 +3,15 @@ module github.com/heathcliff26/go-minesweeper
 go 1.24.0
 
 require (
-	fyne.io/fyne/v2 v2.6.2
-	github.com/heathcliff26/godialog v0.1.3
-	github.com/stretchr/testify v1.10.0
+	fyne.io/fyne/v2 v2.6.3
+	github.com/heathcliff26/godialog v0.1.5
+	github.com/stretchr/testify v1.11.1
 	sigs.k8s.io/yaml v1.6.0
 )
 
 require (
 	fyne.io/systray v1.11.0 // indirect
-	fyne.io/tools v1.6.1 // indirect
+	fyne.io/tools v1.6.2 // indirect
 	github.com/BurntSushi/toml v1.4.0 // indirect
 	github.com/akavel/rsrc v0.10.2 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
@@ -51,12 +51,12 @@ require (
 	github.com/yuin/goldmark v1.7.8 // indirect
 	go.yaml.in/yaml/v2 v2.4.2 // indirect
 	golang.org/x/image v0.24.0 // indirect
-	golang.org/x/mod v0.17.0 // indirect
+	golang.org/x/mod v0.20.0 // indirect
 	golang.org/x/net v0.35.0 // indirect
 	golang.org/x/sync v0.11.0 // indirect
-	golang.org/x/sys v0.34.0 // indirect
+	golang.org/x/sys v0.36.0 // indirect
 	golang.org/x/text v0.22.0 // indirect
-	golang.org/x/tools v0.21.1-0.20240508182429-e35e4ccd0d2d // indirect
+	golang.org/x/tools v0.24.1 // indirect
 	golang.org/x/tools/go/vcs v0.1.0-deprecated // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
