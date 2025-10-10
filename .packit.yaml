@@ -19,11 +19,19 @@ jobs:
     targets:
       - fedora-42-x86_64
       - fedora-42-aarch64
+      - fedora-43-x86_64
+      - fedora-43-aarch64
+      - fedora-rawhide-x86_64
+      - fedora-rawhide-aarch64
 
   - job: copr_build
     trigger: release
     targets:
       - fedora-42-x86_64
       - fedora-42-aarch64
+      - fedora-43-x86_64
+      - fedora-43-aarch64
+      - fedora-rawhide-x86_64
+      - fedora-rawhide-aarch64
     owner: heathcliff26
     project: games
