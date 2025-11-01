@@ -7,8 +7,6 @@ package oksvg
 
 import (
 	"encoding/xml"
-	"errors"
-	"fmt"
 	"image/color"
 	"log"
 	"math"
@@ -154,7 +152,8 @@ func (c *IconCursor) readTransformAttr(m1 rasterx.Matrix2D, k string) (rasterx.M
 				C: c.points[2],
 				D: c.points[3],
 				E: c.points[4],
-				F: c.points[5]})
+				F: c.points[5],
+			})
 		} else {
 			return m1, errParamMismatch
 		}
@@ -320,10 +319,7 @@ func (c *IconCursor) readStyleAttr(curStyle *PathStyle, k, v string) error {
 }
 
 func (c *IconCursor) readStartElement(se xml.StartElement) (err error) {
-	var skipDef bool
-	if se.Name.Local == "radialGradient" || se.Name.Local == "linearGradient" || c.inGrad {
-		skipDef = true
-	}
+	skipDef := se.Name.Local == "radialGradient" || se.Name.Local == "linearGradient" || c.inGrad
 	if c.inDefs && !skipDef {
 		ID := ""
 		for _, attr := range se.Attr {
@@ -333,7 +329,6 @@ func (c *IconCursor) readStartElement(se xml.StartElement) (err error) {
 		}
 		if ID != "" && len(c.currentDef) > 0 {
 			c.icon.Defs[c.currentDef[0].ID] = c.currentDef
-			c.currentDef = make([]definition, 0)
 		}
 		c.currentDef = append(c.currentDef, definition{
 			ID:    ID,
@@ -342,25 +337,18 @@ func (c *IconCursor) readStartElement(se xml.StartElement) (err error) {
 		})
 		return nil
 	}
-	df, ok := drawFuncs[se.Name.Local]
-	if !ok {
-		errStr := "Cannot process svg element " + se.Name.Local
-		if c.returnError(errStr) {
-			return errors.New(errStr)
-		}
-		return nil
-	}
-	err = df(c, se.Attr)
+	err = draw(se.Name.Local, c, se.Attr)
 	if err != nil {
-		e := fmt.Sprintf("error during processing svg element %s: %s", se.Name.Local, err.Error())
-		if c.returnError(e) {
-			return errors.New(e)
+		if c.ErrorMode == StrictErrorMode {
+			return err
+		} else if c.ErrorMode == WarnErrorMode {
+			log.Println(err)
 		}
 		return nil
 	}
 
 	if len(c.Path) > 0 {
-		//The cursor parsed a path from the xml element
+		// The cursor parsed a path from the xml element
 		pathCopy := make(rasterx.Path, len(c.Path))
 		copy(pathCopy, c.Path)
 		c.icon.SVGPaths = append(c.icon.SVGPaths,
@@ -377,15 +365,4 @@ func (c *IconCursor) adaptClasses(pathStyle *PathStyle, className string) {
 	for k, v := range c.icon.classes[className] {
 		c.readStyleAttr(pathStyle, k, v)
 	}
-}
-
-func (c *IconCursor) returnError(errMsg string) bool {
-	if c.ErrorMode == StrictErrorMode {
-		return true
-	}
-	if c.ErrorMode == WarnErrorMode {
-		log.Println(errMsg)
-	}
-
-	return false
 }

@@ -20,6 +20,9 @@ import (
 var unitSuffixes = [...]string{"cm", "mm", "px", "pt"}
 
 func parseColorValue(v string) (uint8, error) {
+	if v == "" {
+		return 0, errors.New("empty color value")
+	}
 	if v[len(v)-1] == '%' {
 		n, err := strconv.ParseFloat(strings.TrimSpace(v[:len(v)-1]), 64)
 		if err != nil {
