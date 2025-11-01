@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"runtime"
 	"testing"
 	"time"
 
@@ -474,6 +475,10 @@ func TestAutosolve(t *testing.T) {
 
 	for _, tCase := range tMatrix2 {
 		t.Run("QuitOn"+tCase.Name, func(t *testing.T) {
+			if tCase.Name != "NewGame" && runtime.GOOS == "windows" {
+				t.Skip("Skipping as the test follows a weird path on Windows, see https://github.com/heathcliff26/go-minesweeper/issues/228")
+			}
+
 			t.Parallel()
 			require := require.New(t)
 
@@ -540,8 +545,8 @@ func TestAutosolve(t *testing.T) {
 		}
 		g.TappedTile(minesweeper.NewPos(0, 0))
 
-		g.autosolveBreak = make(chan bool, 1)
-		g.autosolveDone = make(chan bool, 1)
+		g.autosolveBreak = make(chan struct{}, 1)
+		g.autosolveDone = make(chan struct{}, 1)
 
 		assert.False(g.Autosolve(0), "Should not run autosolve")
 	})

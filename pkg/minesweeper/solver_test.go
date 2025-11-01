@@ -11,6 +11,17 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestNewSolver(t *testing.T) {
+	assert := assert.New(t)
+
+	game := NewGameWithSafePos(Difficulties()[0], NewPos(0, 0))
+	solver := NewSolver(game)
+	assert.NotNil(solver, "Solver should not be nil")
+	assert.NotNil(solver.mines, "Mines slice should not be nil")
+	assert.NotNil(solver.nextSteps, "Next steps slice should not be nil")
+	assert.Equal(game, solver.game, "Solver should contain reference to the game")
+}
+
 func TestSolverAutosolve(t *testing.T) {
 	for i := 1; i < 6; i++ {
 		t.Run("Solvable-"+strconv.Itoa(i), func(t *testing.T) {
@@ -137,4 +148,10 @@ func TestSolverUpdateEarlyReturn(t *testing.T) {
 			assert.Empty(s.nextSteps, "nextSteps should be empty")
 		})
 	}
+	t.Run("GameIsNil", func(t *testing.T) {
+		s := &Solver{}
+		assert.NotPanics(t, func() {
+			s.Update()
+		}, "Update should not panic when game is nil")
+	})
 }
