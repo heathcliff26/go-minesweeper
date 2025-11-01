@@ -17,7 +17,9 @@ type Solver struct {
 
 func NewSolver(g Game) *Solver {
 	return &Solver{
-		game: g,
+		game:      g,
+		nextSteps: []Pos{},
+		mines:     make([]Pos, 0, 100),
 	}
 }
 
@@ -39,14 +41,16 @@ func (s *Solver) Update() {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
+	// This should not happen, but can happen in grid if Autosolve is called at the same time as NewGame.
+	if s.game == nil {
+		return
+	}
+
 	status := s.game.Status()
 	if status == nil || status.GameOver() || status.GameWon() {
 		return
 	}
 
-	if s.mines == nil {
-		s.mines = make([]Pos, 0, s.game.Difficulty().Mines)
-	}
 	nextSteps := make([]Pos, 0, 25)
 	for _, p := range s.nextSteps {
 		if !status.Field[p.X][p.Y].Checked {

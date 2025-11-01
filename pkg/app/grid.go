@@ -54,8 +54,8 @@ type MinesweeperGrid struct {
 	lGame      sync.Mutex
 	lAutosolve sync.Mutex
 
-	autosolveBreak chan bool
-	autosolveDone  chan bool
+	autosolveBreak chan struct{}
+	autosolveDone  chan struct{}
 
 	testChannel chan string
 }
@@ -308,7 +308,7 @@ func (g *MinesweeperGrid) reset() {
 	g.lAutosolve.Lock()
 	defer g.lAutosolve.Unlock()
 
-	if g.autosolveBreak != nil && g.autosolveDone != nil {
+	if g.autosolveBreak != nil || g.autosolveDone != nil {
 		close(g.autosolveBreak)
 		<-g.autosolveDone
 	}
@@ -378,14 +378,14 @@ func (g *MinesweeperGrid) Autosolve(delay time.Duration) bool {
 		return false
 	}
 
-	autosolveBreak := make(chan bool, 1)
-	autosolveDone := make(chan bool, 1)
+	autosolveBreak := make(chan struct{}, 1)
+	autosolveDone := make(chan struct{}, 1)
 	alreadyRunning := false
 	func() {
 		g.lAutosolve.Lock()
 		defer g.lAutosolve.Unlock()
 
-		if g.autosolveBreak != nil && g.autosolveDone != nil {
+		if g.autosolveBreak != nil || g.autosolveDone != nil {
 			alreadyRunning = true
 		} else {
 			g.autosolveBreak = autosolveBreak
