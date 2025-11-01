@@ -39,6 +39,9 @@ func (s *Solver) Update() {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
+	if s.game == nil {
+		return
+	}
 	status := s.game.Status()
 	if status == nil || status.GameOver() || status.GameWon() {
 		return

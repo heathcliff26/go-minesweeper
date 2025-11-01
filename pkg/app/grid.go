@@ -486,6 +486,9 @@ func (g *MinesweeperGrid) updateSolver() {
 	g.lGame.Lock()
 	defer g.lGame.Unlock()
 
+	if g.Game == nil {
+		return
+	}
 	if g.solver == nil {
 		g.solver = minesweeper.NewSolver(g.Game)
 	}
