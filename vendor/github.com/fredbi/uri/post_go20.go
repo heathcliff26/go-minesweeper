@@ -2,12 +2,10 @@
 
 package uri
 
-// TODO: build tag should be go1.20
-
 import "errors"
 
 func newErr(msg string) error {
-	return errors.New(msg)
+	return errors.New(msg) //nolint:err113
 }
 
 // errorsJoin is a temporary indirection to keep support for go1.19

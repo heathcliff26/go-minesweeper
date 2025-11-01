@@ -32,7 +32,7 @@ func Init() *cli.Command {
 }
 
 func getAppID(modpath string) string {
-	p := strings.Split(modpath, "/")
+	p := strings.Split(strings.ReplaceAll(modpath, "-", "_"), "/")
 	if len(p) == 0 {
 		return ""
 	}
@@ -149,6 +149,20 @@ func initAction(ctx *cli.Context) error {
 		cmd.Stdout, cmd.Stderr = os.Stdout, os.Stderr
 	}
 	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("failed to run command: %v", err)
+	}
+
+	if err := os.Mkdir("translations", 0o755); err != nil {
+		return err
+	}
+
+	args := []string{ctx.App.Name, "translate"}
+	if verbose {
+		args = append(args, "-v")
+	}
+	args = append(args, "translations/en.json")
+	args = append(args, "main.go")
+	if err := ctx.App.Run(args); err != nil {
 		return fmt.Errorf("failed to run command: %v", err)
 	}
 

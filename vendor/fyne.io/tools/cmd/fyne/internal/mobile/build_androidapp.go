@@ -36,7 +36,13 @@ type manifestTmplData struct {
 }
 
 func goAndroidBuild(pkg *packages.Package, bundleID string, androidArchs []string,
-	iconPath, appName, version string, build, target int, release bool) (map[string]bool, error) {
+	iconPath, appName, version string, build, target int, release bool,
+) (map[string]bool, error) {
+	var env []string
+	if release { // Google Play Store requires 16K alignment
+		env = []string{"CGO_LDFLAGS=\"-Wl,-z,max-page-size=16384\""}
+	}
+
 	ndkRoot, err := ndkRoot()
 	if err != nil {
 		return nil, err
@@ -94,7 +100,7 @@ func goAndroidBuild(pkg *packages.Package, bundleID string, androidArchs []strin
 		}
 		err = goBuild(
 			pkg.PkgPath,
-			androidEnv[arch],
+			append(env, androidEnv[arch]...),
 			"-buildmode=c-shared",
 			"-o", libAbsPath,
 		)
@@ -381,7 +387,7 @@ func convertAPKToAAB(aabPath string) error {
 	apkPath := buildO[:len(aabPath)-3] + "apk"
 	apkProtoPath := buildO[:len(aabPath)-3] + "apk-proto"
 	tmpPath := filepath.Join(filepath.Dir(aabPath), "tmpbundle")
-	err := os.MkdirAll(tmpPath, 0755)
+	err := os.MkdirAll(tmpPath, 0o755)
 	if err != nil {
 		return err
 	}
@@ -406,8 +412,8 @@ func convertAPKToAAB(aabPath string) error {
 	}
 	_ = os.Remove(apkProtoPath)
 
-	_ = os.MkdirAll(filepath.Join(tmpPath, "dex"), 0755)
-	_ = os.MkdirAll(filepath.Join(tmpPath, "manifest"), 0755)
+	_ = os.MkdirAll(filepath.Join(tmpPath, "dex"), 0o755)
+	_ = os.MkdirAll(filepath.Join(tmpPath, "manifest"), 0o755)
 	_ = os.Rename(filepath.Join(tmpPath, "AndroidManifest.xml"), filepath.Join(tmpPath, "manifest", "AndroidManifest.xml"))
 	_ = os.Rename(filepath.Join(tmpPath, "classes.dex"), filepath.Join(tmpPath, "dex", "classes.dex"))
 

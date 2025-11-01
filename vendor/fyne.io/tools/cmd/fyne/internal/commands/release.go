@@ -36,8 +36,8 @@ func Release() *cli.Command {
 		Usage:   "Prepares an application for public distribution",
 		Flags: []cli.Flag{
 			stringFlags["target"](&r.os),
-			stringFlags["key-store"](&r.keyStore),
-			stringFlags["key-store-pass"](&r.keyStorePass),
+			stringFlags["keystore"](&r.keyStore),
+			stringFlags["keystore-pass"](&r.keyStorePass),
 			stringFlags["key-name"](&r.keyName),
 			stringFlags["key-pass"](&r.keyStorePass),
 			stringFlags["name"](&r.Name),
@@ -211,7 +211,7 @@ func (r *Releaser) packageIOSRelease() error {
 	}
 
 	payload := filepath.Join(r.dir, "Payload")
-	_ = os.Mkdir(payload, 0750)
+	_ = os.Mkdir(payload, 0o750)
 	defer os.RemoveAll(payload)
 	appName := mobile.AppOutputName(r.os, r.Name, r.release)
 	payloadAppDir := filepath.Join(payload, appName)
@@ -274,7 +274,7 @@ func (r *Releaser) packageMacOSRelease() error {
 
 func (r *Releaser) packageWindowsRelease(outFile string) error {
 	payload := filepath.Join(r.dir, "Payload")
-	_ = os.Mkdir(payload, 0750)
+	_ = os.Mkdir(payload, 0o750)
 	defer os.RemoveAll(payload)
 
 	manifestPath := filepath.Join(payload, "appxmanifest.xml")
@@ -338,7 +338,7 @@ func (r *Releaser) signAndroid(path string) error {
 	args = append(args, path)
 	if r.release {
 		if r.keyName == "" { // Required to sign Google Play .aab
-			return errors.New("missing required -keyName (alias) parameter")
+			return errors.New("missing required --key-name (alias) parameter")
 		}
 		args = append(args, r.keyName)
 	}
@@ -395,7 +395,7 @@ func (r *Releaser) validate() error {
 	}
 	if util.IsAndroid(r.os) {
 		if r.keyStore == "" {
-			return errors.New("missing required --key-store parameter for android release")
+			return errors.New("missing required --keystore parameter for android release")
 		}
 	} else if r.os == "darwin" {
 		if r.certificate == "" {
@@ -449,7 +449,7 @@ func (r *Releaser) zipAlign(path string) error {
 	}
 
 	cmd := filepath.Join(util.AndroidBuildToolsPath(), "zipalign")
-	err = exec.Command(cmd, "4", unaligned, path).Run()
+	err = exec.Command(cmd, "16", unaligned, path).Run()
 	if err != nil {
 		_ = os.Rename(path, unaligned) // ignore error, return previous
 		return err
