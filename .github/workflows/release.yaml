@@ -30,3 +30,4 @@ jobs:
     with:
       draft: ${{ inputs.draft }}
       update: ${{ inputs.update }}
+    secrets: inherit
