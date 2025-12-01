@@ -21,13 +21,6 @@ func (p *painter) createBuffer(size int) Buffer {
 	return vbo
 }
 
-func (p *painter) updateBuffer(vbo Buffer, points []float32) {
-	p.ctx.BindBuffer(arrayBuffer, vbo)
-	p.logError()
-	p.ctx.BufferSubData(arrayBuffer, points)
-	p.logError()
-}
-
 func (p *painter) drawCircle(circle *canvas.Circle, pos fyne.Position, frame fyne.Size) {
 	radius := paint.GetMaximumRadius(circle.Size())
 	program := p.roundRectangleProgram
@@ -394,7 +387,7 @@ func (p *painter) drawTextureWithDetails(o fyne.CanvasObject, creator func(canva
 			cornerRadius = img.CornerRadius
 		}
 	}
-	points := p.rectCoords(size, pos, frame, fill, aspect, pad)
+	points, insets := p.rectCoords(size, pos, frame, fill, aspect, pad)
 	inner, _ := rectInnerCoords(size, pos, fill, aspect)
 
 	p.ctx.UseProgram(p.program.ref)
@@ -406,6 +399,7 @@ func (p *painter) drawTextureWithDetails(o fyne.CanvasObject, creator func(canva
 	cornerRadius = fyne.Min(paint.GetMaximumRadius(size), cornerRadius)
 	p.SetUniform1f(p.program, "cornerRadius", cornerRadius*p.pixScale)
 	p.SetUniform2f(p.program, "size", inner.Width*p.pixScale, inner.Height*p.pixScale)
+	p.SetUniform4f(p.program, "inset", insets[0], insets[1], insets[2], insets[3]) // texture coordinate insets (minX, minY, maxX, maxY)
 
 	p.SetUniform1f(p.program, "alpha", alpha)
 
@@ -479,7 +473,7 @@ func (p *painter) lineCoords(pos, pos1, pos2 fyne.Position, lineWidth, feather f
 // rectCoords calculates the openGL coordinate space of a rectangle
 func (p *painter) rectCoords(size fyne.Size, pos fyne.Position, frame fyne.Size,
 	fill canvas.ImageFill, aspect float32, pad float32,
-) []float32 {
+) ([]float32, [4]float32) {
 	size, pos = rectInnerCoords(size, pos, fill, aspect)
 	size, pos = roundToPixelCoords(size, pos, p.pixScale)
 
@@ -510,13 +504,15 @@ func (p *painter) rectCoords(size fyne.Size, pos fyne.Position, frame fyne.Size,
 		}
 	}
 
+	insets := [4]float32{xInset, yInset, 1.0 - xInset, 1.0 - yInset}
+
 	return []float32{
 		// coord x, y, z texture x, y
-		x1, y2, 0, xInset, 1.0 - yInset, // top left
-		x1, y1, 0, xInset, yInset, // bottom left
-		x2, y2, 0, 1.0 - xInset, 1.0 - yInset, // top right
-		x2, y1, 0, 1.0 - xInset, yInset, // bottom right
-	}
+		x1, y2, 0, insets[0], insets[3], // top left
+		x1, y1, 0, insets[0], insets[1], // bottom left
+		x2, y2, 0, insets[2], insets[3], // top right
+		x2, y1, 0, insets[2], insets[1], // bottom right
+	}, insets
 }
 
 func rectInnerCoords(size fyne.Size, pos fyne.Position, fill canvas.ImageFill, aspect float32) (fyne.Size, fyne.Position) {

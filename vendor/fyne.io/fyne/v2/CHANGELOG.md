@@ -3,6 +3,17 @@
 This file lists the main changes with each version of the Fyne toolkit.
 More detailed release notes can be found on the [releases page](https://github.com/fyne-io/fyne/releases). 
 
+## 2.7.1 - 14 Nov 2025
+
+### Fixed
+
+* Ensure tar files created in cli tool contain a root directory
+* 2.7 regression in GL performance on Mac (#6010)
+* GridWrap keyboard navigation does not change to next row at the end of previous row (#5994)
+* Image border radius not always shown on image fill cover (#5980)
+* Speed up file dialog rendering
+
+
 ## 2.7.0 - 16 Oct 2025
 
 ### Added
@@ -56,12 +67,18 @@ Code in v2.7.0 contains work from the following first time contributors:
 * @ystepanoff
 
 
-## 2.6.3 - 21 Aug 2025
+## 2.6.3 - 21 August 2025
 
-This hot fix release resolves the compile issue with Go v1.25.0 and golang.org/x/tools conflict.
+### Fixed
+
+* Resolve compile issue with Go 1.25.0 caused by golang.org/x/tools conflict
 
 
-## 2.6.2 - 28 Jul 2025
+## 2.6.2 - 28 July 2025
+
+### Changed
+
+* Added Czechoslovakia translations
 
 ### Fixed
 
