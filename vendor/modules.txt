@@ -137,7 +137,7 @@ github.com/go-text/typesetting/language
 github.com/go-text/typesetting/segmenter
 github.com/go-text/typesetting/shaping
 github.com/go-text/typesetting/unicodedata
-# github.com/godbus/dbus/v5 v5.2.0
+# github.com/godbus/dbus/v5 v5.2.2
 ## explicit; go 1.20
 github.com/godbus/dbus/v5
 github.com/godbus/dbus/v5/introspect
@@ -155,7 +155,7 @@ github.com/hack-pad/go-indexeddb/idb/internal/jscache
 github.com/hack-pad/safejs
 github.com/hack-pad/safejs/internal/catch
 github.com/hack-pad/safejs/internal/stackerr
-# github.com/heathcliff26/godialog v0.1.7
+# github.com/heathcliff26/godialog v0.1.8
 ## explicit; go 1.24.0
 github.com/heathcliff26/godialog
 github.com/heathcliff26/godialog/fallback/fyne
@@ -263,7 +263,7 @@ golang.org/x/net/html/charset
 # golang.org/x/sync v0.11.0
 ## explicit; go 1.18
 golang.org/x/sync/errgroup
-# golang.org/x/sys v0.38.0
+# golang.org/x/sys v0.39.0
 ## explicit; go 1.24.0
 golang.org/x/sys/execabs
 golang.org/x/sys/unix
