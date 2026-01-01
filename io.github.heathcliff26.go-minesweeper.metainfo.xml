@@ -10,14 +10,16 @@
 
     <description>
         <p>
-            This is an implementation of minesweeper in golang, made with the ui framework fyne.io.
+            This is an implementation of minesweeper in golang, made with the UI framework fyne.io.
         </p>
         <p>
-            I mainly created it because i was bored and wanted to create a gui app.
+            I mainly created it because I was bored and wanted to create a GUI app.
         </p>
     </description>
 
     <url type="homepage">https://github.com/heathcliff26/go-minesweeper</url>
+    <url type="bugtracker">https://github.com/heathcliff26/go-minesweeper/issues</url>
+    <url type="vcs-browser">https://github.com/heathcliff26/go-minesweeper</url>
     <developer id="io.github.heathcliff26">
         <name>Heathcliff</name>
     </developer>
