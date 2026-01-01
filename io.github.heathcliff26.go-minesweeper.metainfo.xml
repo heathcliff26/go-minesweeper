@@ -71,6 +71,12 @@
     </screenshots>
 
     <releases>
+        <release version="v0.9.6" date="2026-01-01" type="stable">
+            <description>
+                <p>Small maintenance update</p>
+            </description>
+            <url type="details">https://github.com/heathcliff26/go-minesweeper/releases/tag/v0.9.6</url>
+        </release>
         <release version="v0.9.5" date="2025-12-01" type="stable">
             <description>
                 <p>Bumped framework version</p>
