@@ -6,7 +6,7 @@ require (
 	fyne.io/fyne/v2 v2.7.1
 	github.com/heathcliff26/godialog v0.1.8
 	github.com/stretchr/testify v1.11.1
-	sigs.k8s.io/yaml v1.6.0
+	go.yaml.in/yaml/v3 v3.0.3
 )
 
 require (
@@ -49,7 +49,6 @@ require (
 	github.com/urfave/cli/v2 v2.27.1 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
 	github.com/yuin/goldmark v1.7.8 // indirect
-	go.yaml.in/yaml/v2 v2.4.2 // indirect
 	golang.org/x/image v0.24.0 // indirect
 	golang.org/x/mod v0.20.0 // indirect
 	golang.org/x/net v0.35.0 // indirect
