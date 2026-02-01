@@ -73,29 +73,36 @@
     </screenshots>
 
     <releases>
+        <release version="v0.9.7" date="2026-02-01" type="stable">
+            <description>
+                <p>Bumped framework version.</p>
+                <p>Small maintenance update.</p>
+            </description>
+            <url type="details">https://github.com/heathcliff26/go-minesweeper/releases/tag/v0.9.7</url>
+        </release>
         <release version="v0.9.6" date="2026-01-01" type="stable">
             <description>
-                <p>Small maintenance update</p>
+                <p>Small maintenance update.</p>
             </description>
             <url type="details">https://github.com/heathcliff26/go-minesweeper/releases/tag/v0.9.6</url>
         </release>
         <release version="v0.9.5" date="2025-12-01" type="stable">
             <description>
-                <p>Bumped framework version</p>
+                <p>Bumped framework version.</p>
             </description>
             <url type="details">https://github.com/heathcliff26/go-minesweeper/releases/tag/v0.9.5</url>
         </release>
         <release version="v0.9.4" date="2025-11-01" type="stable">
             <description>
-                <p>Bumped framework version</p>
+                <p>Bumped framework version.</p>
                 <p>Fixed potential crash when starting a new game while autosolve is running.</p>
             </description>
             <url type="details">https://github.com/heathcliff26/go-minesweeper/releases/tag/v0.9.4</url>
         </release>
         <release version="v0.9.3" date="2025-09-30" type="stable">
             <description>
-                <p>Fixed missing version in rpm package</p>
-                <p>Bumped framework version</p>
+                <p>Fixed missing version in rpm package.</p>
+                <p>Bumped framework version.</p>
             </description>
             <url type="details">https://github.com/heathcliff26/go-minesweeper/releases/tag/v0.9.3</url>
         </release>
@@ -110,7 +117,7 @@
         </release>
         <release version="v0.9.1" date="2025-06-01" type="stable">
             <description>
-                <p>Small performance improvements</p>
+                <p>Small performance improvements.</p>
             </description>
             <url type="details">https://github.com/heathcliff26/go-minesweeper/releases/tag/v0.9.1</url>
         </release>
@@ -123,7 +130,7 @@
         </release>
         <release version="v0.8.1" date="2025-05-04" type="stable">
             <description>
-                <p>Fixed an error where autosolve would continue even after the user reset the game via New/Replay</p>
+                <p>Fixed an error where autosolve would continue even after the user reset the game via New/Replay.</p>
             </description>
             <url type="details">https://github.com/heathcliff26/go-minesweeper/releases/tag/v0.8.1</url>
         </release>
@@ -135,53 +142,53 @@
         </release>
         <release version="v0.7.2" date="2025-04-01" type="stable">
             <description>
-                <p>Bumped framework version</p>
+                <p>Bumped framework version.</p>
             </description>
             <url type="details">https://github.com/heathcliff26/go-minesweeper/releases/tag/v0.7.2</url>
         </release>
         <release version="v0.7.1" date="2025-03-01" type="stable">
             <description>
-                <p>Fixed grid tiles not updating immediatly when switching theme</p>
-                <p>Replace old abandoned yaml dependency with new version</p>
-                <p>Compile with golang 1.24</p>
+                <p>Fixed grid tiles not updating immediatly when switching theme.</p>
+                <p>Replace old abandoned yaml dependency with new version.</p>
+                <p>Compile with golang 1.24.</p>
             </description>
             <url type="details">https://github.com/heathcliff26/go-minesweeper/releases/tag/v0.7.1</url>
         </release>
         <release version="v0.7.0" date="2025-02-15" type="stable">
             <description>
-                <p>Implement proper light mode theme</p>
+                <p>Implement proper light mode theme.</p>
             </description>
             <url type="details">https://github.com/heathcliff26/go-minesweeper/releases/tag/v0.7.0</url>
         </release>
         <release version="v0.6.1" date="2025-02-01" type="stable">
             <description>
-                <p>Various CI improvements</p>
-                <p>Bumped fyne version to v2.5.4</p>
+                <p>Various CI improvements.</p>
+                <p>Bumped fyne version to v2.5.4.</p>
             </description>
             <url type="details">https://github.com/heathcliff26/go-minesweeper/releases/tag/v0.6.1</url>
         </release>
         <release version="v0.6.0" date="2024-12-15" type="stable">
             <description>
-                <p>Replaced icon for better look and improved visibility</p>
-                <p>Fix flathub quality checks on meta information</p>
-                <p>Add default location for save files</p>
-                <p>Save selected options between sessions</p>
-                <p>Change default options for first startup</p>
-                <p>Improved code quality and stability through more CI checks</p>
+                <p>Replaced icon for better look and improved visibility.</p>
+                <p>Fix flathub quality checks on meta information.</p>
+                <p>Add default location for save files.</p>
+                <p>Save selected options between sessions.</p>
+                <p>Change default options for first startup.</p>
+                <p>Improved code quality and stability through more CI checks.</p>
             </description>
             <url type="details">https://github.com/heathcliff26/go-minesweeper/releases/tag/v0.6.0</url>
         </release>
         <release version="v0.5.6" date="2024-12-12" type="stable">
             <description>
-                <p>Improved installation experience on linux</p>
-                <p>Added example screenshots</p>
-                <p>Added support for building this app as a flatpak</p>
+                <p>Improved installation experience on linux.</p>
+                <p>Added example screenshots.</p>
+                <p>Added support for building this app as a flatpak.</p>
             </description>
             <url type="details">https://github.com/heathcliff26/go-minesweeper/releases/tag/v0.5.6</url>
         </release>
         <release version="v0.5.5" date="2024-11-01" type="stable">
             <description>
-                <p>Dependency bumps</p>
+                <p>Dependency bumps.</p>
             </description>
             <url type="details">https://github.com/heathcliff26/go-minesweeper/releases/tag/v0.5.5</url>
         </release>
