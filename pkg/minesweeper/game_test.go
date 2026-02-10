@@ -117,6 +117,29 @@ func TestNewGameSolvable(t *testing.T) {
 	}
 }
 
+func TestNewGameSolvableWithIterations(t *testing.T) {
+	p := NewPos(1, 1)
+
+	t.Run("InvalidMaxIterations", func(t *testing.T) {
+		g, err := NewGameSolvableWithIterations(Difficulties()[0], p, 0)
+
+		assert := assert.New(t)
+
+		assert.NotNil(g, "Game should not be nil even when maxIterations < 1")
+		assert.Error(err, "Should return an error for invalid maxIterations")
+	})
+
+	t.Run("UnsolvableWithinIterations", func(t *testing.T) {
+		d := Difficulty{"impossible", 8, 8, 30}
+		g, err := NewGameSolvableWithIterations(d, p, 1)
+
+		assert := assert.New(t)
+
+		assert.NotNil(g, "Game should still be returned even if unsolvable")
+		assert.Error(err, "Should return an error when no solvable game is found")
+	})
+}
+
 func TestCheckField(t *testing.T) {
 	minefield := [][]FieldContent{
 		{Mine, 2, Mine, 1, 0, 0, 0, 0},
