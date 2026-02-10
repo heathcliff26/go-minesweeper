@@ -1,6 +1,7 @@
 package minesweeper
 
 import (
+	"fmt"
 	"log/slog"
 
 	"github.com/heathcliff26/go-minesweeper/pkg/utils"
@@ -100,11 +101,27 @@ func NewGameWithSafeArea(d Difficulty, p Pos) *LocalGame {
 
 // Create a new game that is solvable without random guesses.
 func NewGameSolvable(d Difficulty, p Pos) *LocalGame {
+	g, err := NewGameSolvableWithIterations(d, p, 10000)
+	if err == nil {
+		slog.Info("Created solvable minesweeper game")
+	} else {
+		slog.Error("Failed to create a solvable minesweeper game", "err", err)
+	}
+	return g
+}
+
+// Create a new game that is solvable without random guesses, within a specified number of iterations.
+// Returns a solvable game, or a game that needs random guesses and an error indicating that.
+func NewGameSolvableWithIterations(d Difficulty, p Pos, maxIterations int) (*LocalGame, error) {
+	if maxIterations < 1 {
+		return NewGameWithSafePos(d, p), fmt.Errorf("maxIterations must be greater than zero")
+	}
 	area := areaAroundPos(d, p)
 
 	var mines []Pos
 	var success bool
-	for i := 0; i < 10000; i++ {
+	var err error
+	for i := 0; i < maxIterations; i++ {
 		mines = CreateMines(d, area)
 		g := newGame(d, mines)
 		s := NewSolver(g)
@@ -113,13 +130,11 @@ func NewGameSolvable(d Difficulty, p Pos) *LocalGame {
 			break
 		}
 	}
-	if success {
-		slog.Info("Created solvable minesweeper game")
-	} else {
-		slog.Error("Failed to create a solvable minesweeper game")
+	if !success {
+		err = NewErrCreateUnsolvableGame(maxIterations)
 	}
 
-	return newGame(d, mines)
+	return newGame(d, mines), err
 }
 
 // Check a given field and recursevly reveal all neighboring fields that should be revield.

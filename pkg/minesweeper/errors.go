@@ -26,3 +26,15 @@ func NewErrDifficultyMineCount(mines int) error {
 func (e *ErrDifficultyMineCount) Error() string {
 	return fmt.Sprintf("The number of mines need to be between %d and %.1f %% of the total number of cells, got %d", DifficultyMineMin, DifficultyMineMaxPercentage*100, e.mines)
 }
+
+type ErrCreateUnsolvableGame struct {
+	iterations int
+}
+
+func NewErrCreateUnsolvableGame(iterations int) error {
+	return &ErrCreateUnsolvableGame{iterations}
+}
+
+func (e *ErrCreateUnsolvableGame) Error() string {
+	return fmt.Sprintf("Could not create a solvable game within %d iterations", e.iterations)
+}
