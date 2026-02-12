@@ -3,6 +3,7 @@ package app
 import (
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"os"
 	"runtime"
 	"testing"
@@ -473,13 +474,24 @@ func TestAutosolve(t *testing.T) {
 		}},
 	}
 
+	// Temporarily increase log level during test to debug https://github.com/heathcliff26/go-minesweeper/issues/245
+	defaultSlog := slog.Default()
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+		Level: slog.LevelDebug,
+	}))
+	slog.SetDefault(logger)
+	t.Cleanup(func() {
+		slog.SetDefault(defaultSlog)
+	})
+
 	for _, tCase := range tMatrix2 {
 		t.Run("QuitOn"+tCase.Name, func(t *testing.T) {
 			if tCase.Name != "NewGame" && runtime.GOOS == "windows" {
 				t.Skip("Skipping as the test follows a weird path on Windows, see https://github.com/heathcliff26/go-minesweeper/issues/228")
 			}
 
-			t.Parallel()
+			// Temporarily disable parallel test to debug https://github.com/heathcliff26/go-minesweeper/issues/245
+			// t.Parallel()
 			require := require.New(t)
 
 			g, err := createGridFromSave("testdata/autosolve_win.sav", false)
@@ -519,6 +531,9 @@ func TestAutosolve(t *testing.T) {
 					return false
 				}
 			}, testTimeout, testDelay, "Should have stopped running autosolve")
+
+			require.Nil(g.autosolveBreak, "Should have reset the autosolveBreak channel")
+			require.Nil(g.autosolveDone, "Should have reset the autosolveDone channel")
 
 			isReset := true
 			for x := 0; x < g.Row(); x++ {

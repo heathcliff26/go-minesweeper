@@ -305,12 +305,17 @@ func (g *MinesweeperGrid) Replay() {
 
 // Reset Grid
 func (g *MinesweeperGrid) reset() {
+	// Temporarily add debug logs to debug https://github.com/heathcliff26/go-minesweeper/issues/245
+	slog.Debug("Locking autosolve to reset game")
 	g.lAutosolve.Lock()
 	defer g.lAutosolve.Unlock()
 
 	if g.autosolveBreak != nil || g.autosolveDone != nil {
+		slog.Debug("Autosolve is running, sending stop signal")
 		close(g.autosolveBreak)
+		slog.Debug("Waiting for autosolve to stop")
 		<-g.autosolveDone
+		slog.Debug("Autosolve stopped, continuing reset")
 	}
 
 	g.lUpdate.Lock()
@@ -399,13 +404,18 @@ func (g *MinesweeperGrid) Autosolve(delay time.Duration) bool {
 	}
 
 	defer func() {
+		// Temporarily add debug logs to debug https://github.com/heathcliff26/go-minesweeper/issues/245
+		slog.Debug("Closing autosolveDone channel")
 		close(autosolveDone)
 
+		slog.Debug("Locking autosolve to cleanup channels")
 		g.lAutosolve.Lock()
 		defer g.lAutosolve.Unlock()
 
 		g.autosolveBreak = nil
 		g.autosolveDone = nil
+
+		slog.Debug("Finished cleanup of autosolve channels")
 	}()
 
 	g.updateSolver()
