@@ -58,7 +58,7 @@ func lookupLangFont(family string, aspect font.Aspect) *font.Face {
 	}
 
 	fm.SetQuery(fontscan.Query{Families: []string{family}, Aspect: aspect})
-	l, _ := fontscan.NewLangID(language.Language(lang.SystemLocale().LanguageString()))
+	l, _ := language.NewLangID(language.Language(lang.SystemLocale().LanguageString()))
 	return fm.ResolveFaceForLang(l)
 }
 
@@ -325,7 +325,7 @@ func shapeCallback(shaper shaping.Shaper, in shaping.Input, x, scale float32, cb
 
 			out.Glyphs = glyphs[i : i+1]
 			cb(out, x)
-			x += fixed266ToFloat32(glyphs[i].XAdvance) * scale
+			x += fixed266ToFloat32(glyphs[i].Advance) * scale
 			adv = 0
 
 			start = i + 1
@@ -333,7 +333,7 @@ func shapeCallback(shaper shaping.Shaper, in shaping.Input, x, scale float32, cb
 		} else {
 			pending = true
 		}
-		adv += g.XAdvance
+		adv += g.Advance
 	}
 
 	if pending {

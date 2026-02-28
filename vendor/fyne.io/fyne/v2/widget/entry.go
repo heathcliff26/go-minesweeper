@@ -46,6 +46,10 @@ type Entry struct {
 	TextStyle   fyne.TextStyle
 	PlaceHolder string
 	OnChanged   func(string) `json:"-"`
+
+	// OnSubmitted will be called when the user presses Enter/Return (for a single line entry).
+	// MultiLine entries will be submitted when Shift+Enter (or Return) are pressed.
+	//
 	// Since: 2.0
 	OnSubmitted func(string) `json:"-"`
 	Password    bool
