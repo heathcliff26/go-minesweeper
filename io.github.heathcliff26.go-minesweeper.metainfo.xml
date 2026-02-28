@@ -73,6 +73,12 @@
     </screenshots>
 
     <releases>
+        <release version="v0.9.9" date="2026-02-28" type="stable">
+            <description>
+                <p>Small maintenance update.</p>
+            </description>
+            <url type="details">https://github.com/heathcliff26/go-minesweeper/releases/tag/v0.9.9</url>
+        </release>
         <release version="v0.9.8" date="2026-02-12" type="stable">
             <description>
                 <p>Small maintenance update.</p>
