@@ -55,7 +55,7 @@ fyne.io/fyne/v2/widget
 fyne.io/systray
 fyne.io/systray/internal/generated/menu
 fyne.io/systray/internal/generated/notifier
-# fyne.io/tools v1.7.0
+# fyne.io/tools v1.7.1
 ## explicit; go 1.19
 fyne.io/tools/cmd/fyne
 fyne.io/tools/cmd/fyne/internal/commands
@@ -155,8 +155,8 @@ github.com/hack-pad/go-indexeddb/idb/internal/jscache
 github.com/hack-pad/safejs
 github.com/hack-pad/safejs/internal/catch
 github.com/hack-pad/safejs/internal/stackerr
-# github.com/heathcliff26/godialog v0.1.10
-## explicit; go 1.24.0
+# github.com/heathcliff26/godialog v0.1.11
+## explicit; go 1.25.0
 github.com/heathcliff26/godialog
 github.com/heathcliff26/godialog/fallback/fyne
 # github.com/jackmordaunt/icns/v2 v2.2.6
@@ -263,8 +263,8 @@ golang.org/x/net/html/charset
 # golang.org/x/sync v0.11.0
 ## explicit; go 1.18
 golang.org/x/sync/errgroup
-# golang.org/x/sys v0.41.0
-## explicit; go 1.24.0
+# golang.org/x/sys v0.43.0
+## explicit; go 1.25.0
 golang.org/x/sys/execabs
 golang.org/x/sys/unix
 golang.org/x/sys/windows

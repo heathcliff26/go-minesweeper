@@ -25,6 +25,7 @@ func Bundle() *cli.Command {
 	return &cli.Command{
 		Name:        "bundle",
 		Usage:       "Embeds static content into your go application",
+		ArgsUsage:   "file ...",
 		Description: "Each resource will have a generated filename unless specified.",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
@@ -264,7 +265,7 @@ func writeHeader(pkg string, out *os.File) {
 	out.WriteString("\n\npackage ")
 	out.WriteString(pkg)
 	out.WriteString("\n\nimport (\n")
-	out.WriteString("\t_ \"embed\"\n")
+	out.WriteString("\t_ \"embed\"\n\n")
 	out.WriteString("\t\"fyne.io/fyne/v2\"\n")
 	out.WriteString(")\n")
 }
