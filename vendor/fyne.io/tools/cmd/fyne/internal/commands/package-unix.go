@@ -13,16 +13,18 @@ import (
 )
 
 type unixData struct {
-	Name        string
-	AppID       string
-	Exec        string
-	Icon        string
-	Local       string
-	GenericName string
-	Categories  string
-	Comment     string
-	Keywords    string
-	ExecParams  string
+	Name           string
+	AppID          string
+	Exec           string
+	Icon           string
+	Local          string
+	GenericName    string
+	Categories     string
+	Comment        string
+	Keywords       string
+	ExecParams     string
+	MimeTypes      string
+	StartupWMClass string
 
 	SourceRepo, SourceDir string
 }
@@ -30,17 +32,18 @@ type unixData struct {
 func (p *Packager) packageUNIX() error {
 	var prefixDir string
 	local := "local/"
-	tempDir := "tmp-pkg"
+	dirName := filepath.Base(p.exe)
 
-	if p.install {
-		tempDir = ""
+	outDir := p.dir
+	if !p.install {
+		outDir = util.EnsureSubDir(util.EnsureSubDir(p.dir, "tmp-pkg"), dirName)
 	}
 
 	if _, err := os.Stat(filepath.Join("/", "usr", "local")); os.IsNotExist(err) {
-		prefixDir = util.EnsureSubDir(util.EnsureSubDir(p.dir, tempDir), "usr")
+		prefixDir = util.EnsureSubDir(outDir, "usr")
 		local = ""
 	} else {
-		prefixDir = util.EnsureSubDir(util.EnsureSubDir(util.EnsureSubDir(p.dir, tempDir), "usr"), "local")
+		prefixDir = util.EnsureSubDir(util.EnsureSubDir(outDir, "usr"), "local")
 	}
 
 	shareDir := util.EnsureSubDir(prefixDir, "share")
@@ -52,16 +55,28 @@ func (p *Packager) packageUNIX() error {
 		return fmt.Errorf("failed to copy application binary file: %w", err)
 	}
 
+	appIDOrName := p.AppID
+	if appIDOrName == "" {
+		appIDOrName = p.Name
+	}
+
 	iconDir := util.EnsureSubDir(shareDir, "pixmaps")
-	iconName := p.AppID + filepath.Ext(p.icon)
+	iconName := appIDOrName + filepath.Ext(p.icon)
 	iconPath := filepath.Join(iconDir, iconName)
 	err = util.CopyFile(p.icon, iconPath)
 	if err != nil {
 		return fmt.Errorf("failed to copy icon: %w", err)
 	}
 
+	mimes := ""
+	openWith := ""
+	if p.CanOpen != nil && p.CanOpen.MimeTypes != "" {
+		mimes = p.CanOpen.MimeTypes
+		openWith = " %F"
+	}
+
 	appsDir := util.EnsureSubDir(shareDir, "applications")
-	desktop := filepath.Join(appsDir, p.AppID+".desktop")
+	desktop := filepath.Join(appsDir, appIDOrName+".desktop")
 	deskFile, err := os.Create(desktop)
 	if err != nil {
 		return fmt.Errorf("failed to create desktop file: %w", err)
@@ -74,16 +89,18 @@ func (p *Packager) packageUNIX() error {
 		linuxBSD = *p.linuxAndBSDMetadata
 	}
 	tplData := unixData{
-		Name:        p.Name,
-		AppID:       p.AppID,
-		Exec:        filepath.Base(p.exe),
-		Icon:        iconName,
-		Local:       local,
-		GenericName: linuxBSD.GenericName,
-		Keywords:    formatDesktopFileList(linuxBSD.Keywords),
-		Comment:     linuxBSD.Comment,
-		Categories:  formatDesktopFileList(linuxBSD.Categories),
-		ExecParams:  linuxBSD.ExecParams,
+		Name:           p.Name,
+		AppID:          p.AppID,
+		Exec:           filepath.Base(p.exe) + openWith,
+		Icon:           appIDOrName,
+		Local:          local,
+		GenericName:    linuxBSD.GenericName,
+		Keywords:       formatDesktopFileList(linuxBSD.Keywords),
+		Comment:        linuxBSD.Comment,
+		Categories:     formatDesktopFileList(linuxBSD.Categories),
+		ExecParams:     linuxBSD.ExecParams,
+		MimeTypes:      mimes,
+		StartupWMClass: p.Name,
 	}
 
 	if p.sourceMetadata != nil {
@@ -97,9 +114,10 @@ func (p *Packager) packageUNIX() error {
 	}
 
 	if !p.install {
-		defer os.RemoveAll(filepath.Join(p.dir, tempDir))
+		parent := filepath.Dir(outDir)
+		defer os.RemoveAll(parent)
 
-		makefile, _ := os.Create(filepath.Join(p.dir, tempDir, "Makefile"))
+		makefile, _ := os.Create(filepath.Join(outDir, "Makefile"))
 		err := templates.MakefileUNIX.Execute(makefile, tplData)
 		if err != nil {
 			return fmt.Errorf("failed to write Makefile string: %w", err)
@@ -109,7 +127,7 @@ func (p *Packager) packageUNIX() error {
 		if p.os == "openbsd" {
 			tarCmdArgs = []string{"-zcf", filepath.Join(p.dir, p.Name+".tar.gz")}
 		}
-		tarCmdArgs = append(tarCmdArgs, "-C", filepath.Join(p.dir, tempDir), "usr", "Makefile")
+		tarCmdArgs = append(tarCmdArgs, "-C", parent, dirName)
 
 		var buf bytes.Buffer
 		tarCmd := exec.Command("tar", tarCmdArgs...)
