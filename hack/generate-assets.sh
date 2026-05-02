@@ -4,7 +4,7 @@ set -e
 
 base_dir="$(dirname "${BASH_SOURCE[0]}" | xargs realpath)/.."
 
-fyne="$(go env GOPATH)/bin/fyne-cross"
+fyne="$(go env GOPATH)/bin/fyne"
 
 if [ ! -f "${fyne}" ]; then
     go install fyne.io/fyne/v2/cmd/fyne@latest

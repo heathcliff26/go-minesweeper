@@ -1,0 +1,65 @@
+---
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+
+version: 2
+
+project_name: go-minesweeper
+
+env:
+  - CGO_ENABLED=1
+
+builds:
+  - id: linux
+    goos:
+      - linux
+    goarch:
+      - arm64
+      - amd64
+    tool: fyne-wrapper.sh
+    flags:
+      - --release
+    env:
+      - >-
+        {{- if eq .Arch "amd64"}}CC=zig cc -target x86_64-linux-gnu -isystem /usr/include -L/usr/lib/x86_64-linux-gnu{{- end }}
+        {{- if eq .Arch "arm64"}}CC=zig cc -target aarch64-linux-gnu -isystem /usr/include -L/usr/lib/aarch64-linux-gnu{{- end }}
+      - >-
+        {{- if eq .Arch "amd64"}}CXX=zig c++ -target x86_64-linux-gnu -isystem /usr/include -L/usr/lib/x86_64-linux-gnu{{- end }}
+        {{- if eq .Arch "arm64"}}CXX=zig c++ -target aarch64-linux-gnu -isystem /usr/include -L/usr/lib/aarch64-linux-gnu{{- end }}
+  - id: windows
+    goos:
+      - windows
+    goarch:
+      - arm64
+      - amd64
+    tool: fyne-wrapper.sh
+    flags:
+      - --release
+    env:
+      - >-
+        {{- if eq .Arch "amd64"}}CC=zig cc -target x86_64-windows-gnu -Wdeprecated-non-prototype -Wl,--subsystem,windows{{- end }}
+        {{- if eq .Arch "arm64"}}CC=zig cc -target aarch64-windows-gnu -Wdeprecated-non-prototype -Wl,--subsystem,windows{{- end }}
+      - >-
+        {{- if eq .Arch "amd64"}}CXX=zig c++ -target x86_64-windows-gnu -Wdeprecated-non-prototype -Wl,--subsystem,windows{{- end }}
+        {{- if eq .Arch "arm64"}}CXX=zig c++ -target aarch64-windows-gnu -Wdeprecated-non-prototype -Wl,--subsystem,windows{{- end }}
+
+archives:
+  - id: tar
+    ids:
+      - linux
+    formats: [tar.gz]
+    name_template: "{{ .ProjectName }}_{{ tolower .Os }}-{{ .Arch }}"
+    files:
+      - strip_parent: true
+        src: "packages/*"
+  - id: zip
+    ids:
+      - windows
+    formats: [zip]
+    name_template: "{{ .ProjectName }}_{{ tolower .Os }}-{{ .Arch }}"
+    files:
+      - none*
+
+changelog:
+  disable: true
+release:
+  disable: true
