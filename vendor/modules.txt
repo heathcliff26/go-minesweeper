@@ -155,7 +155,7 @@ github.com/hack-pad/go-indexeddb/idb/internal/jscache
 github.com/hack-pad/safejs
 github.com/hack-pad/safejs/internal/catch
 github.com/hack-pad/safejs/internal/stackerr
-# github.com/heathcliff26/godialog v0.1.11
+# github.com/heathcliff26/godialog v0.1.12
 ## explicit; go 1.25.0
 github.com/heathcliff26/godialog
 github.com/heathcliff26/godialog/fallback/fyne

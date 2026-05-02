@@ -12,8 +12,9 @@ import (
 )
 
 const (
-	DBusObjectName = "org.freedesktop.portal.Desktop"
-	DBusObjectPath = "/org/freedesktop/portal/desktop"
+	DBusObjectName   = "org.freedesktop.portal.Desktop"
+	DBusObjectPath   = "/org/freedesktop/portal/desktop"
+	DBusResponseName = "org.freedesktop.portal.Request.Response"
 
 	DBusFileChooserBase     = "org.freedesktop.portal.FileChooser"
 	DBusFileChooserOpenFile = ".OpenFile"
@@ -118,34 +119,87 @@ func dbusWaitForResponse() (string, error) {
 		return "", fmt.Errorf("failed to connect to session bus: %w", err)
 	}
 
-	err = conn.AddMatchSignal(
+	opts := []dbus.MatchOption{
 		dbus.WithMatchObjectPath(DBusObjectPath),
 		dbus.WithMatchInterface("org.freedesktop.portal.Request"),
 		dbus.WithMatchMember("Response"),
-	)
+	}
+
+	err = conn.AddMatchSignal(opts...)
 	if err != nil {
 		return "", fmt.Errorf("failed to subscribe to response signal: %w", err)
 	}
+	defer func() {
+		_ = conn.RemoveMatchSignal(opts...)
+	}()
+
 	c := make(chan *dbus.Signal)
 	conn.Signal(c)
+	defer conn.RemoveSignal(c)
 
-	res := <-c
-	if len(res.Body) < 2 {
-		return "", fmt.Errorf("invalid response from dbus: %v", res.Body)
+	for res := range c {
+		slog.Debug("Received dbus signal", "signal", res)
+		path, ignored, err := parseDBusResponse(res)
+		if ignored {
+			continue
+		}
+		return path, err
 	}
-	if res.Body[0].(uint32) != 0 {
-		// User cancelled the dialog
-		return "", nil
+	return "", fmt.Errorf("dbus signal channel closed unexpectedly")
+}
+
+// Parse the incoming response from dbus.
+func parseDBusResponse(res *dbus.Signal) (path string, ignored bool, err error) {
+	if res == nil {
+		err = fmt.Errorf("received nil signal from dbus")
+		return
 	}
-	uris := res.Body[1].(map[string]dbus.Variant)["uris"].Value().([]string)
+
+	// Ignore random signals
+	if res.Name != DBusResponseName {
+		ignored = true
+		return
+	}
+
+	if len(res.Body) != 2 {
+		err = fmt.Errorf("invalid response from dbus, invalid response body: %v", res)
+		return
+	}
+	signal, ok := res.Body[0].(uint32)
+	if !ok {
+		err = fmt.Errorf("invalid response from dbus, no response signal: %v", res)
+		return
+	}
+
+	// Check if the user cancelled the dialog
+	if signal != 0 {
+		return
+	}
+
+	resultMap, ok := res.Body[1].(map[string]dbus.Variant)
+	if !ok {
+		err = fmt.Errorf("invalid response from dbus, no results: %v", res)
+		return
+	}
+	urisVariant, ok := resultMap["uris"]
+	if !ok {
+		err = fmt.Errorf("invalid response from dbus, no uris provided: %v", res)
+		return
+	}
+	uris, ok := urisVariant.Value().([]string)
+	if !ok {
+		err = fmt.Errorf("invalid response from dbus, uris have the wrong type: %v", res)
+		return
+	}
 	if len(uris) == 0 {
-		return "", nil
+		err = fmt.Errorf("response indicated success but no path was selected %v", res)
+		return
 	}
 
-	path, _ := strings.CutPrefix(uris[0], "file://")
+	path, _ = strings.CutPrefix(uris[0], "file://")
 	path, err = url.PathUnescape(path)
 	if err != nil {
-		return "", fmt.Errorf("failed to unescape path: %w", err)
+		err = fmt.Errorf("failed to unescape path: %w", err)
 	}
-	return path, nil
+	return
 }
