@@ -5,7 +5,6 @@ coverprofile.out
 # Generated artifacts
 /bin
 /dist
-/fyne-cross
 
 # Test save files
 /*.sav

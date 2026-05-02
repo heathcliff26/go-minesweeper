@@ -60,26 +60,15 @@ jobs:
       cmd: "make validate"
 
   build:
-    uses: heathcliff26/ci/.github/workflows/golang-fyne-build.yaml@main
+    uses: heathcliff26/ci/.github/workflows/golang-build.yaml@main
     permissions:
       contents: read
     needs:
       - lint
       - validate
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: windows
-            arch: amd64
-          - os: windows
-            arch: arm64
-          - os: linux
-            arch: amd64
-          - os: linux
-            arch: arm64
     with:
-      goos: "${{ matrix.os }}"
-      goarch: "${{ matrix.arch }}"
-      name: go-minesweeper
-      release: ${{ inputs.release || false }}
+      cmd: "make release"
+      artifact-name: "artifacts"
+      artifact: |
+        dist/*.tar.gz
+        dist/*.zip
