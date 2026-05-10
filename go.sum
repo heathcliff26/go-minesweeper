@@ -53,8 +53,8 @@ github.com/hack-pad/go-indexeddb v0.3.2 h1:DTqeJJYc1usa45Q5r52t01KhvlSN02+Oq+tQb
 github.com/hack-pad/go-indexeddb v0.3.2/go.mod h1:QvfTevpDVlkfomY498LhstjwbPW6QC4VC/lxYb0Kom0=
 github.com/hack-pad/safejs v0.1.0 h1:qPS6vjreAqh2amUqj4WNG1zIw7qlRQJ9K10eDKMCnE8=
 github.com/hack-pad/safejs v0.1.0/go.mod h1:HdS+bKF1NrE72VoXZeWzxFOVQVUSqZJAG0xNCnb+Tio=
-github.com/heathcliff26/godialog v0.1.11 h1:y+4K/sv7aAnooMSdfvHHhdOvYoXl105zSLmBoQiJtGA=
-github.com/heathcliff26/godialog v0.1.11/go.mod h1:Sbs1izPbYGbeRu0ixOMdzQALUdxPQ0qK9Dc6mRdOMEI=
+github.com/heathcliff26/godialog v0.1.12 h1:krCzw/E7BO81KnYpLqwCIa1TPPlRXn0HB+kF1a51UK0=
+github.com/heathcliff26/godialog v0.1.12/go.mod h1:Sbs1izPbYGbeRu0ixOMdzQALUdxPQ0qK9Dc6mRdOMEI=
 github.com/jackmordaunt/icns/v2 v2.2.6 h1:M7kg6pWRmB+SyCvM058cV2BlAz3MedOHy4e3j2i7FQg=
 github.com/jackmordaunt/icns/v2 v2.2.6/go.mod h1:DqlVnR5iafSphrId7aSD06r3jg0KRC9V6lEBBp504ZQ=
 github.com/jeandeaual/go-locale v0.0.0-20250612000132-0ef82f21eade h1:FmusiCI1wHw+XQbvL9M+1r/C3SPqKrmBaIOYwVfQoDE=
