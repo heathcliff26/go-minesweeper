@@ -713,7 +713,8 @@ func (w *window) RescaleContext() {
 		w.width, w.height = w.viewport.GetSize()
 		scaledFull := fyne.NewSize(
 			scale.ToFyneCoordinate(w.canvas, w.width),
-			scale.ToFyneCoordinate(w.canvas, w.height))
+			scale.ToFyneCoordinate(w.canvas, w.height),
+		)
 		w.canvas.Resize(scaledFull)
 		return
 	}
@@ -723,7 +724,9 @@ func (w *window) RescaleContext() {
 	w.viewport.SetSize(newWidth, newHeight)
 
 	// Ensure textures re-rasterize at the new scale
-	cache.DeleteTextTexturesFor(w.canvas)
+	w.RunWithContext(func() {
+		cache.DeleteTextTexturesFor(w.canvas)
+	})
 	w.canvas.content.Refresh()
 }
 

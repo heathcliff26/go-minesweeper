@@ -57,24 +57,24 @@ func (c *Canvas) AddShortcut(shortcut fyne.Shortcut, handler func(shortcut fyne.
 	c.shortcut.AddShortcut(shortcut, handler)
 }
 
-func (c *Canvas) DrawDebugOverlay(obj fyne.CanvasObject, pos fyne.Position, size fyne.Size) {
+func (c *Canvas) DrawDebugOverlay(obj fyne.CanvasObject, pos fyne.Position, size fyne.Size, clip *internal.ClipItem) {
 	switch obj.(type) {
 	case fyne.Widget:
 		r := canvas.NewRectangle(color.Transparent)
 		r.StrokeColor = color.NRGBA{R: 0xcc, G: 0x33, B: 0x33, A: 0xff}
 		r.StrokeWidth = 1
 		r.Resize(obj.Size())
-		c.Painter().Paint(r, pos, size)
+		c.Painter().Paint(r, pos, size, clip)
 
 		t := canvas.NewText(reflect.ValueOf(obj).Elem().Type().Name(), r.StrokeColor)
 		t.TextSize = 10
-		c.Painter().Paint(t, pos.AddXY(2, 2), size)
+		c.Painter().Paint(t, pos.AddXY(2, 2), size, clip)
 	case *fyne.Container:
 		r := canvas.NewRectangle(color.Transparent)
 		r.StrokeColor = color.NRGBA{R: 0x33, G: 0x33, B: 0xcc, A: 0xff}
 		r.StrokeWidth = 1
 		r.Resize(obj.Size())
-		c.Painter().Paint(r, pos, size)
+		c.Painter().Paint(r, pos, size, clip)
 	}
 }
 
