@@ -258,7 +258,7 @@ func (c *glCanvas) paint(size fyne.Size) {
 		if size.Width <= 0 || size.Height <= 0 { // iconifying on Windows can do bad things
 			return
 		}
-		c.Painter().Paint(obj, pos, size)
+		c.Painter().Paint(obj, pos, size, clips.Top())
 	}
 	afterPaint := func(node *common.RenderCacheNode, pos fyne.Position) {
 		if driver.IsClip(node.Obj()) {
@@ -271,7 +271,7 @@ func (c *glCanvas) paint(size fyne.Size) {
 		}
 
 		if build.Mode == fyne.BuildDebug {
-			c.DrawDebugOverlay(node.Obj(), pos, size)
+			c.DrawDebugOverlay(node.Obj(), pos, size, clips.Top())
 		}
 	}
 	c.WalkTrees(paint, afterPaint)

@@ -99,7 +99,8 @@ func (p *painter) Init() {
 		uniforms:   make(map[string]*UniformState),
 		attributes: make(map[string]Attribute),
 	}
-	p.getUniformLocations(p.roundRectangleProgram,
+	p.getUniformLocations(
+		p.roundRectangleProgram,
 		"frame_size", "rect_coords",
 		"stroke_width_half", "rect_size_half",
 		"radius", "edge_softness",
@@ -113,7 +114,8 @@ func (p *painter) Init() {
 		uniforms:   make(map[string]*UniformState),
 		attributes: make(map[string]Attribute),
 	}
-	p.getUniformLocations(p.polygonProgram,
+	p.getUniformLocations(
+		p.polygonProgram,
 		"frame_size", "rect_coords", "edge_softness",
 		"outer_radius", "angle", "sides",
 		"fill_color", "corner_radius",
@@ -127,7 +129,8 @@ func (p *painter) Init() {
 		uniforms:   make(map[string]*UniformState),
 		attributes: make(map[string]Attribute),
 	}
-	p.getUniformLocations(p.arcProgram,
+	p.getUniformLocations(
+		p.arcProgram,
 		"frame_size", "rect_coords",
 		"inner_radius", "outer_radius",
 		"start_angle", "end_angle",

@@ -1010,6 +1010,13 @@ func lineBounds(seg *TextSegment, wrap fyne.TextWrap, trunc fyne.TextTruncation,
 					fallback := binarySearch(widthChecker, low, last) - low
 
 					if fallback < 1 { // even a character won't fit
+						if measureWidth < max.Width {
+							bounds = append(bounds, rowBoundary{[]RichTextSegment{seg}, reuse, low, low, false})
+							reuse++
+							measureWidth = max.Width
+							yPos += measured.Height
+							continue
+						}
 						include := 1
 						ellipsis := false
 						if trunc == fyne.TextTruncateEllipsis {

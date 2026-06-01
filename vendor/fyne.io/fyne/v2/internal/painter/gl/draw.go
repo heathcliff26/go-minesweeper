@@ -6,6 +6,7 @@ import (
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
+	"fyne.io/fyne/v2/internal"
 	paint "fyne.io/fyne/v2/internal/painter"
 )
 
@@ -104,7 +105,7 @@ func (p *painter) drawLine(line *canvas.Line, pos fyne.Position, frame fyne.Size
 	p.logError()
 }
 
-func (p *painter) drawObject(o fyne.CanvasObject, pos fyne.Position, frame fyne.Size) {
+func (p *painter) drawObject(o fyne.CanvasObject, pos fyne.Position, frame fyne.Size, clip *internal.ClipItem) {
 	switch obj := o.(type) {
 	case *canvas.Circle:
 		p.drawCircle(obj, pos, frame)
@@ -117,7 +118,7 @@ func (p *painter) drawObject(o fyne.CanvasObject, pos fyne.Position, frame fyne.
 	case *canvas.Rectangle:
 		p.drawRectangle(obj, pos, frame)
 	case *canvas.Text:
-		p.drawText(obj, pos, frame)
+		p.drawText(obj, pos, frame, clip)
 	case *canvas.LinearGradient:
 		p.drawGradient(obj, p.newGlLinearGradientTexture, pos, frame)
 	case *canvas.RadialGradient:
@@ -344,7 +345,7 @@ func (p *painter) drawArc(arc *canvas.Arc, pos fyne.Position, frame fyne.Size) {
 	p.logError()
 }
 
-func (p *painter) drawText(text *canvas.Text, pos fyne.Position, frame fyne.Size) {
+func (p *painter) drawText(text *canvas.Text, pos fyne.Position, frame fyne.Size, clip *internal.ClipItem) {
 	if text.Text == "" || text.Text == " " {
 		return
 	}
@@ -360,6 +361,18 @@ func (p *painter) drawText(text *canvas.Text, pos fyne.Position, frame fyne.Size
 
 	if containerSize.Height > size.Height {
 		pos = fyne.NewPos(pos.X, pos.Y+(containerSize.Height-size.Height)/2)
+	}
+
+	var clipPos fyne.Position
+	var clipSize fyne.Size
+	if clip != nil {
+		clipPos, clipSize = clip.Rect()
+	} else {
+		clipSize = frame
+	}
+	if pos.Y > clipPos.Y+clipSize.Height || pos.Y+size.Height < clipPos.Y ||
+		pos.X > clipPos.X+clipSize.Width || pos.X+size.Width < clipPos.X {
+		return
 	}
 
 	// text size is sensitive to position on screen

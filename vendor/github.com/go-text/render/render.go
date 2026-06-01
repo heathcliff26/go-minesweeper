@@ -4,6 +4,7 @@ import (
 	"image/color"
 	"image/draw"
 	"math"
+	"sort"
 
 	"github.com/go-text/typesetting/font"
 	"github.com/go-text/typesetting/font/opentype"
@@ -28,6 +29,7 @@ type Renderer struct {
 
 	segmenter   shaping.Segmenter
 	shaper      shaping.HarfbuzzShaper
+	wrapper     shaping.LineWrapper
 	filler      *rasterx.Filler
 	fillerScale float32
 }
@@ -51,6 +53,16 @@ func (r *Renderer) shape(str string, face *font.Face) (_ shaping.Line, ascent in
 			ascent = a
 		}
 	}
+
+	// overall direction of the text, deduced from the first runes
+	direction := line[0].Direction
+	r.wrapper.Prepare(shaping.WrapConfig{Direction: direction}, text, shaping.NewSliceIterator(line))
+	wrapped, _ := r.wrapper.WrapNextLine(math.MaxInt)
+	line = wrapped.Line
+
+	// sort the line by visual order
+	sort.Slice(line, func(i, j int) bool { return line[i].VisualIndex < line[j].VisualIndex })
+
 	return line, ascent
 }
 
@@ -110,7 +122,7 @@ func (r *Renderer) DrawShapedRunAt(run shaping.Output, img draw.Image, startX, s
 			_ = r.drawSVG(g, format, img, xPos, yPos)
 		}
 
-		x += fixed266ToFloat(g.XAdvance) * r.PixScale
+		x += fixed266ToFloat(g.Advance) * r.PixScale
 	}
 	f.Draw()
 	r.filler = nil

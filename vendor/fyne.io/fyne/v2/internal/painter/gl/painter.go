@@ -6,6 +6,7 @@ import (
 	"image"
 
 	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/internal"
 	"fyne.io/fyne/v2/internal/driver"
 	"fyne.io/fyne/v2/theme"
 )
@@ -21,7 +22,7 @@ type Painter interface {
 	// Free is used to indicate that a certain canvas object is no longer needed
 	Free(fyne.CanvasObject)
 	// Paint a single fyne.CanvasObject but not its children.
-	Paint(fyne.CanvasObject, fyne.Position, fyne.Size)
+	Paint(fyne.CanvasObject, fyne.Position, fyne.Size, *internal.ClipItem)
 	// SetFrameBufferScale tells us when we have more than 1 framebuffer pixel for each output pixel
 	SetFrameBufferScale(float32)
 	// SetOutputSize is used to change the resolution of our output viewport
@@ -118,9 +119,9 @@ func (p *painter) Free(obj fyne.CanvasObject) {
 	p.freeTexture(obj)
 }
 
-func (p *painter) Paint(obj fyne.CanvasObject, pos fyne.Position, frame fyne.Size) {
+func (p *painter) Paint(obj fyne.CanvasObject, pos fyne.Position, frame fyne.Size, clip *internal.ClipItem) {
 	if obj.Visible() {
-		p.drawObject(obj, pos, frame)
+		p.drawObject(obj, pos, frame, clip)
 	}
 }
 

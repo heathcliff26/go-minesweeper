@@ -12,6 +12,8 @@ import (
 	"fyne.io/fyne/v2/internal/painter"
 	"fyne.io/fyne/v2/internal/widget"
 	"fyne.io/fyne/v2/theme"
+
+	"github.com/mattn/go-runewidth"
 )
 
 const (
@@ -209,6 +211,8 @@ func (t *TextGrid) Text() string {
 			runes = append(runes, cell.Rune)
 			if cell.Rune == '\t' {
 				next = nextTab(col, t.tabWidth())
+			} else {
+				next = col + runewidth.StringWidth(string(cell.Rune))
 			}
 		}
 		if i < len(t.Rows)-1 {
@@ -249,6 +253,8 @@ func (t *TextGrid) RowText(row int) string {
 		runes = append(runes, cell.Rune)
 		if cell.Rune == '\t' {
 			next = nextTab(col, t.tabWidth())
+		} else {
+			next = col + runewidth.StringWidth(string(cell.Rune))
 		}
 	}
 	return string(runes)
@@ -399,14 +405,18 @@ func (t *TextGrid) parseRows(text string) []TextGridRow {
 	rows := make([]TextGridRow, len(lines))
 	for i, line := range lines {
 		cells := make([]TextGridCell, 0, len(line))
+		next := 0
+		col := 0
 		for _, r := range line {
 			cells = append(cells, TextGridCell{Rune: r})
 			if r == '\t' {
-				col := len(cells)
-				next := nextTab(col-1, t.tabWidth())
-				for i := col; i < next; i++ {
-					cells = append(cells, TextGridCell{Rune: ' '})
-				}
+				col = len(cells)
+				next = nextTab(col-1, t.tabWidth())
+			} else {
+				next = col - 1 + runewidth.StringWidth(string(r))
+			}
+			for i := col; i < next; i++ {
+				cells = append(cells, TextGridCell{Rune: ' '})
 			}
 		}
 		rows[i] = TextGridRow{Cells: cells}
@@ -499,6 +509,10 @@ func newTextGridContent(t *TextGrid) *textGridContent {
 	return grid
 }
 
+func (t *textGridContent) lineNumberWidth() int {
+	return len(strconv.Itoa(len(t.text.Rows)))
+}
+
 // CreateRenderer is a private method to Fyne which links this widget to its renderer
 func (t *textGridContent) CreateRenderer() fyne.WidgetRenderer {
 	r := &textGridContentRenderer{text: t}
@@ -554,6 +568,11 @@ func (t *textGridContentRenderer) MinSize() fyne.Size {
 	for _, row := range t.text.text.Rows {
 		longestRow = fyne.Max(longestRow, float32(len(row.Cells)))
 	}
+
+	if t.text.text.ShowLineNumbers {
+		longestRow += float32(t.text.lineNumberWidth()) + 1
+	}
+
 	return fyne.NewSize(t.text.cellSize.Width*longestRow,
 		t.text.cellSize.Height*float32(len(t.text.text.Rows)))
 }
@@ -776,7 +795,7 @@ func (t *textGridRow) refreshCells() {
 	i := 0
 	if t.text.text.ShowLineNumbers {
 		lineStr := []rune(strconv.Itoa(t.row + 1))
-		pad := t.lineNumberWidth() - len(lineStr)
+		pad := t.text.lineNumberWidth() - len(lineStr)
 		for ; i < pad; i++ {
 			t.setCellRune(' ', x, TextGridStyleWhitespace, rowStyle) // padding space
 			x++
@@ -839,10 +858,6 @@ func (t *TextGrid) tabWidth() int {
 	return t.TabWidth
 }
 
-func (t *textGridRow) lineNumberWidth() int {
-	return len(strconv.Itoa(t.text.rows + 1))
-}
-
 func (t *textGridRow) updateGridSize(size fyne.Size) {
 	bufCols := int(size.Width / t.text.cellSize.Width)
 	for _, row := range t.text.text.Rows {
@@ -856,7 +871,7 @@ func (t *textGridRow) updateGridSize(size fyne.Size) {
 		bufCols++
 	}
 	if t.text.text.ShowLineNumbers {
-		bufCols += t.lineNumberWidth()
+		bufCols += t.text.lineNumberWidth()
 	}
 
 	t.cols = bufCols
@@ -890,11 +905,14 @@ func (t *textGridRowRenderer) Layout(size fyne.Size) {
 }
 
 func (t *textGridRowRenderer) MinSize() fyne.Size {
-	longestRow := float32(0)
-	for _, row := range t.obj.text.text.Rows {
-		longestRow = fyne.Max(longestRow, float32(len(row.Cells)))
+	if t.obj.row >= len(t.obj.text.text.Rows) {
+		return fyne.NewSize(0, 0)
 	}
-	return fyne.NewSize(t.obj.text.cellSize.Width*longestRow, t.obj.text.cellSize.Height)
+
+	return fyne.NewSize(
+		t.obj.text.cellSize.Width*float32(len(t.obj.text.text.Rows[t.obj.row].Cells)),
+		t.obj.text.cellSize.Height,
+	)
 }
 
 func (t *textGridRowRenderer) Refresh() {
