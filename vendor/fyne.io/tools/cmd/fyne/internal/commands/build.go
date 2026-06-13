@@ -21,7 +21,7 @@ import (
 const (
 	baseCFLAGSRegular      = "-O2 -g -fexceptions -fasynchronous-unwind-tables -pipe"
 	baseCFLAGSRelease      = "-O3 -pipe"
-	hardeningCFLAGS        = "-Wp,-D_FORTIFY_SOURCE=3 -fstack-protector-strong"
+	hardeningCFLAGS        = "-D_FORTIFY_SOURCE=3 -fstack-protector-strong"
 	hardeningLDFLAGSLinux  = "-Wl,-z,relro,-z,now -Wl,--as-needed"
 	hardeningLDFLAGSDarwin = "-Wl,-dead_strip_dylibs"
 )
@@ -313,8 +313,6 @@ func (b *Builder) applyCAndLDFlags(env *[]string, goos string) {
 	}
 
 	switch targetArch() {
-	case "amd64":
-		cflags = append(cflags, "-fcf-protection")
 	case "arm64":
 		cflags = append(cflags, "-mbranch-protection=bti+pac-ret")
 	}
