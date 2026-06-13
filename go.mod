@@ -4,14 +4,14 @@ go 1.25.0
 
 require (
 	fyne.io/fyne/v2 v2.7.4
-	github.com/heathcliff26/godialog v0.1.13
+	github.com/heathcliff26/godialog v0.1.14
 	github.com/stretchr/testify v1.11.1
 	go.yaml.in/yaml/v3 v3.0.4
 )
 
 require (
 	fyne.io/systray v1.12.1 // indirect
-	fyne.io/tools v1.7.1 // indirect
+	fyne.io/tools v1.7.2 // indirect
 	github.com/BurntSushi/toml v1.5.0 // indirect
 	github.com/akavel/rsrc v0.10.2 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
@@ -55,7 +55,7 @@ require (
 	golang.org/x/mod v0.33.0 // indirect
 	golang.org/x/net v0.50.0 // indirect
 	golang.org/x/sync v0.20.0 // indirect
-	golang.org/x/sys v0.45.0 // indirect
+	golang.org/x/sys v0.46.0 // indirect
 	golang.org/x/text v0.35.0 // indirect
 	golang.org/x/tools v0.42.0 // indirect
 	golang.org/x/tools/go/vcs v0.1.0-deprecated // indirect
