@@ -27,6 +27,8 @@ jobs:
     uses: heathcliff26/ci/.github/workflows/golang-fyne-lint.yaml@main
     permissions:
       contents: read
+    with:
+      cmd: hack/containerized make lint
 
   gosec:
     uses: heathcliff26/ci/.github/workflows/golang-gosec.yaml@main
@@ -39,9 +41,8 @@ jobs:
     permissions:
       contents: read
     with:
-      cmd: hack/unit-tests.sh
-      os: ubuntu-latest
       coveralls: ${{ github.event_name == 'pull_request' || github.event_name == 'merge_group' }}
+      cmd: hack/containerized make test
 
   unit-tests-windows:
     uses: heathcliff26/ci/.github/workflows/golang-unit-tests.yaml@main

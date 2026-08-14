@@ -19,7 +19,7 @@ build: tools
 
 # Build all release artifacts
 release:
-	hack/release.sh
+	hack/containerized goreleaser release --skip=announce,publish,validate --clean -p 1
 
 # Generate coverage profile
 coverprofile:

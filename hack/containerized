@@ -1,0 +1,19 @@
+#!/bin/bash
+
+set -e
+
+base_dir="$(dirname "${BASH_SOURCE[0]}" | xargs realpath | xargs dirname)"
+
+# renovate: datasource=docker depName=ghcr.io/heathcliff26/go-fyne-ci extractVersion=^(?<version>.*)$
+export BUILDER_VERSION=202608141047
+export BUILDER_IMAGE="${BUILDER_IMAGE:-ghcr.io/heathcliff26/go-fyne-ci:$BUILDER_VERSION}"
+
+if [ ! -d "${HOME}/.cache" ]; then
+    mkdir "${HOME}/.cache"
+fi
+
+podman run -t --rm \
+    -v "${base_dir}:/app:z" \
+    -v "${HOME}/.cache":/root/.cache:z \
+    "${BUILDER_IMAGE}" \
+    "$@"
