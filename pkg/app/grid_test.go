@@ -3,10 +3,10 @@ package app
 import (
 	"encoding/json/v2"
 	"fmt"
-	"log/slog"
 	"os"
 	"runtime"
 	"testing"
+	"testing/synctest"
 	"time"
 
 	"github.com/heathcliff26/go-minesweeper/pkg/minesweeper"
@@ -474,77 +474,62 @@ func TestAutosolve(t *testing.T) {
 		}},
 	}
 
-	// Temporarily increase log level during test to debug https://github.com/heathcliff26/go-minesweeper/issues/245
-	defaultSlog := slog.Default()
-	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-		Level: slog.LevelDebug,
-	}))
-	slog.SetDefault(logger)
-	t.Cleanup(func() {
-		slog.SetDefault(defaultSlog)
-	})
-
 	for _, tCase := range tMatrix2 {
 		t.Run("QuitOn"+tCase.Name, func(t *testing.T) {
 			if tCase.Name != "NewGame" && runtime.GOOS == "windows" {
 				t.Skip("Skipping as the test follows a weird path on Windows, see https://github.com/heathcliff26/go-minesweeper/issues/228")
 			}
 
-			// Temporarily disable parallel test to debug https://github.com/heathcliff26/go-minesweeper/issues/245
-			// t.Parallel()
-			require := require.New(t)
+			synctest.Test(t, func(t *testing.T) {
+				require := require.New(t)
 
-			g, err := createGridFromSave("testdata/autosolve_win.sav", false)
-			require.NoError(err, "Should load savegame")
-			g.TappedTile(minesweeper.NewPos(0, 0))
+				g, err := createGridFromSave("testdata/autosolve_win.sav", false)
+				require.NoError(err, "Should load savegame")
+				g.TappedTile(minesweeper.NewPos(0, 0))
 
-			res := make(chan bool)
+				res := make(chan bool)
 
-			go func() {
-				res <- g.Autosolve(DEFAULT_AUTOSOLVE_DELAY)
-			}()
+				go func() {
+					res <- g.Autosolve(DEFAULT_AUTOSOLVE_DELAY)
+				}()
 
-			require.Eventually(func() bool {
-				return g.Tiles[5][0].Checked()
-			}, testTimeout, testDelay, "Should have started to run autosolve")
+				synctest.Wait()
+				require.True(g.Tiles[5][0].Checked(), "Should have started to run autosolve")
 
-			resetDone := make(chan bool)
-			go func() {
-				tCase.testFunc(g)
-				resetDone <- true
-			}()
+				resetDone := make(chan struct{})
+				go func() {
+					tCase.testFunc(g)
+					close(resetDone)
+				}()
 
-			require.Eventually(func() bool {
 				select {
-				case r := <-resetDone:
-					return r
-				default:
-					return false
+				case <-resetDone:
+					// Expected
+				case <-time.After(testTimeout):
+					t.Fatal("Should have reset the game")
 				}
-			}, testTimeout, testDelay, "Should have reset the game")
 
-			require.Eventually(func() bool {
 				select {
 				case r := <-res:
-					return r
-				default:
-					return false
+					require.True(r, "Autosolve should have stopped after running")
+				case <-time.After(testTimeout):
+					t.Fatal("Should have stopped running autosolve")
 				}
-			}, testTimeout, testDelay, "Should have stopped running autosolve")
 
-			require.Nil(g.autosolveBreak, "Should have reset the autosolveBreak channel")
-			require.Nil(g.autosolveDone, "Should have reset the autosolveDone channel")
+				require.Nil(g.autosolveBreak, "Should have reset the autosolveBreak channel")
+				require.Nil(g.autosolveDone, "Should have reset the autosolveDone channel")
 
-			isReset := true
-			for x := 0; x < g.Row(); x++ {
-				for y := 0; y < g.Col(); y++ {
-					if g.Tiles[x][y].Checked() {
-						isReset = false
-						break
+				isReset := true
+				for x := 0; x < g.Row(); x++ {
+					for y := 0; y < g.Col(); y++ {
+						if g.Tiles[x][y].Checked() {
+							isReset = false
+							break
+						}
 					}
 				}
-			}
-			assert.True(t, isReset, "Should have reset all tiles")
+				assert.True(t, isReset, "Should have reset all tiles")
+			})
 		})
 	}
 

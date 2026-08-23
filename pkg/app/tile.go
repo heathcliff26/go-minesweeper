@@ -130,7 +130,7 @@ func (t *Tile) TappedSecondary(_ *fyne.PointEvent) {
 		return
 	}
 
-	go t.Flag(!t.Flagged())
+	t.Flag(!t.Flagged())
 }
 
 // Double click on tile
