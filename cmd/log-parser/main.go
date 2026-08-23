@@ -2,7 +2,8 @@
 package main
 
 import (
-	"encoding/json"
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 	"flag"
 	"fmt"
 	"os"
@@ -60,7 +61,7 @@ func main() {
 	}
 	fmt.Printf("Found %d positions in log\n", len(p))
 
-	buf, err := json.MarshalIndent(p, "", "    ")
+	buf, err := json.Marshal(p, jsontext.WithIndent("  "))
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)

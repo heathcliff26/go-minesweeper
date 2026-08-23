@@ -3,7 +3,8 @@ package minesweeper
 import (
 	"crypto/sha512"
 	"encoding/hex"
-	"encoding/json"
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 	"os"
 	"path/filepath"
 )
@@ -65,7 +66,7 @@ func (s *Save) Save(path string) error {
 		path += SaveFileExtension
 	}
 
-	data, err := json.MarshalIndent(s, "", "    ")
+	data, err := json.Marshal(s, jsontext.WithIndent("  "))
 	if err != nil {
 		return err
 	}

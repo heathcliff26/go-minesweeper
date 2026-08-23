@@ -1,7 +1,7 @@
 package app
 
 import (
-	"encoding/json"
+	"encoding/json/v2"
 	"fmt"
 	"log/slog"
 	"os"
@@ -20,9 +20,9 @@ const (
 )
 
 type assistedModeTestConfig struct {
-	CheckPos minesweeper.Pos
-	Mines    []minesweeper.Pos
-	SafePos  []minesweeper.Pos
+	CheckPos minesweeper.Pos   `json:"checkPos"`
+	Mines    []minesweeper.Pos `json:"mines"`
+	SafePos  []minesweeper.Pos `json:"safePos"`
 }
 
 func TestNewGrid(t *testing.T) {

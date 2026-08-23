@@ -1,7 +1,7 @@
 package minesweeper
 
 import (
-	"encoding/json"
+	"encoding/json/v2"
 	"os"
 	"strconv"
 	"testing"
@@ -61,9 +61,9 @@ func TestAssistedMode(t *testing.T) {
 			buf, err := os.ReadFile("testdata/" + tCase + ".json")
 			require.NoError(err, "Should load test config")
 			var testConfig []struct {
-				CheckPos Pos
-				Mines    []Pos
-				SafePos  []Pos
+				CheckPos Pos   `json:"checkPos"`
+				Mines    []Pos `json:"mines"`
+				SafePos  []Pos `json:"safePos"`
 			}
 			err = json.Unmarshal(buf, &testConfig)
 			require.NoError(err, "Should parse test config")
