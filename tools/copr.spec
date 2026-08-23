@@ -11,7 +11,7 @@ License:        Apache-2.0
 URL:            https://github.com/heathcliff26/go-minesweeper
 Source:         %{url}/archive/refs/tags/v%{version}.tar.gz
 
-BuildRequires: golang >= 1.24
+BuildRequires: golang >= 1.27
 BuildRequires: gcc libXcursor-devel libXrandr-devel mesa-libGL-devel libXi-devel libXinerama-devel libXxf86vm-devel libxkbcommon-devel wayland-devel
 
 %global _description %{expand:
