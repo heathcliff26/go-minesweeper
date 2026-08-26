@@ -5,7 +5,7 @@ set -e
 base_dir="$(dirname "${BASH_SOURCE[0]}" | xargs realpath | xargs dirname)"
 
 # renovate: datasource=docker depName=ghcr.io/heathcliff26/go-fyne-ci extractVersion=^(?<version>.*)$
-export BUILDER_VERSION=202608201646
+export BUILDER_VERSION=202608261637
 export BUILDER_IMAGE="${BUILDER_IMAGE:-ghcr.io/heathcliff26/go-fyne-ci:$BUILDER_VERSION}"
 
 if [ ! -d "${HOME}/.cache" ]; then
