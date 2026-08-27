@@ -1,7 +1,7 @@
 GoVersionInfo
 ==========
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/josephspurrier/goversioninfo)](https://goreportcard.com/report/github.com/josephspurrier/goversioninfo) [![Build Status](https://travis-ci.org/josephspurrier/goversioninfo.svg)](https://travis-ci.org/josephspurrier/goversioninfo) [![Coverage Status](https://coveralls.io/repos/josephspurrier/goversioninfo/badge.svg)](https://coveralls.io/r/josephspurrier/goversioninfo) [![GoDoc](https://godoc.org/github.com/josephspurrier/goversioninfo?status.svg)](https://godoc.org/github.com/josephspurrier/goversioninfo)
+[![Go Report Card](https://goreportcard.com/badge/github.com/josephspurrier/goversioninfo)](https://goreportcard.com/report/github.com/josephspurrier/goversioninfo) [![Unit Tests](https://github.com/josephspurrier/goversioninfo/actions/workflows/unit-tests.yml/badge.svg)](https://github.com/josephspurrier/goversioninfo/actions/workflows/unit-tests.yml) [![Coverage Status](https://coveralls.io/repos/josephspurrier/goversioninfo/badge.svg)](https://coveralls.io/r/josephspurrier/goversioninfo) [![GoDoc](https://godoc.org/github.com/josephspurrier/goversioninfo?status.svg)](https://godoc.org/github.com/josephspurrier/goversioninfo)
 
 Microsoft Windows File Properties/Version Info and Icon Resource Generator for the Go Language
 
@@ -15,7 +15,7 @@ Example of the file properties you can set using this package:
 
 To install, run the following command:
 ~~~
-go get github.com/josephspurrier/goversioninfo/cmd/goversioninfo
+go install github.com/josephspurrier/goversioninfo/cmd/goversioninfo@latest
 ~~~
 
 Copy testdata/resource/versioninfo.json into your working directory and then modify the file with your own settings.
@@ -31,6 +31,81 @@ go generate
 go build
 ~~~
 
+## Architecture Detection
+
+The `-64` and `-arm` flags default based on the `GOARCH` environment variable
+(falling back to the host architecture if `GOARCH` is not set). This means
+`go generate` will automatically produce a resource file matching the target
+architecture without needing to pass `-64` or `-arm` explicitly. You can still
+override the defaults by passing the flags on the command line.
+
+## Version Synchronization
+
+The `FixedFileInfo` and `StringFileInfo` sections of the JSON config both contain
+`FileVersion` and `ProductVersion` fields. `FixedFileInfo` stores them as
+structured numeric components (`Major`, `Minor`, `Patch`, `Build`), while
+`StringFileInfo` stores them as free-form strings.
+
+When `Build()` is called, missing version fields are automatically filled in:
+
+- If `FixedFileInfo` has a version set but the corresponding `StringFileInfo`
+  string is empty, the string is generated (e.g., `"2.0.0.0"`).
+- If `StringFileInfo` has a parseable version string but the corresponding
+  `FixedFileInfo` fields are all zero, the struct is populated from the string.
+- If both are already set, neither is modified — but a warning is logged if the
+  numeric components do not match.
+- If a `StringFileInfo` version string cannot be parsed as a version number
+  (e.g., `x.y.z` or `x.y.z.w`), a warning is logged.
+
+This means you only need to specify version information in one place. For
+example, providing just `FixedFileInfo` is sufficient:
+
+```json
+{
+  "FixedFileInfo": {
+    "FileVersion": {
+      "Major": 2,
+      "Minor": 0,
+      "Patch": 0,
+      "Build": 0
+    },
+    "ProductVersion": {
+      "Major": 2,
+      "Minor": 0,
+      "Patch": 0,
+      "Build": 0
+    }
+  }
+}
+```
+
+## Application Icon (Window Title Bar)
+
+By default, Windows uses the system default icon for the window title bar. To
+set a custom window icon, goversioninfo embeds an icon resource with the
+`IDI_APPLICATION` resource ID (32512). This is the icon that Win32 applications
+load via `LoadIcon(hInstance, IDI_APPLICATION)`.
+
+When `IconPath` is set and `ApplicationIconPath` is not, the application icon
+defaults to the same file as `IconPath`. To use a different icon for the window
+title bar, set `ApplicationIconPath` explicitly:
+
+```json
+{
+    "IconPath": "icons/main.ico",
+    "ApplicationIconPath": "icons/small.ico"
+}
+```
+
+You can also set it via the command line:
+
+~~~
+goversioninfo -icon=icons/main.ico -application-icon=icons/small.ico
+~~~
+
+If neither `IconPath` nor `ApplicationIconPath` is set, no application icon is
+embedded.
+
 ## Command-Line Flags
 
 Complete list of the flags for goversioninfo:
@@ -43,7 +118,8 @@ Complete list of the flags for goversioninfo:
   -description="": StringFileInfo.FileDescription
   -example=false: dump out an example versioninfo.json to stdout
   -file-version="": StringFileInfo.FileVersion
-  -icon="": icon file name
+  -icon="": icon file name(s), separated by commas
+  -application-icon="": icon file for IDI_APPLICATION (window title bar); defaults to -icon if unset
   -internal-name="": StringFileInfo.InternalName
   -manifest="": manifest file name
   -skip-versioninfo=false: skip version info reading on true, allows setting just icon
@@ -94,6 +170,22 @@ ProductPrivatePart = ProductVersion.Build
 ```
 
 If you find any other differences, let me know.
+
+## Unicode Characters in versioninfo.json
+
+The `versioninfo.json` file **must be saved as UTF-8**. If your editor saves it in
+a different encoding (such as Windows-1252, which is the default for some Windows
+text editors), non-ASCII characters like the copyright symbol `©` will appear as
+`?` or `�` in the compiled executable's file properties.
+
+This happens because Go reads the JSON file as UTF-8. A `©` saved as
+Windows-1252 is a single byte (`0xA9`), which is invalid UTF-8. Go replaces
+invalid bytes with the Unicode replacement character (`U+FFFD`), which Windows
+then displays as `?`.
+
+To fix this, either:
+- Save `versioninfo.json` as UTF-8 in your text editor, or
+- Use the JSON escape sequence `©` instead of the literal `©` character
 
 ## Alternatives to this Tool
 

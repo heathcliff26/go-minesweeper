@@ -11,6 +11,7 @@ import (
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/internal"
 	"fyne.io/fyne/v2/lang"
 	"fyne.io/fyne/v2/storage"
 	"fyne.io/fyne/v2/storage/repository"
@@ -473,9 +474,10 @@ func (f *fileDialog) refreshDir(dir fyne.ListableURI) {
 	f.filesScroll.Refresh()
 }
 
-func (f *fileDialog) setLocation(dir fyne.URI) error {
+func (f *fileDialog) setLocation(dir fyne.URI) {
 	if dir == nil {
-		return errors.New("failed to open nil directory")
+		fyne.LogError("failed to open nil directory", nil)
+		return
 	}
 
 	if f.selectedID > -1 {
@@ -484,7 +486,8 @@ func (f *fileDialog) setLocation(dir fyne.URI) error {
 
 	list, err := storage.ListerForURI(dir)
 	if err != nil {
-		return err
+		fyne.LogError("unable to get ListableURI for "+dir.String(), err)
+		return
 	}
 
 	fyne.CurrentApp().Preferences().SetString(lastFolderKey, dir.String())
@@ -508,10 +511,7 @@ func (f *fileDialog) setLocation(dir fyne.URI) error {
 		currentParent := parent
 		f.breadcrumb.Add(
 			widget.NewButton(currentParent.Name(), func() {
-				err := f.setLocation(currentParent)
-				if err != nil {
-					fyne.LogError("Failed to set directory", err)
-				}
+				f.setLocation(currentParent)
 			}),
 		)
 	}
@@ -531,8 +531,6 @@ func (f *fileDialog) setLocation(dir fyne.URI) error {
 		f.open.Enable()
 	}
 	f.refreshDir(list)
-
-	return nil
 }
 
 func (f *fileDialog) setSelected(file fyne.URI, id int) {
@@ -698,7 +696,7 @@ func showFile(file *FileDialog) *fileDialog {
 	itemMin := d.newFileItem(storage.NewFileURI("filename.txt"), false, false).MinSize()
 	size := ui.MinSize().Add(itemMin.AddWidthHeight(itemMin.Width+pad*4, pad*2))
 
-	d.win = widget.NewModalPopUp(ui, file.parent.Canvas())
+	d.win = widget.NewModalPopUp(container.NewPadded(ui), file.parent.Canvas())
 	d.win.Resize(size)
 
 	d.setLocation(file.effectiveStartingDir())
@@ -752,11 +750,11 @@ func (f *FileDialog) Refresh() {
 // Resize dialog to the requested size, if there is sufficient space.
 // If the parent window is not large enough then the size will be reduced to fit.
 func (f *FileDialog) Resize(size fyne.Size) {
-	f.desiredSize = size
+	f.desiredSize = internal.MaxSizes(size, f.MinSize())
 	if f.dialog == nil {
 		return
 	}
-	f.dialog.win.Resize(size)
+	f.dialog.win.Resize(internal.MaxSizes(size, f.MinSize()))
 }
 
 // Hide hides the file dialog.
