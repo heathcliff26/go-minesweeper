@@ -73,6 +73,12 @@
     </screenshots>
 
     <releases>
+    <release version="v0.10.0" date="2026-08-27" type="stable">
+            <description>
+                <p>Add wayland support.</p>
+            </description>
+            <url type="details">https://github.com/heathcliff26/go-minesweeper/releases/tag/v0.10.0</url>
+        </release>
         <release version="v0.9.13" date="2026-06-13" type="stable">
             <description>
                 <p>Small maintenance update.</p>
