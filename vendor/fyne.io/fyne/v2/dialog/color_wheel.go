@@ -10,6 +10,7 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/driver/desktop"
+	"fyne.io/fyne/v2/internal"
 	internalwidget "fyne.io/fyne/v2/internal/widget"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
@@ -26,15 +27,15 @@ type colorWheel struct {
 	widget.BaseWidget
 	generator func(w, h int) image.Image
 	cache     draw.Image
-	onChange  func(int, int, int, int)
+	onChange  func(int, int, int, uint8)
 
 	Hue                   int // Range 0-360 (degrees)
 	Saturation, Lightness int // Range 0-100 (percent)
-	Alpha                 int // Range 0-255
+	Alpha                 uint8
 }
 
 // newColorWheel returns a new color area that triggers the given onChange callback when tapped.
-func newColorWheel(onChange func(int, int, int, int)) *colorWheel {
+func newColorWheel(onChange func(int, int, int, uint8)) *colorWheel {
 	a := &colorWheel{
 		onChange: onChange,
 	}
@@ -45,9 +46,7 @@ func newColorWheel(onChange func(int, int, int, int)) *colorWheel {
 		}
 		for x := 0; x < w; x++ {
 			for y := 0; y < h; y++ {
-				if c := a.colorAt(x, y, w, h); c != nil {
-					a.cache.Set(x, y, c)
-				}
+				a.cache.Set(x, y, a.colorAt(x, y, w, h))
 			}
 		}
 		return a.cache
@@ -86,7 +85,7 @@ func (a *colorWheel) MinSize() fyne.Size {
 }
 
 // SetHSLA updates the selected color in the wheel.
-func (a *colorWheel) SetHSLA(hue, saturation, lightness, alpha int) {
+func (a *colorWheel) SetHSLA(hue, saturation, lightness int, alpha uint8) {
 	if a.Hue == hue && a.Saturation == saturation && a.Lightness == lightness && a.Alpha == alpha {
 		return
 	}
@@ -126,10 +125,10 @@ func (a *colorWheel) colorAt(x, y, w, h int) color.Color {
 	saturation := int(radius / limit * 100.0)
 	red, green, blue := hslToRgb(hue, saturation, a.Lightness)
 	return &color.NRGBA{
-		R: uint8(red),
-		G: uint8(green),
-		B: uint8(blue),
-		A: uint8(a.Alpha),
+		R: red,
+		G: green,
+		B: blue,
+		A: a.Alpha,
 	}
 }
 
@@ -192,7 +191,7 @@ func (r *colorWheelRenderer) Layout(size fyne.Size) {
 }
 
 func (r *colorWheelRenderer) MinSize() fyne.Size {
-	return r.raster.MinSize().Max(fyne.NewSize(128, 128))
+	return internal.MaxSizes(r.raster.MinSize(), fyne.NewSize(128, 128)) //revive:disable-line:add-constant
 }
 
 func (r *colorWheelRenderer) Refresh() {

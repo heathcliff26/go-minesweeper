@@ -3,15 +3,17 @@ package goversioninfo
 
 import (
 	"bytes"
+	"encoding/binary"
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
+	"unicode/utf16"
 
 	"github.com/akavel/rsrc/binutil"
 	"github.com/akavel/rsrc/coff"
@@ -34,8 +36,9 @@ type VersionInfo struct {
 	Timestamp      bool
 	Buffer         bytes.Buffer
 	Structure      VSVersionInfo
-	IconPath       string `json:"IconPath"`
-	ManifestPath   string `json:"ManifestPath"`
+	IconPath            string `json:"IconPath"`
+	ManifestPath        string `json:"ManifestPath"`
+	ApplicationIconPath string `json:"ApplicationIconPath"`
 }
 
 // Translation with langid and charsetid.
@@ -112,17 +115,10 @@ func str2Uint32(s string) uint32 {
 }
 
 func padString(s string, zeros int) []byte {
-	b := make([]byte, 0, len([]rune(s))*2)
-	for _, x := range s {
-		tt := int32(x)
-
-		b = append(b, byte(tt))
-		if tt > 255 {
-			tt = tt >> 8
-			b = append(b, byte(tt))
-		} else {
-			b = append(b, byte(0))
-		}
+	u16 := utf16.Encode([]rune(s))
+	b := make([]byte, 0, len(u16)*2+zeros)
+	for _, v := range u16 {
+		b = binary.LittleEndian.AppendUint16(b, v)
 	}
 
 	for i := 0; i < zeros; i++ {
@@ -136,6 +132,41 @@ func padBytes(i int) []byte {
 	return make([]byte, i)
 }
 
+// NewFileVersion parses semver version string into a FileVersion object
+func NewFileVersion(version string) (FileVersion, error) {
+	re := regexp.MustCompile(`^(\d+)\.(\d+)\.(\d+)(?:\.(\d+))?`)
+
+	comps := re.FindStringSubmatch(version)
+	if len(comps) == 0 {
+		return FileVersion{}, fmt.Errorf("version expected to start from x.y.z")
+	}
+
+	// First match group is a whole matched string.
+	comps = comps[1:]
+	if comps[3] == "" {
+		comps = comps[:3]
+	}
+
+	nums := make([]int, len(comps))
+	for i := range nums {
+		n, err := strconv.Atoi(comps[i])
+		if err != nil {
+			return FileVersion{}, fmt.Errorf("%s: %s", comps[i], err)
+		}
+		nums[i] = n
+	}
+
+	res := FileVersion{
+		Major: nums[0],
+		Minor: nums[1],
+		Patch: nums[2],
+	}
+	if len(nums) == 4 {
+		res.Build = nums[3]
+	}
+	return res, nil
+}
+
 func (f FileVersion) getVersionHighString() string {
 	return fmt.Sprintf("%04x%04x", f.Major, f.Minor)
 }
@@ -144,9 +175,52 @@ func (f FileVersion) getVersionLowString() string {
 	return fmt.Sprintf("%04x%04x", f.Patch, f.Build)
 }
 
+// IsZero returns true if all version components are zero.
+func (f FileVersion) IsZero() bool {
+	return f.Major == 0 && f.Minor == 0 && f.Patch == 0 && f.Build == 0
+}
+
 // GetVersionString returns a string representation of the version
 func (f FileVersion) GetVersionString() string {
 	return fmt.Sprintf("%d.%d.%d.%d", f.Major, f.Minor, f.Patch, f.Build)
+}
+
+// fillVersions syncs version info between FixedFileInfo and StringFileInfo.
+// If one section has version data and the other doesn't, the missing section
+// is populated automatically. Warnings are logged when StringFileInfo version
+// strings cannot be parsed or when the two sections have conflicting values.
+func (vi *VersionInfo) fillVersions() {
+	vi.fillVersion("FileVersion",
+		&vi.FixedFileInfo.FileVersion, &vi.StringFileInfo.FileVersion)
+	vi.fillVersion("ProductVersion",
+		&vi.FixedFileInfo.ProductVersion, &vi.StringFileInfo.ProductVersion)
+}
+
+func (vi *VersionInfo) fillVersion(name string, fixed *FileVersion, str *string) {
+	fixedZero := fixed.IsZero()
+	strEmpty := *str == ""
+
+	switch {
+	case !fixedZero && strEmpty:
+		*str = fixed.GetVersionString()
+	case fixedZero && !strEmpty:
+		v, err := NewFileVersion(*str)
+		if err != nil {
+			log.Printf("Warning: StringFileInfo.%s %q could not be parsed: %v", name, *str, err)
+			return
+		}
+		*fixed = v
+	case !fixedZero && !strEmpty:
+		v, err := NewFileVersion(*str)
+		if err != nil {
+			log.Printf("Warning: StringFileInfo.%s %q could not be parsed: %v", name, *str, err)
+			return
+		}
+		if *fixed != v {
+			log.Printf("Warning: FixedFileInfo.%s (%s) and StringFileInfo.%s (%s) do not match",
+				name, fixed.GetVersionString(), name, *str)
+		}
+	}
 }
 
 func (t Translation) getTranslationString() string {
@@ -182,13 +256,11 @@ func (vi *VersionInfo) Walk() {
 // arch must be an architecture string accepted by coff.Arch, like "386" or "amd64"
 func (vi *VersionInfo) WriteSyso(filename string, arch string) error {
 
-	// Channel for generating IDs
-	newID := make(chan uint16)
-	go func() {
-		for i := uint16(1); ; i++ {
-			newID <- i
-		}
-	}()
+	var i uint16
+	newID := func() uint16 {
+		i++
+		return i
+	}
 
 	// Create a new RSRC section
 	rsrc := coff.NewRSRC()
@@ -211,13 +283,25 @@ func (vi *VersionInfo) WriteSyso(filename string, arch string) error {
 		}
 		defer manifest.Close()
 
-		id := <-newID
+		id := newID()
 		rsrc.AddResource(rtManifest, id, manifest)
 	}
 
 	// If icon is enabled
 	if vi.IconPath != "" {
 		if err := addIcon(rsrc, vi.IconPath, newID); err != nil {
+			return err
+		}
+	}
+
+	// IDI_APPLICATION (32512) is the icon shown in the window title bar.
+	// Default to IconPath if not explicitly set.
+	appIcon := vi.ApplicationIconPath
+	if appIcon == "" {
+		appIcon = vi.IconPath
+	}
+	if appIcon != "" {
+		if err := addIconWithGroupID(rsrc, appIcon, newID, 32512); err != nil {
 			return err
 		}
 	}
@@ -230,7 +314,7 @@ func (vi *VersionInfo) WriteSyso(filename string, arch string) error {
 
 // WriteHex creates a hex file for debugging version info
 func (vi *VersionInfo) WriteHex(filename string) error {
-	return ioutil.WriteFile(filename, vi.Buffer.Bytes(), 0655)
+	return os.WriteFile(filename, vi.Buffer.Bytes(), 0655)
 }
 
 // WriteGo creates a Go file that contains the version info so you can access

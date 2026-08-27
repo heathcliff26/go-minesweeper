@@ -6,12 +6,14 @@ import (
 	_ "image/png" // for the icon
 	"math"
 	"runtime"
+	"slices"
 	"time"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/driver/desktop"
+	"fyne.io/fyne/v2/internal"
 	"fyne.io/fyne/v2/internal/app"
 	"fyne.io/fyne/v2/internal/async"
 	"fyne.io/fyne/v2/internal/build"
@@ -39,7 +41,7 @@ func (w *window) SetTitle(title string) {
 }
 
 func (w *window) FullScreen() bool {
-	return w.fullScreen
+	return w.fullScreen || w.fullScreenSecondary
 }
 
 // minSizeOnScreen gets the padded minimum size of a window content in screen pixels
@@ -54,9 +56,9 @@ func (w *window) screenSize(canvasSize fyne.Size) (int, int) {
 }
 
 func (w *window) Resize(size fyne.Size) {
-	w.canvas.size = size
+	w.canvas.Resize(size)
 	// we cannot perform this until window is prepared as we don't know its scale!
-	bigEnough := size.Max(w.canvas.canvasSize(w.canvas.Content().MinSize()))
+	bigEnough := internal.MaxSizes(size, w.canvas.canvasSize(w.canvas.Content().MinSize()))
 	w.runOnMainWhenCreated(func() {
 		width, height := scale.ToScreenCoordinate(w.canvas, bigEnough.Width), scale.ToScreenCoordinate(w.canvas, bigEnough.Height)
 		if w.fixedSize || !w.visible { // fixed size ignores future `resized` and if not visible we may not get the event
@@ -164,8 +166,12 @@ func (w *window) Show() {
 			w.xpos, w.ypos = view.GetPos()
 		}
 
-		if w.fullScreen { // this does not work if called before viewport.Show()
-			w.doSetFullScreen(true)
+		if w.fullScreenSecondary {
+			w.doSetFullScreen2(true)
+		} else {
+			if w.fullScreen { // this does not work if called before viewport.Show()
+				w.doSetFullScreen(true)
+			}
 		}
 
 		// show top canvas element
@@ -173,6 +179,8 @@ func (w *window) Show() {
 			w.RunWithContext(func() {
 				w.driver.repaintWindow(w)
 			})
+			// Update accessibility tree
+			w.updateAccessibility()
 		}
 	})
 }
@@ -199,6 +207,9 @@ func (w *window) Close() {
 			w.onClosed = nil // avoid possibility of calling twice
 			fn()
 		}
+
+		// Clean up accessibility resources
+		w.cleanupAccessibilityForWindow()
 
 		w.closing = true
 		w.viewport.SetShouldClose(true)
@@ -231,6 +242,8 @@ func (w *window) SetContent(content fyne.CanvasObject) {
 
 	async.EnsureMain(func() {
 		w.RunWithContext(w.RescaleContext)
+		// Update accessibility tree when content changes
+		w.updateAccessibility()
 	})
 }
 
@@ -250,6 +263,7 @@ func (w *window) processClosed() {
 // destroy this window and, if it's the last window quit the app
 func (w *window) destroy(d *gLDriver) {
 	cache.CleanCanvas(w.canvas)
+	w.frame.free()
 
 	if w.master {
 		d.Quit()
@@ -448,6 +462,8 @@ func (w *window) mouseOut() {
 }
 
 func (w *window) processMouseClicked(button desktop.MouseButton, action action, modifiers fyne.KeyModifier) {
+	w.ensurePositionProcessed()
+
 	w.mouseDragPos = w.mousePos
 	mousePos := w.mousePos
 	mouseDragStarted := w.mouseDragStarted
@@ -485,19 +501,17 @@ func (w *window) processMouseClicked(button desktop.MouseButton, action action, 
 		w.mouseClickedHandleMouseable(mev, action, wid)
 	}
 
-	if wid, ok := co.(fyne.Focusable); !ok || wid != w.canvas.Focused() {
+	focused := w.canvas.Focused()
+	if wid, ok := co.(fyne.Focusable); !ok || wid != focused {
 		ignore := false
-		_, _, _ = w.findObjectAtPositionMatching(w.canvas, mousePos, func(object fyne.CanvasObject) bool {
-			switch object.(type) {
-			case fyne.Focusable:
-				ignore = true
-				return true
-			}
+		if focusedObj, ok := focused.(fyne.CanvasObject); ok {
+			found, _, _ := w.findObjectAtPositionMatching(w.canvas, mousePos, func(object fyne.CanvasObject) bool {
+				return object == focusedObj
+			})
+			ignore = found != nil
+		}
 
-			return false
-		})
-
-		if !ignore { // if a parent item under the mouse has focus then ignore this tap unfocus
+		if !ignore { // if the currently focused widget is under the mouse then ignore this tap unfocus
 			w.canvas.Unfocus()
 		}
 	}
@@ -534,7 +548,21 @@ func (w *window) processMouseClicked(button desktop.MouseButton, action action, 
 			w.mousePressed = co
 		case release:
 			if co == mousePressed && button == desktop.MouseButtonSecondary && altTap {
+				prevOverlay := w.canvas.Overlays().Top()
 				secondary.TappedSecondary(ev)
+
+				// if the secondary tap dismissed an overlay (rather than opening a new
+				// one on top), forward the event to the widget underneath
+				if prevOverlay != nil && !slices.Contains(w.canvas.Overlays().List(), prevOverlay) {
+					co2, pos2, _ := w.findObjectAtPositionMatching(w.canvas, mousePos, func(object fyne.CanvasObject) bool {
+						_, ok := object.(fyne.SecondaryTappable)
+						return ok
+					})
+					if sec2, ok := co2.(fyne.SecondaryTappable); ok {
+						ev2 := &fyne.PointEvent{Position: pos2, AbsolutePosition: mousePos}
+						sec2.TappedSecondary(ev2)
+					}
+				}
 			}
 		}
 	}
@@ -542,6 +570,13 @@ func (w *window) processMouseClicked(button desktop.MouseButton, action action, 
 	// Check for double click/tap on left mouse button
 	if action == release && button == desktop.MouseButtonPrimary && !mouseDragStarted {
 		w.mouseClickedHandleTapDoubleTap(co, ev)
+	}
+}
+
+func (w *window) ensurePositionProcessed() {
+	if !w.mousePosUpdateProcessed {
+		w.processMouseMoved(w.newMousePosX, w.newMousePosY)
+		w.mousePosUpdateProcessed = true
 	}
 }
 
@@ -742,6 +777,15 @@ func (w *window) processFocused(focus bool) {
 		}
 		curWindow = w
 		w.canvas.FocusGained()
+
+		if build.HasNativeMenu {
+			setupNativeMenu(w, w.mainmenu)
+		}
+
+		if build.IsWayland {
+			w.frame.markReady()
+			w.canvas.SetDirty()
+		}
 	} else {
 		w.canvas.FocusLost()
 		w.mousePos = fyne.Position{}
@@ -788,9 +832,14 @@ func (w *window) triggersShortcut(localizedKeyName fyne.KeyName, key fyne.KeyNam
 			shortcut = &fyne.ShortcutPaste{
 				Clipboard: NewClipboard(),
 			}
-		case fyne.KeyC, fyne.KeyInsert: // detect copy shortcut
+		case fyne.KeyC: // detect copy shortcut
 			shortcut = &fyne.ShortcutCopy{
 				Clipboard: NewClipboard(),
+			}
+		case fyne.KeyInsert: // detect copy shortcut (alternative
+			shortcut = &fyne.ShortcutCopy{
+				Clipboard: NewClipboard(),
+				Secondary: true,
 			}
 		case fyne.KeyX: // detect cut shortcut
 			shortcut = &fyne.ShortcutCut{
@@ -803,13 +852,15 @@ func (w *window) triggersShortcut(localizedKeyName fyne.KeyName, key fyne.KeyNam
 
 	if modifier == fyne.KeyModifierShift {
 		switch keyName {
-		case fyne.KeyInsert: // detect paste shortcut
+		case fyne.KeyInsert: // detect paste shortcut (alternative)
 			shortcut = &fyne.ShortcutPaste{
 				Clipboard: NewClipboard(),
+				Secondary: true,
 			}
-		case fyne.KeyDelete: // detect cut shortcut
+		case fyne.KeyDelete: // detect cut shortcut (alternative)
 			shortcut = &fyne.ShortcutCut{
 				Clipboard: NewClipboard(),
+				Secondary: true,
 			}
 		}
 	}
@@ -945,7 +996,10 @@ func (d *gLDriver) createWindow(title string, decorate bool) fyne.Window {
 
 	d.init()
 
-	ret = &window{title: title, decorate: decorate, driver: d}
+	// A window starts with no mouse move outstanding: the zero value would read
+	// as one pending at (0,0), which the first click would then apply.
+	ret = &window{title: title, decorate: decorate, driver: d, mousePosUpdateProcessed: true}
+	ret.frame = newPresentGate(ret)
 	ret.canvas = newCanvas()
 	ret.canvas.context = ret
 	ret.SetIcon(ret.icon)
@@ -965,8 +1019,12 @@ func (w *window) doShowAgain() {
 	view.Show()
 	w.visible = true
 
-	if w.fullScreen {
-		w.doSetFullScreen(true)
+	if w.fullScreenSecondary {
+		w.doSetFullScreen2(true)
+	} else {
+		if w.fullScreen {
+			w.doSetFullScreen(true)
+		}
 	}
 
 	w.RunWithContext(func() {
