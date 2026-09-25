@@ -22,8 +22,8 @@ var (
 	TileBackgroundColor = color.Gray16{^uint16(0)}
 	TileExplodedColor   = color.RGBA{240, 10, 20, alpha}
 
-	TileSize             = fyne.NewSize(32, 32)
-	TileTextSize float32 = 23 // Biggest we can go with TileSize of 32^2
+	TileSize                   = fyne.NewSize(32, 32)
+	TileTextSizeFactor float32 = 0.75
 )
 
 const alpha = ^uint8(0)
@@ -96,12 +96,11 @@ func (t *Tile) CreateRenderer() fyne.WidgetRenderer {
 	t.ExtendBaseWidget(t)
 
 	t.background = canvas.NewRectangle(theme.Color(colorNameTileDefault))
-	t.background.SetMinSize(TileSize)
 
 	t.label = canvas.NewText("", color.White)
 	t.label.TextStyle.Bold = true
 	t.label.Alignment = fyne.TextAlignCenter
-	t.label.TextSize = TileTextSize
+	t.label.TextSize = TileSize.Height * TileTextSizeFactor
 	t.label.Hidden = true
 
 	t.icon = widget.NewIcon(nil)
@@ -110,6 +109,17 @@ func (t *Tile) CreateRenderer() fyne.WidgetRenderer {
 
 	content := container.NewStack(t.background, t.icon, t.label)
 	return widget.NewSimpleRenderer(content)
+}
+
+// Implements widget MinSize
+func (t *Tile) MinSize() fyne.Size {
+	return TileSize
+}
+
+// Extends widget Resize
+func (t *Tile) Resize(size fyne.Size) {
+	t.BaseWidget.Resize(size)
+	t.label.TextSize = t.Size().Height * TileTextSizeFactor
 }
 
 // Left mouse click on tile

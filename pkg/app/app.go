@@ -76,7 +76,6 @@ func New() *App {
 	a.NewGrid(preferences.Difficulty())
 	a.setGameAlgorithm(preferences.GameAlgorithm)
 
-	a.main.SetFixedSize(true)
 	a.main.Show()
 
 	saveDir, err := locations.SaveFolder()
@@ -188,10 +187,15 @@ func (a *App) makeMenu(preferences Preferences) {
 // Update the content of the app and resize the window to make it fit
 func (a *App) setContent() {
 	content := container.NewPadded(a.grid.GetCanvasObject())
-	content.Resize(content.MinSize())
-
 	a.main.SetContent(content)
-	a.main.Resize(content.MinSize())
+
+	padding := a.main.Canvas().Size().Subtract(a.main.Content().Size())
+	a.main.Resize(content.MinSize().Add(padding))
+
+	// Need to wait a short time and then refresh the canvas.
+	// This fixes the content is displayed incorrectly.
+	time.Sleep(50 * time.Millisecond)
+	fyne.Do(a.main.Canvas().Content().Refresh)
 }
 
 // Show a dialog for setting a custom difficulty
