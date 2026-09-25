@@ -7,18 +7,20 @@ import (
 // Acts like stack, but enforces a fixed aspect ratio
 type FixedRatioLayout struct {
 	width, height float32
+	minWidth      float32
 }
 
-func NewFixedRatioLayout(width, height int) *FixedRatioLayout {
+func NewFixedRatioLayout(width, height int, minWidth float32) *FixedRatioLayout {
 	return &FixedRatioLayout{
-		width:  float32(width),
-		height: float32(height),
+		width:    float32(width),
+		height:   float32(height),
+		minWidth: minWidth,
 	}
 }
 
-// Return the maximum size of the given objects
+// Return the minimum size of the biggest object, enforcing the minimum width
 func (frl *FixedRatioLayout) MinSize(objects []fyne.CanvasObject) fyne.Size {
-	minSize := fyne.NewSize(0, 0)
+	minSize := fyne.NewSize(frl.minWidth, frl.height*frl.minWidth/frl.width)
 	for _, o := range objects {
 		minSize = minSize.Max(o.MinSize())
 	}

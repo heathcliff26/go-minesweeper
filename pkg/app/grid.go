@@ -101,7 +101,7 @@ func (g *MinesweeperGrid) GetCanvasObject() fyne.CanvasObject {
 		rows[x] = container.NewGridWithColumns(g.Col(), col...)
 	}
 	body := newBorder(container.NewGridWithRows(g.Row(), rows...))
-	body = container.New(NewFixedRatioLayout(g.Col(), g.Row()), body)
+	body = container.New(NewFixedRatioLayout(g.Col(), g.Row(), head.MinSize().Width), body)
 	return container.NewBorder(head, nil, nil, nil, body)
 }
 

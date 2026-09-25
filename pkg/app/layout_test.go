@@ -10,19 +10,19 @@ import (
 )
 
 func TestFixedRatioLayout(t *testing.T) {
-	layout := NewFixedRatioLayout(16, 9)
+	layout := NewFixedRatioLayout(16, 9, 32)
 	t.Run("New", func(t *testing.T) {
 		assert := assert.New(t)
 
-		layout := NewFixedRatioLayout(16, 9)
 		assert.Equal(float32(16), layout.width, "Should match width")
 		assert.Equal(float32(9), layout.height, "Should match height")
+		assert.Equal(float32(32), layout.minWidth, "Should match minimum width")
 	})
 	t.Run("MinSize", func(t *testing.T) {
 		assert := assert.New(t)
 
 		size := layout.MinSize([]fyne.CanvasObject{})
-		assert.Equal(fyne.NewSize(0, 0), size, "Should return null size")
+		assert.Equal(fyne.NewSize(32, 18), size, "Should return default size")
 
 		l1 := canvas.NewText("Hello", color.White)
 		l1.TextSize = 16
