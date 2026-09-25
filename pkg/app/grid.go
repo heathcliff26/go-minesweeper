@@ -101,7 +101,8 @@ func (g *MinesweeperGrid) GetCanvasObject() fyne.CanvasObject {
 		rows[x] = container.NewGridWithColumns(g.Col(), col...)
 	}
 	body := newBorder(container.NewGridWithRows(g.Row(), rows...))
-	return container.NewVBox(head, body)
+	body = container.New(NewFixedRatioLayout(g.Col(), g.Row()), body)
+	return container.NewBorder(head, nil, nil, nil, body)
 }
 
 // Called by the child tiles to signal they have been tapped.

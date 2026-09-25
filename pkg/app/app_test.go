@@ -39,7 +39,6 @@ func TestApp(t *testing.T) {
 		assert.NotEmpty(a.main)
 		a.setContent()
 		assert.Equal(a.Version.Name, a.main.Title())
-		assert.True(a.main.FixedSize(), "Window size should be fixed")
 	})
 	t.Run("Version", func(t *testing.T) {
 		assert := assert.New(t)

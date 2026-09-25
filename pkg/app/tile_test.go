@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/theme"
 	"github.com/heathcliff26/go-minesweeper/assets"
 	"github.com/heathcliff26/go-minesweeper/pkg/minesweeper"
@@ -37,15 +38,17 @@ func TestNewTile(t *testing.T) {
 		assert := assert.New(t)
 
 		assert.Equal(theme.Color(colorNameTileDefault), tile.background.FillColor)
-		assert.Equal(TileSize, tile.background.MinSize())
 
 		assert.Equal("", tile.label.Text)
 		assert.True(tile.label.TextStyle.Bold)
-		assert.Equal(TileTextSize, tile.label.TextSize)
+		assert.Equal(TileSize.Height*TileTextSizeFactor, tile.label.TextSize)
 		assert.True(tile.label.Hidden)
 
 		assert.Equal(TileSize, tile.icon.Size())
 		assert.True(tile.icon.Hidden)
+	})
+	t.Run("MinSize", func(t *testing.T) {
+		assert.Equal(t, TileSize, tile.MinSize())
 	})
 }
 
@@ -372,11 +375,10 @@ func TestTileReset(t *testing.T) {
 	assert.Equal(minesweeper.Unknown, tile.field.Content)
 
 	assert.Equal(theme.Color(colorNameTileDefault), tile.background.FillColor)
-	assert.Equal(TileSize, tile.background.MinSize())
 
 	assert.Equal("", tile.label.Text)
 	assert.True(tile.label.TextStyle.Bold)
-	assert.Equal(TileTextSize, tile.label.TextSize)
+	assert.Equal(TileSize.Height*TileTextSizeFactor, tile.label.TextSize)
 	assert.True(tile.label.Hidden)
 
 	assert.True(tile.icon.Hidden)
@@ -414,4 +416,17 @@ func TestTileUntappable(t *testing.T) {
 	game.GameWon = true
 	assert.True(tile.untappable())
 	game.GameWon = false
+}
+
+func TestTileResize(t *testing.T) {
+	g := NewMinesweeperGrid(minesweeper.Difficulties()[DEFAULT_DIFFICULTY], false)
+	tile := g.Tiles[1][2]
+	tile.CreateRenderer()
+
+	assert := assert.New(t)
+
+	s := fyne.NewSize(10, 20)
+	tile.Resize(s)
+	assert.Equal(s, tile.Size(), "Should have new size")
+	assert.Equal(s.Height*TileTextSizeFactor, tile.label.TextSize, "Should have scaled text size")
 }
