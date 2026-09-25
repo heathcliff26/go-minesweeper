@@ -3,12 +3,19 @@ name: CI
 
 on:
   workflow_dispatch:
+    inputs:
+      codeql:
+        description: "Upload checks to CodeQL"
+        type: boolean
+        default: true
+        required: false
   workflow_call:
     inputs:
-      release:
-        description: "Is a release"
+      codeql:
+        description: "Upload checks to CodeQL"
         type: boolean
         default: false
+        required: false
   push:
     branches: ["main"]
     paths:
@@ -35,6 +42,8 @@ jobs:
     permissions:
       contents: read
       security-events: write
+    with:
+      upload: ${{ inputs.codeql || true }}
 
   unit-tests-linux:
     uses: heathcliff26/ci/.github/workflows/golang-unit-tests.yaml@main

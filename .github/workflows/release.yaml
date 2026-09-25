@@ -19,8 +19,6 @@ jobs:
     permissions:
       contents: read
       security-events: write
-    with:
-      release: true
 
   release:
     uses: heathcliff26/ci/.github/workflows/golang-fyne-release.yaml@main
