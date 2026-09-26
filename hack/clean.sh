@@ -4,8 +4,8 @@ set -e
 
 base_dir="$(dirname "${BASH_SOURCE[0]}" | xargs realpath)/.."
 
-folders=("bin" "coverprofiles" "dist" "saves" "tmp" "x86_64" "aarch64")
-files=("settings.yaml" "coverprofile.out")
+folders=("bin" "coverprofiles" "dist" "saves" "tmp" "x86_64" "aarch64" ".idea")
+files=("settings.yaml" "coverprofile.out" "debug.keystore" "go-minesweeper.iml")
 
 for folder in "${folders[@]}"; do
     if ! [ -e "${base_dir}/${folder}" ]; then

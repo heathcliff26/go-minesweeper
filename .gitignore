@@ -15,3 +15,8 @@ coverprofile.out
 /tmp
 /x86_64
 /aarch64
+
+# Ignore android files
+/.idea
+/go-minesweeper.iml
+/*.keystore
