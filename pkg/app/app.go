@@ -3,6 +3,7 @@ package app
 import (
 	"log/slog"
 	"os"
+	"runtime"
 	"time"
 
 	"fyne.io/fyne/v2"
@@ -103,9 +104,13 @@ func (a *App) makeMenu(preferences Preferences) {
 	replayOption := fyne.NewMenuItem("Replay", func() {
 		a.grid.Replay()
 	})
-	loadOption := fyne.NewMenuItem("Load", a.loadSave)
-	saveOption := fyne.NewMenuItem("Save", a.saveGame)
-	a.gameMenu = []*fyne.MenuItem{newGameOption, replayOption, fyne.NewMenuItemSeparator(), loadOption, saveOption}
+	a.gameMenu = []*fyne.MenuItem{newGameOption, replayOption, fyne.NewMenuItemSeparator()}
+	if runtime.GOOS != "android" {
+		loadOption := fyne.NewMenuItem("Load", a.loadSave)
+		saveOption := fyne.NewMenuItem("Save", a.saveGame)
+		a.gameMenu = append(a.gameMenu, fyne.NewMenuItemSeparator(), loadOption, saveOption)
+	}
+
 	gameMenu := fyne.NewMenu("Game", a.gameMenu...)
 
 	difficulties := minesweeper.Difficulties()
