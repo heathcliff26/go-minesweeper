@@ -8,7 +8,7 @@ Version = "0.10.0"
 Build = 0
 
 [AdaptiveIcon]
-Foreground = "packages/io.github.heathcliff26.go-minesweeper.png"
+Foreground = "tools/android-icon.png"
 
 [Migrations]
 fyneDo = true
