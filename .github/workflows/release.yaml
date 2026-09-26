@@ -28,4 +28,6 @@ jobs:
     with:
       draft: ${{ inputs.draft }}
       update: ${{ inputs.update }}
+      release-artifacts: "release/*"
+      artifacts: "{desktop,android}"
     secrets: inherit

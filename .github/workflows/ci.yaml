@@ -78,7 +78,21 @@ jobs:
       - validate
     with:
       cmd: "make release"
-      artifact-name: "artifacts"
+      artifact-name: "desktop"
       artifact: |
         dist/*.tar.gz
         dist/*.zip
+
+  build-android:
+    uses: heathcliff26/ci/.github/workflows/golang-android-build.yaml@main
+    permissions:
+      contents: read
+    needs:
+      - lint
+      - validate
+    with:
+      artifact: "dist/*"
+      artifact-name: "android"
+      cmd: "make android"
+      sign: ${{ github.event_name != 'pull_request' && github.event_name != 'merge_group' }}
+    secrets: inherit
