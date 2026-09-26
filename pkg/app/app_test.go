@@ -21,7 +21,7 @@ func init() {
 }
 
 func TestApp(t *testing.T) {
-	overrideSettingsPath = "not-a-file.yaml"
+	overrideSettingsPath = filepath.Join(t.TempDir(), "settings.yaml")
 	t.Cleanup(func() {
 		overrideSettingsPath = ""
 	})
@@ -128,6 +128,18 @@ func TestApp(t *testing.T) {
 				}
 			})
 		}
+	})
+	t.Run("OnStopped", func(t *testing.T) {
+		assert := assert.New(t)
+		require := require.New(t)
+
+		a.onStopped()
+		expected := CreatePreferencesFromApp(a)
+
+		result, err := LoadPreferences()
+		require.NoError(err, "Should have loaded preferences")
+
+		assert.Equal(expected, result, "Preferences should be saved")
 	})
 }
 
