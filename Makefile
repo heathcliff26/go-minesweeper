@@ -21,6 +21,10 @@ build: tools
 release:
 	hack/containerized goreleaser release --skip=announce,publish,validate --clean -p 1
 
+# Build and package the gui app for android
+android:
+	hack/containerized-android.sh
+
 # Generate coverage profile
 coverprofile:
 	hack/coverprofile.sh
@@ -73,6 +77,7 @@ help:
 	default \
 	build \
 	release \
+	android \
 	test \
 	lint \
 	coverprofile \
