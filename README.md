@@ -22,6 +22,7 @@ This is an implementation of minesweeper in golang, made with the ui framework f
     - [Download binary](#download-binary)
       - [Uninstalling](#uninstalling)
     - [Fedora Copr](#fedora-copr)
+    - [Android](#android)
   - [Screenshots](#screenshots)
   - [Potential features](#potential-features)
 
@@ -91,6 +92,17 @@ sudo dnf copr enable heathcliff26/games
 ```bash
 sudo dnf install go-minesweeper
 ```
+
+### Android
+
+**Note:** The android builds are experimental, use at your own risk.
+
+You can download the latest release from [here](https://github.com/heathcliff26/go-minesweeper/releases/latest).
+For smaller file size, choose the apk matching your phones cpu architecture.
+
+Alternatively, you can install and automatically update the app by using [Obtainium](https://obtainium.imranr.dev/):
+
+[![](img/badges/badge_obtainium.png)](https://apps.obtainium.imranr.dev/redirect?r=obtainium://app/%7B%22id%22%3A%20%22io.github.heathcliff26.gominesweeper%22%2C%20%22url%22%3A%20%22https%3A%2F%2Fgithub.com%2Fheathcliff26%2Fgo-minesweeper%22%2C%20%22author%22%3A%20%22Heathcliff%22%2C%20%22name%22%3A%20%22go-minesweeper%22%7D)
 
 ## Screenshots
 
