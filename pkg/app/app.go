@@ -84,20 +84,14 @@ func New() *App {
 	}
 	a.filedialog.SetInitialDirectory(saveDir)
 
+	a.app.Lifecycle().SetOnStopped(a.onStopped)
+
 	return a
 }
 
 // Simply calls app.Run()
 func (a *App) Run() {
 	a.app.Run()
-
-	preferences := CreatePreferencesFromApp(a)
-	err := preferences.Save()
-	if err != nil {
-		slog.Error("Failed to save preferences for next time", "err", err)
-	} else {
-		slog.Info("Saved preferences")
-	}
 }
 
 // Create the main menu bar
@@ -310,4 +304,14 @@ func (a *App) setGameAlgorithm(id int) {
 		item.Checked = i == id
 	}
 	a.grid.GameAlgorithm = id
+}
+
+func (a *App) onStopped() {
+	preferences := CreatePreferencesFromApp(a)
+	err := preferences.Save()
+	if err != nil {
+		slog.Error("Failed to save preferences for next time", "err", err)
+	} else {
+		slog.Info("Saved preferences")
+	}
 }
