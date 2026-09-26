@@ -49,13 +49,6 @@ type App struct {
 
 // Create a new App
 func New() *App {
-	preferences, err := LoadPreferences()
-	if err != nil {
-		slog.Info("Failed to load preferences, falling back to defaults", "err", err)
-	} else {
-		slog.Debug("Loaded preferences", "preferences", preferences)
-	}
-
 	app := newApp()
 	version := getVersion(app)
 	main := app.NewWindow(version.Name)
@@ -64,6 +57,13 @@ func New() *App {
 	fd := godialog.NewFileDialog()
 	fd.SetFilters(saveFileFilters)
 	fd.SetFallback(fallbackfyne.NewFyneFallbackDialog(app))
+
+	preferences, err := LoadPreferences()
+	if err != nil {
+		slog.Info("Failed to load preferences, falling back to defaults", "err", err)
+	} else {
+		slog.Debug("Loaded preferences", "preferences", preferences)
+	}
 
 	a := &App{
 		app:        app,
