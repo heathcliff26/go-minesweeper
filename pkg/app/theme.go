@@ -12,7 +12,10 @@ const colorNameTileDefault = "tileDefault"
 var (
 	lightGray                    = color.RGBA{211, 211, 211, alpha}
 	tileDefaultColorVariantLight = color.RGBA{180, 180, 180, alpha}
-	tileDefaultColorVariantDark  = color.Gray16{32767}
+	tileDefaultColorVariantDark  = color.RGBA{100, 100, 100, alpha}
+
+	borderShadowVariantLight = color.Black
+	borderShadowVariantDark  = color.RGBA{120, 120, 120, alpha}
 )
 
 var (
@@ -58,9 +61,9 @@ func (borderTheme) Color(name fyne.ThemeColorName, variant fyne.ThemeVariant) co
 	if name == theme.ColorNameShadow {
 		switch variant {
 		case theme.VariantLight:
-			return color.Black
+			return borderShadowVariantLight
 		case theme.VariantDark:
-			return color.White
+			return borderShadowVariantDark
 		}
 	}
 	return mainTheme{}.Color(name, variant)
