@@ -27,11 +27,11 @@ I mainly created it because i was bored and wanted to create a gui app.}
 make build
 
 %install
-install -D -m 755 bin/%{name} %{buildroot}/%{_bindir}/%{name}
-install -D -m 644 packages/%{package_id}.desktop %{buildroot}/%{_datadir}/applications/%{package_id}.desktop
-install -D -m 644 packages/%{package_id}.png %{buildroot}/%{_datadir}/icons/hicolor/512x512/apps/%{package_id}.png
-install -D -m 644 packages/%{package_id}.svg %{buildroot}/%{_datadir}/icons/hicolor/scalable/apps/%{package_id}.svg
-install -D -m 644 %{package_id}.metainfo.xml %{buildroot}/%{_datadir}/metainfo/%{package_id}.metainfo.xml
+install -D -m 0755 bin/%{name} %{buildroot}/%{_bindir}/%{name}
+install -D -m 0644 packages/%{package_id}.desktop %{buildroot}/%{_datadir}/applications/%{package_id}.desktop
+install -D -m 0644 packages/%{package_id}.png %{buildroot}/%{_datadir}/icons/hicolor/512x512/apps/%{package_id}.png
+install -D -m 0644 packages/%{package_id}.svg %{buildroot}/%{_datadir}/icons/hicolor/scalable/apps/%{package_id}.svg
+install -D -m 0644 %{package_id}.metainfo.xml %{buildroot}/%{_datadir}/metainfo/%{package_id}.metainfo.xml
 
 %files
 %license LICENSE

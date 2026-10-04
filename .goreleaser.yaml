@@ -58,6 +58,41 @@ archives:
     name_template: "{{ .ProjectName }}_{{ tolower .Os }}-{{ .Arch }}"
     files:
       - none*
+nfpms:
+  - id: linux
+    package_name: "{{ .ProjectName }}"
+    file_name_template: "{{ .PackageName }}-linux-{{ .Arch }}"
+    ids:
+      - linux
+    maintainer: Heathcliff <heathcliff@heathcliff.eu>
+    description: |
+      This is an implementation of minesweeper in golang, made with the ui framework fyne.io.
+      I mainly created it because i was bored and wanted to create a gui app.
+    license: Apache-2.0
+    homepage: https://github.com/heathcliff26/{{ .ProjectName }}
+    formats:
+      - deb
+      - rpm
+    bindir: /usr/bin
+    contents:
+      - dst: /usr/share/licenses/{{ .PackageName }}
+        type: dir
+      - dst: /usr/share/doc/{{ .PackageName }}
+        type: dir
+      - src: LICENSE
+        dst: /usr/share/licenses/{{ .PackageName }}/LICENSE
+      - src: README.md
+        dst: /usr/share/doc/{{ .PackageName }}/README.md
+      - src: packages/io.github.heathcliff26.{{ .PackageName }}.desktop
+        dst: /usr/share/applications/io.github.heathcliff26.{{ .PackageName }}.desktop
+      - src: packages/io.github.heathcliff26.{{ .PackageName }}.png
+        dst: /usr/share/icons/hicolor/512x512/apps/io.github.heathcliff26.{{ .PackageName }}.png
+      - src: packages/io.github.heathcliff26.{{ .PackageName }}.svg
+        dst: /usr/share/icons/hicolor/scalable/apps/io.github.heathcliff26.{{ .PackageName }}.svg
+      - src: io.github.heathcliff26.{{ .PackageName }}.metainfo.xml
+        dst: /usr/share/metainfo/io.github.heathcliff26.{{ .PackageName }}.metainfo.xml
+    rpm:
+      summary: Minesweeper Game
 
 changelog:
   disable: true
