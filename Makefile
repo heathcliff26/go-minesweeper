@@ -3,16 +3,20 @@ SHELL := bash
 GO_LD_FLAGS ?= "-w -s"
 
 # Build the binary
-build: tools
+build: fyne-metadata tools
 	"$(shell pwd)/bin/fyne" build -o "$(shell pwd)/bin/go-minesweeper" -release
 
 # Build all release artifacts except android
-release:
+release: fyne-metadata
 	hack/containerized hack/release.sh
 
 # Build and package the gui app for android
-android:
+android: fyne-metadata
 	hack/containerized-android.sh
+
+# Prepare the Fyne.toml for fyne
+fyne-metadata:
+	hack/fyne-metadata.sh
 
 # Run linter
 lint:
@@ -83,6 +87,7 @@ help:
 	build \
 	release \
 	android \
+	fyne-metadata \
 	lint \
 	test \
 	coverprofile \

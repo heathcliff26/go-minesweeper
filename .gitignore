@@ -15,8 +15,13 @@ coverprofile.out
 /tmp
 /x86_64
 /aarch64
+/*.rpm
 
 # Ignore android files
 /.idea
 /go-minesweeper.iml
 /*.keystore
+
+# Ignore fyne build files
+fyne_metadata_init.go
+/FyneApp.toml

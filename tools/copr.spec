@@ -13,6 +13,7 @@ Source:         %{url}/archive/refs/tags/v%{version}.tar.gz
 
 BuildRequires: golang >= 1.27
 BuildRequires: gcc libXcursor-devel libXrandr-devel mesa-libGL-devel libXi-devel libXinerama-devel libXxf86vm-devel libxkbcommon-devel wayland-devel
+BuildRequires: gettext-envsubst
 
 %global _description %{expand:
 This is an implementation of minesweeper in golang, made with the ui framework fyne.io.
@@ -24,6 +25,7 @@ I mainly created it because i was bored and wanted to create a gui app.}
 %autosetup -n go-minesweeper-%{version} -p1
 
 %build
+export RELEASE_VERSION="%{version}-%{release}"
 make build
 
 %install

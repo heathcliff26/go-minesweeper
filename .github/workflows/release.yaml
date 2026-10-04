@@ -7,28 +7,54 @@ on:
       draft:
         description: "Create draft release"
         type: boolean
-        default: true
+        default: false
       update:
         description: "Update existing release"
         type: boolean
         default: false
+      tag:
+        description: "Release tag to use"
+        type: string
+        required: true
+      prerelease:
+        description: "Mark the release as a prerelease"
+        type: boolean
+        default: false
 
 jobs:
+  tag:
+    uses: heathcliff26/ci/.github/workflows/tag.yaml@main
+    permissions:
+      contents: write
+    with:
+      tag: ${{ inputs.tag }}
+      overwrite: ${{ inputs.update }}
+    secrets: inherit
+
   build:
     uses: ./.github/workflows/ci.yaml
+    needs: tag
     permissions:
       contents: read
       security-events: write
     secrets: inherit
 
-  release:
-    uses: heathcliff26/ci/.github/workflows/golang-fyne-release.yaml@main
+  push-gemfury:
+    uses: heathcliff26/ci/.github/workflows/gemfury-push.yaml@main
     needs: build
+    permissions: {}
+    with:
+      artifacts: desktop
+    secrets: inherit
+
+  release:
+    uses: heathcliff26/ci/.github/workflows/release.yaml@main
+    needs: push-gemfury
     permissions:
       contents: write
     with:
       draft: ${{ inputs.draft }}
       update: ${{ inputs.update }}
-      release-artifacts: "release/*"
-      artifacts: "{desktop,android}"
+      tag: ${{ inputs.tag }}
+      prerelease: ${{ inputs.prerelease }}
     secrets: inherit
