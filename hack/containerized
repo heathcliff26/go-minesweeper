@@ -12,7 +12,7 @@ if [ ! -d "${HOME}/.cache" ]; then
 fi
 
 podman run -t --rm \
-    --name netrouse-builder \
+    --name go-minesweeper-builder \
     -v "${base_dir}:/app:z" \
     -v "${HOME}/.cache":/root/.cache:z \
     "${BUILDER_IMAGE}" \

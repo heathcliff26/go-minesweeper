@@ -2,8 +2,17 @@ SHELL := bash
 
 GO_LD_FLAGS ?= "-w -s"
 
-# Default target to build the project
-default: build
+# Build the binary
+build: tools
+	"$(shell pwd)/bin/fyne" build -o "$(shell pwd)/bin/go-minesweeper" -release
+
+# Build all release artifacts except android
+release:
+	hack/containerized hack/release.sh
+
+# Build and package the gui app for android
+android:
+	hack/containerized-android.sh
 
 # Run linter
 lint:
@@ -12,18 +21,6 @@ lint:
 # Run unit-tests
 test:
 	go test -v -race -timeout 300s -coverprofile=coverprofile.out -coverpkg "./pkg/..." ./...
-
-# Build the binary
-build: tools
-	"$(shell pwd)/bin/fyne" build -o "$(shell pwd)/bin/go-minesweeper" -release
-
-# Build all release artifacts
-release:
-	hack/containerized goreleaser release --skip=announce,publish,validate --clean -p 1
-
-# Build and package the gui app for android
-android:
-	hack/containerized-android.sh
 
 # Generate coverage profile
 coverprofile:
@@ -57,6 +54,15 @@ generate:
 gosec:
 	gosec ./...
 
+# Build rpm with code in current workdir using packit
+packit:
+	packit build locally
+
+# Build rpm of upstream code using packit + mock
+packit-mock:
+	packit build in-mock --resultdir tmp
+	rm *.src.rpm
+
 # Clean up build artifacts and temporary files
 clean:
 	hack/clean.sh
@@ -74,12 +80,11 @@ help:
 	@echo "Run 'make <target>' to execute a specific target."
 
 .PHONY: \
-	default \
 	build \
 	release \
 	android \
-	test \
 	lint \
+	test \
 	coverprofile \
 	fmt \
 	validate \
@@ -88,6 +93,8 @@ help:
 	update-deps \
 	generate \
 	gosec \
+	packit \
+	packit-mock \
 	clean \
 	tools \
 	help \

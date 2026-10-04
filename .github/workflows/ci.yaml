@@ -79,9 +79,7 @@ jobs:
     with:
       cmd: "make release"
       artifact-name: "desktop"
-      artifact: |
-        dist/*.tar.gz
-        dist/*.zip
+      artifact: dist/*
 
   build-android:
     uses: heathcliff26/ci/.github/workflows/golang-android-build.yaml@main
