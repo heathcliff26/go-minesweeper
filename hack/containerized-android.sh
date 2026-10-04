@@ -15,7 +15,7 @@ if [ ! -d "${HOME}/.cache" ]; then
 fi
 
 podman run -t --rm \
-    --name netrouse-builder-android \
+    --name go-minesweeper-builder-android \
     --env KEYSTORE="${KEYSTORE}" \
     --env KEYSTORE_PASS="${KEYSTORE_PASS}" \
     --env KEYSTORE_ALIAS="${KEYSTORE_ALIAS}" \

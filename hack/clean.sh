@@ -5,7 +5,7 @@ set -e
 base_dir="$(dirname "${BASH_SOURCE[0]}" | xargs realpath)/.."
 
 folders=("bin" "coverprofiles" "dist" "saves" "tmp" "x86_64" "aarch64" ".idea")
-files=("settings.yaml" "coverprofile.out" "debug.keystore" "go-minesweeper.iml")
+files=("settings.yaml" "coverprofile.out" "debug.keystore" "go-minesweeper.iml" "FyneApp.toml" "fyne_metadata_init.go")
 
 for folder in "${folders[@]}"; do
     if ! [ -e "${base_dir}/${folder}" ]; then
