@@ -42,7 +42,7 @@ func NewSave(game *LocalGame) (*Save, error) {
 	}, nil
 }
 
-// Load a save file from the given path
+// Load a savegame from the given path
 func LoadSave(path string) (*Save, error) {
 	// #nosec G304 -- Local users can decide on their file path themselves.
 	buf, err := os.ReadFile(path)
@@ -59,7 +59,7 @@ func LoadSave(path string) (*Save, error) {
 	return &save, nil
 }
 
-// Write save file to the given path.
+// Write savegame to the given path.
 // Needs to have the correct extension.
 func (s *Save) Save(path string) error {
 	if filepath.Ext(path) != SaveFileExtension {

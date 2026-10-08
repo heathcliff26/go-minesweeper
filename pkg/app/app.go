@@ -1,6 +1,7 @@
 package app
 
 import (
+	"embed"
 	"log/slog"
 	"os"
 	"runtime"
@@ -11,6 +12,7 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/data/binding"
 	"fyne.io/fyne/v2/dialog"
+	"fyne.io/fyne/v2/lang"
 	"fyne.io/fyne/v2/widget"
 	"github.com/heathcliff26/go-minesweeper/pkg/app/locations"
 	"github.com/heathcliff26/go-minesweeper/pkg/minesweeper"
@@ -27,12 +29,10 @@ const DEFAULT_AUTOSOLVE_DELAY = 500 * time.Millisecond
 // Used to change the new app function for testing
 var newApp = fApp.New
 
-var saveFileFilters = godialog.FileFilters{
-	{
-		Description: "Save File (*" + minesweeper.SaveFileExtension + ")",
-		Extensions:  []string{minesweeper.SaveFileExtension},
-	},
-}
+var saveFileFilters godialog.FileFilters
+
+//go:embed translations
+var translationsFS embed.FS
 
 // Struct representing the current app.
 // There should only ever be a single instance during runtime.
@@ -46,6 +46,20 @@ type App struct {
 	assistedMode   *fyne.MenuItem
 	gameAlgorithms []*fyne.MenuItem
 	filedialog     godialog.FileDialog
+}
+
+func init() {
+	err := lang.AddTranslationsFS(translationsFS, "translations")
+	if err != nil {
+		slog.Error("Failed to load translations", slog.Any("error", err))
+	}
+
+	saveFileFilters = godialog.FileFilters{
+		{
+			Description: lang.L("Savegame") + " (*" + minesweeper.SaveFileExtension + ")",
+			Extensions:  []string{minesweeper.SaveFileExtension},
+		},
+	}
 }
 
 // Create a new App
@@ -98,31 +112,31 @@ func (a *App) Run() {
 // Create the main menu bar
 func (a *App) makeMenu(preferences Preferences) {
 	// Can't assign grid functions directly, as the instance of grid may change
-	newGameOption := fyne.NewMenuItem("New", func() {
+	newGameOption := fyne.NewMenuItem(lang.L("New"), func() {
 		a.grid.NewGame()
 	})
-	replayOption := fyne.NewMenuItem("Replay", func() {
+	replayOption := fyne.NewMenuItem(lang.L("Replay"), func() {
 		a.grid.Replay()
 	})
 	a.gameMenu = []*fyne.MenuItem{newGameOption, replayOption, fyne.NewMenuItemSeparator()}
 	if runtime.GOOS != "android" {
-		loadOption := fyne.NewMenuItem("Load", a.loadSave)
-		saveOption := fyne.NewMenuItem("Save", a.saveGame)
+		loadOption := fyne.NewMenuItem(lang.L("Load"), a.loadSave)
+		saveOption := fyne.NewMenuItem(lang.L("Save"), a.saveGame)
 		a.gameMenu = append(a.gameMenu, fyne.NewMenuItemSeparator(), loadOption, saveOption)
 	}
 
-	gameMenu := fyne.NewMenu("Game", a.gameMenu...)
+	gameMenu := fyne.NewMenu(lang.L("Game"), a.gameMenu...)
 
 	difficulties := minesweeper.Difficulties()
 	diffItems := make([]*fyne.MenuItem, 0, len(difficulties)+2)
 	for _, d := range difficulties {
-		item := fyne.NewMenuItem(d.Name, nil)
+		item := fyne.NewMenuItem(lang.L(d.Name), nil)
 		item.Action = func() {
 			if item.Checked {
 				return
 			}
 			for _, i := range a.difficulties {
-				i.Checked = (i.Label == d.Name)
+				i.Checked = (i.Label == lang.L(d.Name))
 			}
 			a.NewGrid(d)
 		}
@@ -130,11 +144,11 @@ func (a *App) makeMenu(preferences Preferences) {
 		diffItems = append(diffItems, item)
 	}
 	diffItems = append(diffItems, fyne.NewMenuItemSeparator())
-	diffItems = append(diffItems, fyne.NewMenuItem("Custom", a.customDifficultyDialog))
+	diffItems = append(diffItems, fyne.NewMenuItem(lang.L("Custom"), a.customDifficultyDialog))
 	a.difficulties = diffItems
-	diffMenu := fyne.NewMenu("Difficulties", diffItems...)
+	diffMenu := fyne.NewMenu(lang.L("Difficulties"), diffItems...)
 
-	a.assistedMode = fyne.NewMenuItem("      Assisted Mode", func() {
+	a.assistedMode = fyne.NewMenuItem("      "+lang.L("Assisted Mode"), func() {
 		a.assistedMode.Checked = !a.assistedMode.Checked
 		a.grid.AssistedMode = a.assistedMode.Checked
 		if a.grid.AssistedMode && a.grid.Game != nil {
@@ -143,42 +157,42 @@ func (a *App) makeMenu(preferences Preferences) {
 	})
 	a.assistedMode.Checked = preferences.AssistedMode
 	a.gameAlgorithms = make([]*fyne.MenuItem, 3)
-	a.gameAlgorithms[0] = fyne.NewMenuItem("Safe Position", func() {
+	a.gameAlgorithms[0] = fyne.NewMenuItem(lang.L("Safe Position"), func() {
 		a.setGameAlgorithm(GameAlgorithmSafePos)
 	})
-	a.gameAlgorithms[1] = fyne.NewMenuItem("Safe Area", func() {
+	a.gameAlgorithms[1] = fyne.NewMenuItem(lang.L("Safe Area"), func() {
 		a.setGameAlgorithm(GameAlgorithmSafeArea)
 	})
-	a.gameAlgorithms[2] = fyne.NewMenuItem("Solvable", func() {
+	a.gameAlgorithms[2] = fyne.NewMenuItem(lang.L("Solvable"), func() {
 		a.setGameAlgorithm(GameAlgorithmSolvable)
 	})
-	gameAlgorithmSubMenu := fyne.NewMenuItem("Creation Algorithm", nil)
-	gameAlgorithmSubMenu.ChildMenu = fyne.NewMenu("Creation Algorithm", a.gameAlgorithms...)
-	autosolve := fyne.NewMenuItem("Autosolve", func() {
+	gameAlgorithmSubMenu := fyne.NewMenuItem(lang.L("Algorithm"), nil)
+	gameAlgorithmSubMenu.ChildMenu = fyne.NewMenu(lang.L("Algorithm"), a.gameAlgorithms...)
+	autosolve := fyne.NewMenuItem(lang.L("Autosolve"), func() {
 		go func() {
 			if !a.grid.Autosolve(DEFAULT_AUTOSOLVE_DELAY) {
 				fyne.Do(func() {
-					dialog.ShowInformation("Autosolve", "Failed to run autosolve, please ensure that a game is currently running.", a.main)
+					dialog.ShowInformation(lang.L("Autosolve"), lang.L("Failed to run autosolve, please ensure that a game is currently running."), a.main)
 				})
 			}
 		}()
 	})
-	optionsMenu := fyne.NewMenu("Options", a.assistedMode, gameAlgorithmSubMenu, autosolve)
+	optionsMenu := fyne.NewMenu(lang.L("Options"), a.assistedMode, gameAlgorithmSubMenu, autosolve)
 
-	hint := fyne.NewMenuItem("Hint", func() {
+	hint := fyne.NewMenuItem(lang.L("Hint"), func() {
 		go func() {
 			if !a.grid.Hint() {
 				fyne.Do(func() {
-					dialog.NewInformation("No hint found", "Could not find any hints to give.", a.main).Show()
+					dialog.NewInformation(lang.L("No hint found"), lang.L("Could not find any hints to give."), a.main).Show()
 				})
 			}
 		}()
 	})
-	about := fyne.NewMenuItem("About", func() {
-		vInfo := dialog.NewCustom(a.Version.Name, "close", getVersionContent(a.Version), a.main)
+	about := fyne.NewMenuItem(lang.L("About"), func() {
+		vInfo := dialog.NewCustom(a.Version.Name, lang.L("close"), getVersionContent(a.Version), a.main)
 		vInfo.Show()
 	})
-	helpMenu := fyne.NewMenu("Help", hint, about)
+	helpMenu := fyne.NewMenu(lang.L("Help"), hint, about)
 
 	a.main.SetMainMenu(fyne.NewMainMenu(gameMenu, diffMenu, optionsMenu, helpMenu))
 }
@@ -202,13 +216,13 @@ func (a *App) customDifficultyDialog() {
 	mines := minesweeper.DifficultyMineMin
 	row, col := minesweeper.DifficultyRowColMin, minesweeper.DifficultyRowColMin
 
-	mineItem := widget.NewFormItem("Mines", widget.NewEntryWithData(binding.IntToString(binding.BindInt(&mines))))
-	rowItem := widget.NewFormItem("Rows", widget.NewEntryWithData(binding.IntToString(binding.BindInt(&row))))
-	colItem := widget.NewFormItem("Columns", widget.NewEntryWithData(binding.IntToString(binding.BindInt(&col))))
+	mineItem := widget.NewFormItem(lang.L("Mines"), widget.NewEntryWithData(binding.IntToString(binding.BindInt(&mines))))
+	rowItem := widget.NewFormItem(lang.L("Rows"), widget.NewEntryWithData(binding.IntToString(binding.BindInt(&row))))
+	colItem := widget.NewFormItem(lang.L("Columns"), widget.NewEntryWithData(binding.IntToString(binding.BindInt(&col))))
 
 	content := widget.NewForm(mineItem, rowItem, colItem)
 
-	diffDialog := dialog.NewCustomConfirm("Custom Difficulty", "ok", "cancel", content, func(ok bool) {
+	diffDialog := dialog.NewCustomConfirm(lang.L("Custom Difficulty"), lang.L("ok"), lang.L("cancel"), content, func(ok bool) {
 		if !ok {
 			return
 		}
@@ -219,7 +233,7 @@ func (a *App) customDifficultyDialog() {
 		}
 
 		for _, i := range a.difficulties {
-			i.Checked = (i.Label == "Custom")
+			i.Checked = (i.Label == lang.L("Custom"))
 		}
 		a.NewGrid(d)
 	}, a.main)
@@ -227,7 +241,7 @@ func (a *App) customDifficultyDialog() {
 }
 
 func (a *App) loadSave() {
-	a.filedialog.Open("Open Savegame", a.loadSaveCallback)
+	a.filedialog.Open(lang.L("Open Savegame"), a.loadSaveCallback)
 }
 
 func (a *App) loadSaveCallback(path string, err error) {
@@ -246,7 +260,7 @@ func (a *App) loadSaveCallback(path string, err error) {
 	}
 
 	for _, i := range a.difficulties {
-		i.Checked = (i.Label == save.Data.Difficulty.Name)
+		i.Checked = (i.Label == lang.L(save.Data.Difficulty.Name))
 	}
 	fyne.DoAndWait(func() {
 		a.NewGrid(save.Data.Difficulty)
@@ -257,11 +271,11 @@ func (a *App) loadSaveCallback(path string, err error) {
 
 func (a *App) saveGame() {
 	if a.grid.Game == nil {
-		d := dialog.NewInformation("Can't save game", "You need to first start a game before you can save it.", a.main)
+		d := dialog.NewInformation(lang.L("Can't save game"), lang.L("You need to first start a game before you can save it."), a.main)
 		d.Show()
 		return
 	}
-	a.filedialog.Save("Save Game", a.saveGameCallback)
+	a.filedialog.Save(lang.L("Save Game"), a.saveGameCallback)
 }
 
 func (a *App) saveGameCallback(path string, err error) {
