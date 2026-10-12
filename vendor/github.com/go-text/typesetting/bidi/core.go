@@ -1,12 +1,7 @@
-// Copyright 2015 The Go Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 package bidi
 
 import (
-	"fmt"
-	"log"
+	ucd "github.com/go-text/typesetting/internal/unicodedata"
 )
 
 // This implementation is a port based on the reference implementation found at:
@@ -50,89 +45,20 @@ import (
 // base character in RTL runs) and that it adjusts the glyphs used to render
 // mirrored characters that are in RTL runs so that they render appropriately.
 
-// level is the embedding level of a character. Even embedding levels indicate
-// left-to-right order and odd levels indicate right-to-left order. The special
-// level of -1 is reserved for undefined order.
-type level int8
+// Level is the embedding level of a character. Even embedding levels indicate
+// left-to-right order and odd levels indicate right-to-left order.
+type Level int8
 
-const implicitLevel level = -1
+// The special level of -1 is reserved for undefined order,
+const implicitLevel Level = -1
 
-// in returns if x is equal to any of the values in set.
-func (c Class) in(set ...Class) bool {
-	for _, s := range set {
-		if c == s {
-			return true
-		}
-	}
-	return false
-}
+const unknownClass = 0
 
-// A paragraph contains the state of a paragraph.
-type paragraph struct {
-	initialTypes []Class
-
-	// Arrays of properties needed for paired bracket evaluation in N0
-	pairTypes  []bracketType // paired Bracket types for paragraph
-	pairValues []rune        // rune for opening bracket or pbOpen and pbClose; 0 for pbNone
-
-	embeddingLevel level // default: = implicitLevel;
-
-	// at the paragraph levels
-	resultTypes  []Class
-	resultLevels []level
-
-	// Index of matching PDI for isolate initiator characters. For other
-	// characters, the value of matchingPDI will be set to -1. For isolate
-	// initiators with no matching PDI, matchingPDI will be set to the length of
-	// the input string.
-	matchingPDI []int
-
-	// Index of matching isolate initiator for PDI characters. For other
-	// characters, and for PDIs with no matching isolate initiator, the value of
-	// matchingIsolateInitiator will be set to -1.
-	matchingIsolateInitiator []int
-}
-
-// newParagraph initializes a paragraph. The user needs to supply a few arrays
-// corresponding to the preprocessed text input. The types correspond to the
-// Unicode BiDi classes for each rune. pairTypes indicates the bracket type for
-// each rune. pairValues provides a unique bracket class identifier for each
-// rune (suggested is the rune of the open bracket for opening and matching
-// close brackets, after normalization). The embedding levels are optional, but
-// may be supplied to encode embedding levels of styled text.
-func newParagraph(types []Class, pairTypes []bracketType, pairValues []rune, levels level) (*paragraph, error) {
-	var err error
-	if err = validateTypes(types); err != nil {
-		return nil, err
-	}
-	if err = validatePbTypes(pairTypes); err != nil {
-		return nil, err
-	}
-	if err = validatePbValues(pairValues, pairTypes); err != nil {
-		return nil, err
-	}
-	if err = validateParagraphEmbeddingLevel(levels); err != nil {
-		return nil, err
-	}
-
-	p := &paragraph{
-		initialTypes:   append([]Class(nil), types...),
-		embeddingLevel: levels,
-
-		pairTypes:  pairTypes,
-		pairValues: pairValues,
-
-		resultTypes: append([]Class(nil), types...),
-	}
-	p.run()
-	return p, nil
-}
-
-func (p *paragraph) Len() int { return len(p.initialTypes) }
+func (p *Paragraph) len() int { return len(p.initialTypes) }
 
 // The algorithm. Does not include line-based processing (Rules L1, L2).
 // These are applied later in the line-based phase of the algorithm.
-func (p *paragraph) run() {
+func (p *Paragraph) run() {
 	p.determineMatchingIsolates()
 
 	// 1) determining the paragraph level
@@ -140,11 +66,10 @@ func (p *paragraph) run() {
 	// Rules P2, P3.
 	// If no externally supplied paragraph embedding level, use default.
 	if p.embeddingLevel == implicitLevel {
-		p.embeddingLevel = p.determineParagraphEmbeddingLevel(0, p.Len())
+		p.embeddingLevel = p.determineParagraphEmbeddingLevel(0, p.len())
 	}
 
 	// Initialize result levels to paragraph embedding level.
-	p.resultLevels = make([]level, p.Len())
 	setLevels(p.resultLevels, p.embeddingLevel)
 
 	// 2) Explicit levels and directions
@@ -201,10 +126,7 @@ func (p *paragraph) run() {
 //     index of the matching isolate initiator character for each PDI character.
 //     If there is no matching isolate initiator, or the character is not a PDI,
 //     it is set to -1.
-func (p *paragraph) determineMatchingIsolates() {
-	p.matchingPDI = make([]int, p.Len())
-	p.matchingIsolateInitiator = make([]int, p.Len())
-
+func (p *Paragraph) determineMatchingIsolates() {
 	for i := range p.matchingIsolateInitiator {
 		p.matchingIsolateInitiator[i] = -1
 	}
@@ -212,12 +134,12 @@ func (p *paragraph) determineMatchingIsolates() {
 	for i := range p.matchingPDI {
 		p.matchingPDI[i] = -1
 
-		if t := p.resultTypes[i]; t.in(LRI, RLI, FSI) {
+		if t := p.resultTypes[i]; t&(ucd.BD_LRI|ucd.BD_RLI|ucd.BD_FSI) != 0 {
 			depthCounter := 1
-			for j := i + 1; j < p.Len(); j++ {
-				if u := p.resultTypes[j]; u.in(LRI, RLI, FSI) {
+			for j := i + 1; j < p.len(); j++ {
+				if u := p.resultTypes[j]; u&(ucd.BD_LRI|ucd.BD_RLI|ucd.BD_FSI) != 0 {
 					depthCounter++
-				} else if u == PDI {
+				} else if u == ucd.BD_PDI {
 					if depthCounter--; depthCounter == 0 {
 						p.matchingPDI[i] = j
 						p.matchingIsolateInitiator[j] = i
@@ -226,7 +148,7 @@ func (p *paragraph) determineMatchingIsolates() {
 				}
 			}
 			if p.matchingPDI[i] == -1 {
-				p.matchingPDI[i] = p.Len()
+				p.matchingPDI[i] = p.len()
 			}
 		}
 	}
@@ -237,19 +159,17 @@ func (p *paragraph) determineMatchingIsolates() {
 //
 // Determines the paragraph level based on rules P2, P3. This is also used
 // in rule X5c to find if an FSI should resolve to LRI or RLI.
-func (p *paragraph) determineParagraphEmbeddingLevel(start, end int) level {
-	var strongType Class = unknownClass
+func (p *Paragraph) determineParagraphEmbeddingLevel(start, end int) Level {
+	var strongType ucd.BidiClass = unknownClass
 
 	// Rule P2.
 	for i := start; i < end; i++ {
-		if t := p.resultTypes[i]; t.in(L, AL, R) {
+		if t := p.resultTypes[i]; t&(ucd.BD_L|ucd.BD_AL|ucd.BD_R) != 0 {
 			strongType = t
 			break
-		} else if t.in(FSI, LRI, RLI) {
+		} else if t&(ucd.BD_FSI|ucd.BD_LRI|ucd.BD_RLI) != 0 {
 			i = p.matchingPDI[i] // skip over to the matching PDI
-			if i > end {
-				log.Panic("assert (i <= end)")
-			}
+			// assert (i <= end)
 		}
 	}
 	// Rule P3.
@@ -257,7 +177,7 @@ func (p *paragraph) determineParagraphEmbeddingLevel(start, end int) level {
 	case unknownClass: // none found
 		// default embedding level when no strong types found is 0.
 		return 0
-	case L:
+	case ucd.BD_L:
 		return 0
 	default: // AL, R
 		return 1
@@ -270,8 +190,8 @@ const maxDepth = 125
 // statuses
 type directionalStatusStack struct {
 	stackCounter        int
-	embeddingLevelStack [maxDepth + 1]level
-	overrideStatusStack [maxDepth + 1]Class
+	embeddingLevelStack [maxDepth + 1]Level
+	overrideStatusStack [maxDepth + 1]ucd.BidiClass
 	isolateStatusStack  [maxDepth + 1]bool
 }
 
@@ -279,18 +199,18 @@ func (s *directionalStatusStack) empty()     { s.stackCounter = 0 }
 func (s *directionalStatusStack) pop()       { s.stackCounter-- }
 func (s *directionalStatusStack) depth() int { return s.stackCounter }
 
-func (s *directionalStatusStack) push(level level, overrideStatus Class, isolateStatus bool) {
+func (s *directionalStatusStack) push(level Level, overrideStatus ucd.BidiClass, isolateStatus bool) {
 	s.embeddingLevelStack[s.stackCounter] = level
 	s.overrideStatusStack[s.stackCounter] = overrideStatus
 	s.isolateStatusStack[s.stackCounter] = isolateStatus
 	s.stackCounter++
 }
 
-func (s *directionalStatusStack) lastEmbeddingLevel() level {
+func (s *directionalStatusStack) lastEmbeddingLevel() Level {
 	return s.embeddingLevelStack[s.stackCounter-1]
 }
 
-func (s *directionalStatusStack) lastDirectionalOverrideStatus() Class {
+func (s *directionalStatusStack) lastDirectionalOverrideStatus() ucd.BidiClass {
 	return s.overrideStatusStack[s.stackCounter-1]
 }
 
@@ -299,32 +219,32 @@ func (s *directionalStatusStack) lastDirectionalIsolateStatus() bool {
 }
 
 // Determine explicit levels using rules X1 - X8
-func (p *paragraph) determineExplicitEmbeddingLevels() {
+func (p *Paragraph) determineExplicitEmbeddingLevels() {
 	var stack directionalStatusStack
 	var overflowIsolateCount, overflowEmbeddingCount, validIsolateCount int
 
 	// Rule X1.
-	stack.push(p.embeddingLevel, ON, false)
+	stack.push(p.embeddingLevel, ucd.BD_ON, false)
 
 	for i, t := range p.resultTypes {
 		// Rules X2, X3, X4, X5, X5a, X5b, X5c
 		switch t {
-		case RLE, LRE, RLO, LRO, RLI, LRI, FSI:
-			isIsolate := t.in(RLI, LRI, FSI)
-			isRTL := t.in(RLE, RLO, RLI)
+		case ucd.BD_RLE, ucd.BD_LRE, ucd.BD_RLO, ucd.BD_LRO, ucd.BD_RLI, ucd.BD_LRI, ucd.BD_FSI:
+			isIsolate := t&(ucd.BD_RLI|ucd.BD_LRI|ucd.BD_FSI) != 0
+			isRTL := t&(ucd.BD_RLE|ucd.BD_RLO|ucd.BD_RLI) != 0
 
 			// override if this is an FSI that resolves to RLI
-			if t == FSI {
+			if t == ucd.BD_FSI {
 				isRTL = (p.determineParagraphEmbeddingLevel(i+1, p.matchingPDI[i]) == 1)
 			}
 			if isIsolate {
 				p.resultLevels[i] = stack.lastEmbeddingLevel()
-				if stack.lastDirectionalOverrideStatus() != ON {
+				if stack.lastDirectionalOverrideStatus() != ucd.BD_ON {
 					p.resultTypes[i] = stack.lastDirectionalOverrideStatus()
 				}
 			}
 
-			var newLevel level
+			var newLevel Level
 			if isRTL {
 				// least greater odd
 				newLevel = (stack.lastEmbeddingLevel() + 1) | 1
@@ -342,12 +262,12 @@ func (p *paragraph) determineExplicitEmbeddingLevels() {
 				// No check for valid stack counter, since the level check
 				// suffices.
 				switch t {
-				case LRO:
-					stack.push(newLevel, L, isIsolate)
-				case RLO:
-					stack.push(newLevel, R, isIsolate)
+				case ucd.BD_LRO:
+					stack.push(newLevel, ucd.BD_L, isIsolate)
+				case ucd.BD_RLO:
+					stack.push(newLevel, ucd.BD_R, isIsolate)
 				default:
-					stack.push(newLevel, ON, isIsolate)
+					stack.push(newLevel, ucd.BD_ON, isIsolate)
 				}
 				// Not really part of the spec
 				if !isIsolate {
@@ -366,7 +286,7 @@ func (p *paragraph) determineExplicitEmbeddingLevels() {
 			}
 
 		// Rule X6a
-		case PDI:
+		case ucd.BD_PDI:
 			if overflowIsolateCount > 0 {
 				overflowIsolateCount--
 			} else if validIsolateCount == 0 {
@@ -382,7 +302,7 @@ func (p *paragraph) determineExplicitEmbeddingLevels() {
 			p.resultLevels[i] = stack.lastEmbeddingLevel()
 
 		// Rule X7
-		case PDF:
+		case ucd.BD_PDF:
 			// Not really part of the spec
 			p.resultLevels[i] = stack.lastEmbeddingLevel()
 
@@ -394,7 +314,7 @@ func (p *paragraph) determineExplicitEmbeddingLevels() {
 				stack.pop()
 			}
 
-		case B: // paragraph separator.
+		case ucd.BD_B: // paragraph separator.
 			// Rule X8.
 
 			// These values are reset for clarity, in this implementation B
@@ -407,7 +327,7 @@ func (p *paragraph) determineExplicitEmbeddingLevels() {
 
 		default:
 			p.resultLevels[i] = stack.lastEmbeddingLevel()
-			if stack.lastDirectionalOverrideStatus() != ON {
+			if stack.lastDirectionalOverrideStatus() != ucd.BD_ON {
 				p.resultTypes[i] = stack.lastDirectionalOverrideStatus()
 			}
 		}
@@ -415,23 +335,23 @@ func (p *paragraph) determineExplicitEmbeddingLevels() {
 }
 
 type isolatingRunSequence struct {
-	p *paragraph
+	p *Paragraph
 
 	indexes []int // indexes to the original string
 
-	types          []Class // type of each character using the index
-	resolvedLevels []level // resolved levels after application of rules
-	level          level
-	sos, eos       Class
+	types          []ucd.BidiClass // type of each character using the index
+	resolvedLevels []Level         // resolved levels after application of rules
+	level          Level
+	sos, eos       ucd.BidiClass
 }
 
 func (i *isolatingRunSequence) Len() int { return len(i.indexes) }
 
 // Rule X10, second bullet: Determine the start-of-sequence (sos) and end-of-sequence (eos) types,
 // either L or R, for each isolating run sequence.
-func (p *paragraph) isolatingRunSequence(indexes []int) *isolatingRunSequence {
+func (p *Paragraph) isolatingRunSequence(indexes []int) *isolatingRunSequence {
 	length := len(indexes)
-	types := make([]Class, length)
+	types := make([]ucd.BidiClass, length)
 	for i, x := range indexes {
 		types[i] = p.resultTypes[x]
 	}
@@ -446,18 +366,17 @@ func (p *paragraph) isolatingRunSequence(indexes []int) *isolatingRunSequence {
 		prevLevel = p.resultLevels[prevChar]
 	}
 
-	var succLevel level
+	var succLevel Level
 	lastType := types[length-1]
-	if lastType.in(LRI, RLI, FSI) {
+	if lastType&(ucd.BD_LRI|ucd.BD_RLI|ucd.BD_FSI) != 0 {
 		succLevel = p.embeddingLevel
 	} else {
 		// the first character after the end of run sequence
 		limit := indexes[length-1] + 1
-		for ; limit < p.Len() && isRemovedByX9(p.initialTypes[limit]); limit++ {
-
+		for ; limit < p.len() && isRemovedByX9(p.initialTypes[limit]); limit++ {
 		}
 		succLevel = p.embeddingLevel
-		if limit < p.Len() {
+		if limit < p.len() {
 			succLevel = p.resultLevels[limit]
 		}
 	}
@@ -477,15 +396,14 @@ func (p *paragraph) isolatingRunSequence(indexes []int) *isolatingRunSequence {
 // Note that some weak types (EN, AN) remain after this processing is
 // complete.
 func (s *isolatingRunSequence) resolveWeakTypes() {
-
 	// on entry, only these types remain
-	s.assertOnly(L, R, AL, EN, ES, ET, AN, CS, B, S, WS, ON, NSM, LRI, RLI, FSI, PDI)
+	// s.assertOnly(L, R, AL, EN, ES, ET, AN, CS, B, S, WS, ON, NSM, LRI, RLI, FSI, PDI)
 
 	// Rule W1.
 	// Changes all NSMs.
 	precedingCharacterType := s.sos
 	for i, t := range s.types {
-		if t == NSM {
+		if t == ucd.BD_NSM {
 			s.types[i] = precedingCharacterType
 		} else {
 			// if t.in(LRI, RLI, FSI, PDI) {
@@ -498,11 +416,11 @@ func (s *isolatingRunSequence) resolveWeakTypes() {
 	// Rule W2.
 	// EN does not change at the start of the run, because sos != AL.
 	for i, t := range s.types {
-		if t == EN {
+		if t == ucd.BD_EN {
 			for j := i - 1; j >= 0; j-- {
-				if t := s.types[j]; t.in(L, R, AL) {
-					if t == AL {
-						s.types[i] = AN
+				if t := s.types[j]; t&(ucd.BD_L|ucd.BD_R|ucd.BD_AL) != 0 {
+					if t == ucd.BD_AL {
+						s.types[i] = ucd.BD_AN
 					}
 					break
 				}
@@ -512,8 +430,8 @@ func (s *isolatingRunSequence) resolveWeakTypes() {
 
 	// Rule W3.
 	for i, t := range s.types {
-		if t == AL {
-			s.types[i] = R
+		if t == ucd.BD_AL {
+			s.types[i] = ucd.BD_R
 		}
 	}
 
@@ -532,64 +450,63 @@ func (s *isolatingRunSequence) resolveWeakTypes() {
 
 	for i := 1; i < s.Len()-1; i++ {
 		t := s.types[i]
-		if t == ES || t == CS {
+		if t == ucd.BD_ES || t == ucd.BD_CS {
 			prevSepType := s.types[i-1]
 			succSepType := s.types[i+1]
-			if prevSepType == EN && succSepType == EN {
-				s.types[i] = EN
-			} else if s.types[i] == CS && prevSepType == AN && succSepType == AN {
-				s.types[i] = AN
+			if prevSepType == ucd.BD_EN && succSepType == ucd.BD_EN {
+				s.types[i] = ucd.BD_EN
+			} else if s.types[i] == ucd.BD_CS && prevSepType == ucd.BD_AN && succSepType == ucd.BD_AN {
+				s.types[i] = ucd.BD_AN
 			}
 		}
 	}
 
 	// Rule W5.
 	for i, t := range s.types {
-		if t == ET {
+		if t == ucd.BD_ET {
 			// locate end of sequence
 			runStart := i
-			runEnd := s.findRunLimit(runStart, ET)
+			runEnd := s.findRunLimit(runStart, ucd.BD_ET)
 
 			// check values at ends of sequence
 			t := s.sos
 			if runStart > 0 {
 				t = s.types[runStart-1]
 			}
-			if t != EN {
+			if t != ucd.BD_EN {
 				t = s.eos
 				if runEnd < len(s.types) {
 					t = s.types[runEnd]
 				}
 			}
-			if t == EN {
-				setTypes(s.types[runStart:runEnd], EN)
+			if t == ucd.BD_EN {
+				setTypes(s.types[runStart:runEnd], ucd.BD_EN)
 			}
 			// continue at end of sequence
-			i = runEnd
 		}
 	}
 
 	// Rule W6.
 	for i, t := range s.types {
-		if t.in(ES, ET, CS) {
-			s.types[i] = ON
+		if t&(ucd.BD_ES|ucd.BD_ET|ucd.BD_CS) != 0 {
+			s.types[i] = ucd.BD_ON
 		}
 	}
 
 	// Rule W7.
 	for i, t := range s.types {
-		if t == EN {
+		if t == ucd.BD_EN {
 			// set default if we reach start of run
 			prevStrongType := s.sos
 			for j := i - 1; j >= 0; j-- {
 				t = s.types[j]
-				if t == L || t == R { // AL's have been changed to R
+				if t == ucd.BD_L || t == ucd.BD_R { // AL's have been changed to R
 					prevStrongType = t
 					break
 				}
 			}
-			if prevStrongType == L {
-				s.types[i] = L
+			if prevStrongType == ucd.BD_L {
+				s.types[i] = ucd.BD_L
 			}
 		}
 	}
@@ -597,19 +514,18 @@ func (s *isolatingRunSequence) resolveWeakTypes() {
 
 // 6) resolving neutral types Rules N1-N2.
 func (s *isolatingRunSequence) resolveNeutralTypes() {
-
 	// on entry, only these types can be in resultTypes
-	s.assertOnly(L, R, EN, AN, B, S, WS, ON, RLI, LRI, FSI, PDI)
+	// s.assertOnly(L, R, EN, AN, B, S, WS, ON, RLI, LRI, FSI, PDI)
 
 	for i, t := range s.types {
 		switch t {
-		case WS, ON, B, S, RLI, LRI, FSI, PDI:
+		case ucd.BD_WS, ucd.BD_ON, ucd.BD_B, ucd.BD_S, ucd.BD_RLI, ucd.BD_LRI, ucd.BD_FSI, ucd.BD_PDI:
 			// find bounds of run of neutrals
 			runStart := i
-			runEnd := s.findRunLimit(runStart, B, S, WS, ON, RLI, LRI, FSI, PDI)
+			runEnd := s.findRunLimit(runStart, ucd.BD_B|ucd.BD_S|ucd.BD_WS|ucd.BD_ON|ucd.BD_RLI|ucd.BD_LRI|ucd.BD_FSI|ucd.BD_PDI)
 
 			// determine effective types at ends of run
-			var leadType, trailType Class
+			var leadType, trailType ucd.BidiClass
 
 			// Note that the character found can only be L, R, AN, or
 			// EN.
@@ -617,20 +533,20 @@ func (s *isolatingRunSequence) resolveNeutralTypes() {
 				leadType = s.sos
 			} else {
 				leadType = s.types[runStart-1]
-				if leadType.in(AN, EN) {
-					leadType = R
+				if leadType&(ucd.BD_AN|ucd.BD_EN) != 0 {
+					leadType = ucd.BD_R
 				}
 			}
 			if runEnd == len(s.types) {
 				trailType = s.eos
 			} else {
 				trailType = s.types[runEnd]
-				if trailType.in(AN, EN) {
-					trailType = R
+				if trailType&(ucd.BD_AN|ucd.BD_EN) != 0 {
+					trailType = ucd.BD_R
 				}
 			}
 
-			var resolvedType Class
+			var resolvedType ucd.BidiClass
 			if leadType == trailType {
 				// Rule N1.
 				resolvedType = leadType
@@ -649,13 +565,13 @@ func (s *isolatingRunSequence) resolveNeutralTypes() {
 	}
 }
 
-func setLevels(levels []level, newLevel level) {
+func setLevels(levels []Level, newLevel Level) {
 	for i := range levels {
 		levels[i] = newLevel
 	}
 }
 
-func setTypes(types []Class, newType Class) {
+func setTypes(types []ucd.BidiClass, newType ucd.BidiClass) {
 	for i := range types {
 		types[i] = newType
 	}
@@ -663,19 +579,18 @@ func setTypes(types []Class, newType Class) {
 
 // 7) resolving implicit embedding levels Rules I1, I2.
 func (s *isolatingRunSequence) resolveImplicitLevels() {
-
 	// on entry, only these types can be in resultTypes
-	s.assertOnly(L, R, EN, AN)
+	// s.assertOnly(L, R, EN, AN)
 
-	s.resolvedLevels = make([]level, len(s.types))
+	s.resolvedLevels = make([]Level, len(s.types))
 	setLevels(s.resolvedLevels, s.level)
 
 	if (s.level & 1) == 0 { // even level
 		for i, t := range s.types {
 			// Rule I1.
-			if t == L {
+			if t == ucd.BD_L {
 				// no change
-			} else if t == R {
+			} else if t == ucd.BD_R {
 				s.resolvedLevels[i] += 1
 			} else { // t == AN || t == EN
 				s.resolvedLevels[i] += 2
@@ -684,7 +599,7 @@ func (s *isolatingRunSequence) resolveImplicitLevels() {
 	} else { // odd level
 		for i, t := range s.types {
 			// Rule I2.
-			if t == R {
+			if t == ucd.BD_R {
 				// no change
 			} else { // t == L || t == AN || t == EN
 				s.resolvedLevels[i] += 1
@@ -705,33 +620,30 @@ func (s *isolatingRunSequence) applyLevelsAndTypes() {
 // Return the limit of the run consisting only of the types in validSet
 // starting at index. This checks the value at index, and will return
 // index if that value is not in validSet.
-func (s *isolatingRunSequence) findRunLimit(index int, validSet ...Class) int {
-loop:
+func (s *isolatingRunSequence) findRunLimit(index int, validSet ucd.BidiClass) int {
 	for ; index < len(s.types); index++ {
 		t := s.types[index]
-		for _, valid := range validSet {
-			if t == valid {
-				continue loop
-			}
+		if t&validSet != 0 {
+			continue
 		}
 		return index // didn't find a match in validSet
 	}
 	return len(s.types)
 }
 
-// Algorithm validation. Assert that all values in types are in the
-// provided set.
-func (s *isolatingRunSequence) assertOnly(codes ...Class) {
-loop:
-	for i, t := range s.types {
-		for _, c := range codes {
-			if t == c {
-				continue loop
-			}
-		}
-		log.Panicf("invalid bidi code %v present in assertOnly at position %d", t, s.indexes[i])
-	}
-}
+// // Algorithm validation. Assert that all values in types are in the
+// // provided set.
+// func (s *isolatingRunSequence) assertOnly(codes ...ucd.BidiClass) {
+// loop:
+// 	for i, t := range s.types {
+// 		for _, c := range codes {
+// 			if t == c {
+// 				continue loop
+// 			}
+// 		}
+// 		log.Panicf("invalid bidi code %v present in assertOnly at position %d", t, s.indexes[i])
+// 	}
+// }
 
 // determineLevelRuns returns an array of level runs. Each level run is
 // described as an array of indexes into the input string.
@@ -739,7 +651,7 @@ loop:
 // Determines the level runs. Rule X9 will be applied in determining the
 // runs, in the way that makes sure the characters that are supposed to be
 // removed are not included in the runs.
-func (p *paragraph) determineLevelRuns() [][]int {
+func (p *Paragraph) determineLevelRuns() [][]int {
 	run := []int{}
 	allRuns := [][]int{}
 	currentLevel := implicitLevel
@@ -766,14 +678,13 @@ func (p *paragraph) determineLevelRuns() [][]int {
 }
 
 // Definition BD13. Determine isolating run sequences.
-func (p *paragraph) determineIsolatingRunSequences() []*isolatingRunSequence {
+func (p *Paragraph) determineIsolatingRunSequences() []*isolatingRunSequence {
 	levelRuns := p.determineLevelRuns()
 
 	// Compute the run that each character belongs to
-	runForCharacter := make([]int, p.Len())
 	for i, run := range levelRuns {
 		for _, index := range run {
-			runForCharacter[index] = i
+			p.runForCharacter[index] = i
 		}
 	}
 
@@ -783,7 +694,7 @@ func (p *paragraph) determineIsolatingRunSequences() []*isolatingRunSequence {
 
 	for _, run := range levelRuns {
 		first := run[0]
-		if p.initialTypes[first] != PDI || p.matchingIsolateInitiator[first] == -1 {
+		if p.initialTypes[first] != ucd.BD_PDI || p.matchingIsolateInitiator[first] == -1 {
 			currentRunSequence = nil
 			// int run = i;
 			for {
@@ -792,8 +703,8 @@ func (p *paragraph) determineIsolatingRunSequences() []*isolatingRunSequence {
 
 				last := currentRunSequence[len(currentRunSequence)-1]
 				lastT := p.initialTypes[last]
-				if lastT.in(LRI, RLI, FSI) && p.matchingPDI[last] != p.Len() {
-					run = levelRuns[runForCharacter[p.matchingPDI[last]]]
+				if lastT&(ucd.BD_LRI|ucd.BD_RLI|ucd.BD_FSI) != 0 && p.matchingPDI[last] != p.len() {
+					run = levelRuns[p.runForCharacter[p.matchingPDI[last]]]
 				} else {
 					break
 				}
@@ -808,9 +719,9 @@ func (p *paragraph) determineIsolatingRunSequences() []*isolatingRunSequence {
 // ease of relating the level information to the original input data. Note
 // that the levels assigned to these codes are arbitrary, they're chosen so
 // as to avoid breaking level runs.
-func (p *paragraph) assignLevelsToCharactersRemovedByX9() {
+func (p *Paragraph) assignLevelsToCharactersRemovedByX9() {
 	for i, t := range p.initialTypes {
-		if t.in(LRE, RLE, LRO, RLO, PDF, BN) {
+		if t&(ucd.BD_LRE|ucd.BD_RLE|ucd.BD_LRO|ucd.BD_RLO|ucd.BD_PDF|ucd.BD_BN) != 0 {
 			p.resultTypes[i] = t
 			p.resultLevels[i] = -1
 		}
@@ -835,13 +746,10 @@ func (p *paragraph) assignLevelsToCharactersRemovedByX9() {
 // Output
 //
 
-// getLevels computes levels array breaking lines at offsets in linebreaks.
+// computeLevels computes levels array breaking lines at offsets in linebreaks,
+// mutating [resultLevels]
 // Rule L1.
-//
-// The linebreaks array must include at least one value. The values must be
-// in strictly increasing order (no duplicates) between 1 and the length of
-// the text, inclusive. The last value must be the length of the text.
-func (p *paragraph) getLevels(linebreaks []int) []level {
+func (p *Paragraph) computeLevels() {
 	// Note that since the previous processing has removed all
 	// P, S, and WS values from resultTypes, the values referred to
 	// in these rules are the initial types, before any processing
@@ -853,22 +761,18 @@ func (p *paragraph) getLevels(linebreaks []int) []level {
 	// These codes are treated like WS in this implementation,
 	// so they don't interrupt sequences of WS.
 
-	validateLineBreaks(linebreaks, p.Len())
-
-	result := append([]level(nil), p.resultLevels...)
-
 	// don't worry about linebreaks since if there is a break within
 	// a series of WS values preceding S, the linebreak itself
 	// causes the reset.
 	for i, t := range p.initialTypes {
-		if t.in(B, S) {
+		if t&(ucd.BD_B|ucd.BD_S) != 0 {
 			// Rule L1, clauses one and two.
-			result[i] = p.embeddingLevel
+			p.resultLevels[i] = p.embeddingLevel
 
 			// Rule L1, clause three.
 			for j := i - 1; j >= 0; j-- {
 				if isWhitespace(p.initialTypes[j]) { // including format codes
-					result[j] = p.embeddingLevel
+					p.resultLevels[j] = p.embeddingLevel
 				} else {
 					break
 				}
@@ -877,188 +781,31 @@ func (p *paragraph) getLevels(linebreaks []int) []level {
 	}
 
 	// Rule L1, clause four.
-	start := 0
-	for _, limit := range linebreaks {
-		for j := limit - 1; j >= start; j-- {
-			if isWhitespace(p.initialTypes[j]) { // including format codes
-				result[j] = p.embeddingLevel
-			} else {
-				break
-			}
-		}
-		start = limit
-	}
-
-	return result
-}
-
-// getReordering returns the reordering of lines from a visual index to a
-// logical index for line breaks at the given offsets.
-//
-// Lines are concatenated from left to right. So for example, the fifth
-// character from the left on the third line is
-//
-//	getReordering(linebreaks)[linebreaks[1] + 4]
-//
-// (linebreaks[1] is the position after the last character of the second
-// line, which is also the index of the first character on the third line,
-// and adding four gets the fifth character from the left).
-//
-// The linebreaks array must include at least one value. The values must be
-// in strictly increasing order (no duplicates) between 1 and the length of
-// the text, inclusive. The last value must be the length of the text.
-func (p *paragraph) getReordering(linebreaks []int) []int {
-	validateLineBreaks(linebreaks, p.Len())
-
-	return computeMultilineReordering(p.getLevels(linebreaks), linebreaks)
-}
-
-// Return multiline reordering array for a given level array. Reordering
-// does not occur across a line break.
-func computeMultilineReordering(levels []level, linebreaks []int) []int {
-	result := make([]int, len(levels))
-
-	start := 0
-	for _, limit := range linebreaks {
-		tempLevels := make([]level, limit-start)
-		copy(tempLevels, levels[start:])
-
-		for j, order := range computeReordering(tempLevels) {
-			result[start+j] = order + start
-		}
-		start = limit
-	}
-	return result
-}
-
-// Return reordering array for a given level array. This reorders a single
-// line. The reordering is a visual to logical map. For example, the
-// leftmost char is string.charAt(order[0]). Rule L2.
-func computeReordering(levels []level) []int {
-	result := make([]int, len(levels))
-	// initialize order
-	for i := range result {
-		result[i] = i
-	}
-
-	// locate highest level found on line.
-	// Note the rules say text, but no reordering across line bounds is
-	// performed, so this is sufficient.
-	highestLevel := level(0)
-	lowestOddLevel := level(maxDepth + 2)
-	for _, level := range levels {
-		if level > highestLevel {
-			highestLevel = level
-		}
-		if level&1 != 0 && level < lowestOddLevel {
-			lowestOddLevel = level
+	limit := len(p.initialTypes)
+	for j := limit - 1; j >= 0; j-- {
+		if isWhitespace(p.initialTypes[j]) { // including format codes
+			p.resultLevels[j] = p.embeddingLevel
+		} else {
+			break
 		}
 	}
-
-	for level := highestLevel; level >= lowestOddLevel; level-- {
-		for i := 0; i < len(levels); i++ {
-			if levels[i] >= level {
-				// find range of text at or above this level
-				start := i
-				limit := i + 1
-				for limit < len(levels) && levels[limit] >= level {
-					limit++
-				}
-
-				for j, k := start, limit-1; j < k; j, k = j+1, k-1 {
-					result[j], result[k] = result[k], result[j]
-				}
-				// skip to end of level run
-				i = limit
-			}
-		}
-	}
-
-	return result
 }
 
 // isWhitespace reports whether the type is considered a whitespace type for the
 // line break rules.
-func isWhitespace(c Class) bool {
-	switch c {
-	case LRE, RLE, LRO, RLO, PDF, LRI, RLI, FSI, PDI, BN, WS:
-		return true
-	}
-	return false
+func isWhitespace(c ucd.BidiClass) bool {
+	return c&(ucd.BD_LRE|ucd.BD_RLE|ucd.BD_LRO|ucd.BD_RLO|ucd.BD_PDF|ucd.BD_LRI|ucd.BD_RLI|ucd.BD_FSI|ucd.BD_PDI|ucd.BD_BN|ucd.BD_WS) != 0
 }
 
 // isRemovedByX9 reports whether the type is one of the types removed in X9.
-func isRemovedByX9(c Class) bool {
-	switch c {
-	case LRE, RLE, LRO, RLO, PDF, BN:
-		return true
-	}
-	return false
+func isRemovedByX9(c ucd.BidiClass) bool {
+	return c&(ucd.BD_LRE|ucd.BD_RLE|ucd.BD_LRO|ucd.BD_RLO|ucd.BD_PDF|ucd.BD_BN) != 0
 }
 
 // typeForLevel reports the strong type (L or R) corresponding to the level.
-func typeForLevel(level level) Class {
+func typeForLevel(level Level) ucd.BidiClass {
 	if (level & 0x1) == 0 {
-		return L
+		return ucd.BD_L
 	}
-	return R
-}
-
-func validateTypes(types []Class) error {
-	if len(types) == 0 {
-		return fmt.Errorf("types is null")
-	}
-	for i, t := range types[:len(types)-1] {
-		if t == B {
-			return fmt.Errorf("B type before end of paragraph at index: %d", i)
-		}
-	}
-	return nil
-}
-
-func validateParagraphEmbeddingLevel(embeddingLevel level) error {
-	if embeddingLevel != implicitLevel &&
-		embeddingLevel != 0 &&
-		embeddingLevel != 1 {
-		return fmt.Errorf("illegal paragraph embedding level: %d", embeddingLevel)
-	}
-	return nil
-}
-
-func validateLineBreaks(linebreaks []int, textLength int) error {
-	prev := 0
-	for i, next := range linebreaks {
-		if next <= prev {
-			return fmt.Errorf("bad linebreak: %d at index: %d", next, i)
-		}
-		prev = next
-	}
-	if prev != textLength {
-		return fmt.Errorf("last linebreak was %d, want %d", prev, textLength)
-	}
-	return nil
-}
-
-func validatePbTypes(pairTypes []bracketType) error {
-	if len(pairTypes) == 0 {
-		return fmt.Errorf("pairTypes is null")
-	}
-	for i, pt := range pairTypes {
-		switch pt {
-		case bpNone, bpOpen, bpClose:
-		default:
-			return fmt.Errorf("illegal pairType value at %d: %v", i, pairTypes[i])
-		}
-	}
-	return nil
-}
-
-func validatePbValues(pairValues []rune, pairTypes []bracketType) error {
-	if pairValues == nil {
-		return fmt.Errorf("pairValues is null")
-	}
-	if len(pairTypes) != len(pairValues) {
-		return fmt.Errorf("pairTypes is different length from pairValues")
-	}
-	return nil
+	return ucd.BD_R
 }
