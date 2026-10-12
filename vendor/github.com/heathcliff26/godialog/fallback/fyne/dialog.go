@@ -39,16 +39,18 @@ func (f *FyneFallbackDialog) Open(title string, initialDirectory string, filters
 		return
 	}
 
-	w := f.App.NewWindow(title)
-	d := dialog.NewFileOpen(func(uri fyne.URIReadCloser, err error) {
-		// Ensure this runs in a goroutine as we call fyne.DoAndWait in the callback
-		go callCallback(cb, uri, err)
-	}, w)
+	fyne.Do(func() {
+		w := f.App.NewWindow(title)
+		d := dialog.NewFileOpen(func(uri fyne.URIReadCloser, err error) {
+			// Ensure this runs in a goroutine to allow caller to use fyne.DoAndWait
+			go callCallback(cb, uri, err)
+		}, w)
 
-	err := f.showFileDialog(initialDirectory, filters, d, w)
-	if err != nil {
-		go cb("", err)
-	}
+		err := f.showFileDialog(initialDirectory, filters, d, w)
+		if err != nil {
+			go cb("", err)
+		}
+	})
 }
 
 // Shows the save file dialog and calls the callback asynchronously.
@@ -58,16 +60,19 @@ func (f *FyneFallbackDialog) Save(title string, initialDirectory string, filters
 		return
 	}
 
-	w := f.App.NewWindow(title)
-	d := dialog.NewFileSave(func(uri fyne.URIWriteCloser, err error) {
-		// Ensure this runs in a goroutine as we call fyne.DoAndWait in the callback
-		go callCallback(cb, uri, err)
-	}, w)
+	fyne.Do(func() {
+		w := f.App.NewWindow(title)
+		d := dialog.NewFileSave(func(uri fyne.URIWriteCloser, err error) {
+			// Ensure this runs in a goroutine to allow caller to use fyne.DoAndWait
+			go callCallback(cb, uri, err)
+		}, w)
 
-	err := f.showFileDialog(initialDirectory, filters, d, w)
-	if err != nil {
-		go cb("", err)
-	}
+		err := f.showFileDialog(initialDirectory, filters, d, w)
+		if err != nil {
+			go cb("", err)
+		}
+	})
+
 }
 
 func (f *FyneFallbackDialog) showFileDialog(initialDirectory string, filters godialog.FileFilters, d *dialog.FileDialog, w fyne.Window) error {
@@ -85,10 +90,9 @@ func (f *FyneFallbackDialog) showFileDialog(initialDirectory string, filters god
 	w.Resize(fyne.NewSize(f.Height, f.Width))
 	w.SetFixedSize(true)
 	d.Resize(fyne.NewSize(f.Height, f.Width))
-	fyne.Do(func() {
-		w.Show()
-		d.Show()
-	})
+
+	w.Show()
+	d.Show()
 
 	return nil
 }
