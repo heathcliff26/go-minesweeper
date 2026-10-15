@@ -1,5 +1,16 @@
 # Changelog
 
+Version v0.12.1
+--------------------
+Released: 2026-10-15
+
+🐛 Bug Fixes:
+- *(android)* Initialize translations when creating app
+
+⚙️ Miscellaneous Tasks:
+- *(release)* Update changelog for v0.12.0
+- Synced file(s) with heathcliff26/ci
+
 Version v0.12.0
 --------------------
 Released: 2026-10-13

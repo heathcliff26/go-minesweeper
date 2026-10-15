@@ -1,247 +1,514 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <component type="desktop-application">
-    <id>io.github.heathcliff26.go-minesweeper</id>
-
-    <name>go-minesweeper</name>
-    <summary>A minesweeper game</summary>
-
-    <metadata_license>MIT</metadata_license>
-    <project_license>Apache-2.0</project_license>
-
-    <description>
-        <p>
+  <id>io.github.heathcliff26.go-minesweeper</id>
+  <name>go-minesweeper</name>
+  <summary>A minesweeper game</summary>
+  <metadata_license>MIT</metadata_license>
+  <project_license>Apache-2.0</project_license>
+  <description>
+    <p>
             This is an implementation of minesweeper in golang, made with the UI framework fyne.io.
         </p>
-        <p>
+    <p>
             I mainly created it because I was bored and wanted to create a GUI app.
         </p>
-    </description>
-
-    <url type="homepage">https://github.com/heathcliff26/go-minesweeper</url>
-    <url type="bugtracker">https://github.com/heathcliff26/go-minesweeper/issues</url>
-    <url type="vcs-browser">https://github.com/heathcliff26/go-minesweeper</url>
-    <developer id="io.github.heathcliff26">
-        <name>Heathcliff</name>
-    </developer>
-
-    <content_rating type="oars-1.1" />
-
-    <launchable type="desktop-id">io.github.heathcliff26.go-minesweeper.desktop</launchable>
-
-    <branding>
-        <color type="primary" scheme_preference="light">#023c8a</color>
-        <color type="primary" scheme_preference="dark">#03228a</color>
-    </branding>
-
-    <screenshots>
-        <screenshot type="default">
-            <image type="source">
-                https://raw.githubusercontent.com/heathcliff26/go-minesweeper/refs/tags/v0.11.0/img/screenshots/difficulty-intermediate-dark.png
-            </image>
-            <caption>Running game on intermediate difficulty (Dark Theme)</caption>
-        </screenshot>
-        <screenshot type="default">
-            <image type="source">
-                https://raw.githubusercontent.com/heathcliff26/go-minesweeper/refs/tags/v0.11.0/img/screenshots/difficulty-intermediate-light.png
-            </image>
-            <caption>Running game on intermediate difficulty (Light Theme)</caption>
-        </screenshot>
-        <screenshot>
-            <image type="source">
-                https://raw.githubusercontent.com/heathcliff26/go-minesweeper/refs/tags/v0.11.0/img/screenshots/difficulty-beginner-dark.png
-            </image>
-            <caption>Running game on beginner difficulty (Dark Theme)</caption>
-        </screenshot>
-        <screenshot>
-            <image type="source">
-                https://raw.githubusercontent.com/heathcliff26/go-minesweeper/refs/tags/v0.11.0/img/screenshots/difficulty-beginner-light.png
-            </image>
-            <caption>Running game on beginner difficulty (Light Theme)</caption>
-        </screenshot>
-        <screenshot>
-            <image type="source">
-                https://raw.githubusercontent.com/heathcliff26/go-minesweeper/refs/tags/v0.11.0/img/screenshots/difficulty-expert-dark.png
-            </image>
-            <caption>Lost game on the highest difficulty (Dark Theme)</caption>
-        </screenshot>
-        <screenshot>
-            <image type="source">
-                https://raw.githubusercontent.com/heathcliff26/go-minesweeper/refs/tags/v0.11.0/img/screenshots/difficulty-expert-light.png
-            </image>
-            <caption>Lost game on the highest difficulty (Light Theme)</caption>
-        </screenshot>
-    </screenshots>
-
-    <releases>
-        <release version="v0.11.0" date="2026-09-27" type="stable">
-            <description>
-                <p>Allow resizing of window.</p>
-                <p>Add experimental android support.</p>
-                <p>Fix icon under wayland.</p>
-            </description>
-            <url type="details">https://github.com/heathcliff26/go-minesweeper/releases/tag/v0.11.0</url>
-        </release>
-        <release version="v0.10.0" date="2026-08-27" type="stable">
-            <description>
-                <p>Add wayland support.</p>
-            </description>
-            <url type="details">https://github.com/heathcliff26/go-minesweeper/releases/tag/v0.10.0</url>
-        </release>
-        <release version="v0.9.13" date="2026-06-13" type="stable">
-            <description>
-                <p>Small maintenance update.</p>
-            </description>
-            <url type="details">https://github.com/heathcliff26/go-minesweeper/releases/tag/v0.9.13</url>
-        </release>
-        <release version="v0.9.12" date="2026-06-01" type="stable">
-            <description>
-                <p>Small maintenance update.</p>
-            </description>
-            <url type="details">https://github.com/heathcliff26/go-minesweeper/releases/tag/v0.9.12</url>
-        </release>
-        <release version="v0.9.11" date="2026-05-10" type="stable">
-            <description>
-                <p>Fix crash when trying to load/save under KDE.</p>
-            </description>
-            <url type="details">https://github.com/heathcliff26/go-minesweeper/releases/tag/v0.9.11</url>
-        </release>
-        <release version="v0.9.10" date="2026-05-01" type="stable">
-            <description>
-                <p>Small maintenance update.</p>
-            </description>
-            <url type="details">https://github.com/heathcliff26/go-minesweeper/releases/tag/v0.9.10</url>
-        </release>
-        <release version="v0.9.9" date="2026-02-28" type="stable">
-            <description>
-                <p>Small maintenance update.</p>
-            </description>
-            <url type="details">https://github.com/heathcliff26/go-minesweeper/releases/tag/v0.9.9</url>
-        </release>
-        <release version="v0.9.8" date="2026-02-12" type="stable">
-            <description>
-                <p>Small maintenance update.</p>
-            </description>
-            <url type="details">https://github.com/heathcliff26/go-minesweeper/releases/tag/v0.9.8</url>
-        </release>
-        <release version="v0.9.7" date="2026-02-01" type="stable">
-            <description>
-                <p>Bumped framework version.</p>
-                <p>Small maintenance update.</p>
-            </description>
-            <url type="details">https://github.com/heathcliff26/go-minesweeper/releases/tag/v0.9.7</url>
-        </release>
-        <release version="v0.9.6" date="2026-01-01" type="stable">
-            <description>
-                <p>Small maintenance update.</p>
-            </description>
-            <url type="details">https://github.com/heathcliff26/go-minesweeper/releases/tag/v0.9.6</url>
-        </release>
-        <release version="v0.9.5" date="2025-12-01" type="stable">
-            <description>
-                <p>Bumped framework version.</p>
-            </description>
-            <url type="details">https://github.com/heathcliff26/go-minesweeper/releases/tag/v0.9.5</url>
-        </release>
-        <release version="v0.9.4" date="2025-11-01" type="stable">
-            <description>
-                <p>Bumped framework version.</p>
-                <p>Fixed potential crash when starting a new game while autosolve is running.</p>
-            </description>
-            <url type="details">https://github.com/heathcliff26/go-minesweeper/releases/tag/v0.9.4</url>
-        </release>
-        <release version="v0.9.3" date="2025-09-30" type="stable">
-            <description>
-                <p>Fixed missing version in rpm package.</p>
-                <p>Bumped framework version.</p>
-            </description>
-            <url type="details">https://github.com/heathcliff26/go-minesweeper/releases/tag/v0.9.3</url>
-        </release>
-        <release version="v0.9.2" date="2025-08-01" type="stable">
-            <description>
-                <p>Improved installation experience for tarball installs on linux.</p>
-                <p>Added rpm packages for Fedora 42.</p>
-                <p>Bumped dependencies.</p>
-                <p>Fixed a crash when displaying some dialogs.</p>
-            </description>
-            <url type="details">https://github.com/heathcliff26/go-minesweeper/releases/tag/v0.9.2</url>
-        </release>
-        <release version="v0.9.1" date="2025-06-01" type="stable">
-            <description>
-                <p>Small performance improvements.</p>
-            </description>
-            <url type="details">https://github.com/heathcliff26/go-minesweeper/releases/tag/v0.9.1</url>
-        </release>
-        <release version="v0.9.0" date="2025-05-08" type="stable">
-            <description>
-                <p>Switched to using OS native file dialogs, while keeping the fyne internal dialogs as a fallback.</p>
-                <p>Fixed potential error when creating a save file.</p>
-            </description>
-            <url type="details">https://github.com/heathcliff26/go-minesweeper/releases/tag/v0.9.0</url>
-        </release>
-        <release version="v0.8.1" date="2025-05-04" type="stable">
-            <description>
-                <p>Fixed an error where autosolve would continue even after the user reset the game via New/Replay.</p>
-            </description>
-            <url type="details">https://github.com/heathcliff26/go-minesweeper/releases/tag/v0.8.1</url>
-        </release>
-        <release version="v0.8.0" date="2025-04-13" type="stable">
-            <description>
-                <p>Upgraded to new performance enhanced framework version. Users may notice some changes in how the UI is rendered.</p>
-            </description>
-            <url type="details">https://github.com/heathcliff26/go-minesweeper/releases/tag/v0.8.0</url>
-        </release>
-        <release version="v0.7.2" date="2025-04-01" type="stable">
-            <description>
-                <p>Bumped framework version.</p>
-            </description>
-            <url type="details">https://github.com/heathcliff26/go-minesweeper/releases/tag/v0.7.2</url>
-        </release>
-        <release version="v0.7.1" date="2025-03-01" type="stable">
-            <description>
-                <p>Fixed grid tiles not updating immediatly when switching theme.</p>
-                <p>Replace old abandoned yaml dependency with new version.</p>
-                <p>Compile with golang 1.24.</p>
-            </description>
-            <url type="details">https://github.com/heathcliff26/go-minesweeper/releases/tag/v0.7.1</url>
-        </release>
-        <release version="v0.7.0" date="2025-02-15" type="stable">
-            <description>
-                <p>Implement proper light mode theme.</p>
-            </description>
-            <url type="details">https://github.com/heathcliff26/go-minesweeper/releases/tag/v0.7.0</url>
-        </release>
-        <release version="v0.6.1" date="2025-02-01" type="stable">
-            <description>
-                <p>Various CI improvements.</p>
-                <p>Bumped fyne version to v2.5.4.</p>
-            </description>
-            <url type="details">https://github.com/heathcliff26/go-minesweeper/releases/tag/v0.6.1</url>
-        </release>
-        <release version="v0.6.0" date="2024-12-15" type="stable">
-            <description>
-                <p>Replaced icon for better look and improved visibility.</p>
-                <p>Fix flathub quality checks on meta information.</p>
-                <p>Add default location for save files.</p>
-                <p>Save selected options between sessions.</p>
-                <p>Change default options for first startup.</p>
-                <p>Improved code quality and stability through more CI checks.</p>
-            </description>
-            <url type="details">https://github.com/heathcliff26/go-minesweeper/releases/tag/v0.6.0</url>
-        </release>
-        <release version="v0.5.6" date="2024-12-12" type="stable">
-            <description>
-                <p>Improved installation experience on linux.</p>
-                <p>Added example screenshots.</p>
-                <p>Added support for building this app as a flatpak.</p>
-            </description>
-            <url type="details">https://github.com/heathcliff26/go-minesweeper/releases/tag/v0.5.6</url>
-        </release>
-        <release version="v0.5.5" date="2024-11-01" type="stable">
-            <description>
-                <p>Dependency bumps.</p>
-            </description>
-            <url type="details">https://github.com/heathcliff26/go-minesweeper/releases/tag/v0.5.5</url>
-        </release>
-    </releases>
-
+  </description>
+  <developer id="io.github.heathcliff26">
+    <name>Heathcliff</name>
+  </developer>
+  <launchable type="desktop-id">io.github.heathcliff26.go-minesweeper.desktop</launchable>
+  <url type="homepage">https://github.com/heathcliff26/go-minesweeper</url>
+  <url type="bugtracker">https://github.com/heathcliff26/go-minesweeper/issues</url>
+  <url type="vcs-browser">https://github.com/heathcliff26/go-minesweeper</url>
+  <screenshots>
+    <screenshot type="default">
+      <caption>Running game on intermediate difficulty (Dark Theme)</caption>
+      <image type="source">https://raw.githubusercontent.com/heathcliff26/go-minesweeper/refs/tags/v0.11.0/img/screenshots/difficulty-intermediate-dark.png</image>
+    </screenshot>
+    <screenshot type="default">
+      <caption>Running game on intermediate difficulty (Light Theme)</caption>
+      <image type="source">https://raw.githubusercontent.com/heathcliff26/go-minesweeper/refs/tags/v0.11.0/img/screenshots/difficulty-intermediate-light.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Running game on beginner difficulty (Dark Theme)</caption>
+      <image type="source">https://raw.githubusercontent.com/heathcliff26/go-minesweeper/refs/tags/v0.11.0/img/screenshots/difficulty-beginner-dark.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Running game on beginner difficulty (Light Theme)</caption>
+      <image type="source">https://raw.githubusercontent.com/heathcliff26/go-minesweeper/refs/tags/v0.11.0/img/screenshots/difficulty-beginner-light.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Lost game on the highest difficulty (Dark Theme)</caption>
+      <image type="source">https://raw.githubusercontent.com/heathcliff26/go-minesweeper/refs/tags/v0.11.0/img/screenshots/difficulty-expert-dark.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Lost game on the highest difficulty (Light Theme)</caption>
+      <image type="source">https://raw.githubusercontent.com/heathcliff26/go-minesweeper/refs/tags/v0.11.0/img/screenshots/difficulty-expert-light.png</image>
+    </screenshot>
+  </screenshots>
+  <branding>
+    <color type="primary" scheme_preference="light">#023c8a</color>
+    <color type="primary" scheme_preference="dark">#03228a</color>
+  </branding>
+  <releases>
+    <release type="stable" version="v0.12.1" date="2026-10-15T00:00:00Z">
+      <description>
+        <p>🐛 Bug Fixes:</p>
+        <p>*(android)* Initialize translations when creating app</p>
+        <p>⚙️ Miscellaneous Tasks:</p>
+        <p>*(release)* Update changelog for v0.12.0</p>
+        <p>Synced file(s) with heathcliff26/ci</p>
+      </description>
+    </release>
+    <release type="stable" version="v0.12.0" date="2026-10-13T00:00:00Z">
+      <description>
+        <p>This release adds the following features:</p>
+        <ul>
+          <li>Use goreleaser to build rpm package</li>
+          <li>Add german translation</li>
+          <li>🐛 Bug Fixes:</li>
+          <li>Ensure version information fits into dialog</li>
+          <li>*(deps)* Update gomod</li>
+          <li>⚙️ Miscellaneous Tasks:</li>
+          <li>Add new changelog workflow</li>
+          <li>Enforce conventional commits</li>
+          <li>Dynamically inject version from git</li>
+          <li>*(builder)* Update image ghcr.io/heathcliff26/go-fyne-ci to v202610090432</li>
+        </ul>
+      </description>
+    </release>
+    <release type="stable" version="v0.11.0" date="2026-09-27T00:00:00Z">
+      <description>
+        <p>This release adds the following features:</p>
+        <ul>
+          <li>*(container)* [**breaking**] Update image ghcr.io/heathcliff26/go-fyne-ci to v202609060502</li>
+          <li>*(container)* [**breaking**] Update image ghcr.io/heathcliff26/go-fyne-ci to v202609171725</li>
+          <li>*(container)* [**breaking**] Update image ghcr.io/heathcliff26/go-fyne-ci to v202609241228</li>
+          <li>💼 Other:</li>
+          <li>Fix coverprofiles permissions</li>
+          <li>Allow window resizing</li>
+          <li>Use grid header to calculate min size</li>
+          <li>Do not upload gosec on release</li>
+          <li>Adapt border color to new fyne design</li>
+          <li>Build and release android artifacts</li>
+          <li>Add android installation instructions</li>
+          <li>Fix error about settings on startup</li>
+          <li>Save preferences via app lifecycle</li>
+          <li>Add adaptive icon</li>
+          <li>Update adaptive icon</li>
+          <li>Disable save/load options</li>
+          <li>Fix release workflow missing secrets inheritance</li>
+        </ul>
+      </description>
+    </release>
+    <release type="stable" version="v0.10.0" date="2026-08-27T00:00:00Z">
+      <description>
+        <p>This release adds the following features:</p>
+        <ul>
+          <li>*(container)* [**breaking**] Update image ghcr.io/heathcliff26/go-fyne-ci to v202608201646</li>
+          <li>*(container)* [**breaking**] Update image ghcr.io/heathcliff26/go-fyne-ci to v202608261637</li>
+          <li>*(container)* [**breaking**] Update image ghcr.io/heathcliff26/go-fyne-ci to v202608261947</li>
+          <li>🐛 Bug Fixes:</li>
+          <li>*(deps)* Update gomod</li>
+          <li>💼 Other:</li>
+          <li>Switch to containerized script</li>
+          <li>Use synctest and reduce time usage</li>
+          <li>*(deps)* Bump golang.org/x/net from 0.50.0 to 0.55.0</li>
+          <li>*(deps)* Bump golang.org/x/image from 0.38.0 to 0.41.0</li>
+        </ul>
+      </description>
+    </release>
+    <release type="stable" version="v0.9.13" date="2026-06-13T00:00:00Z">
+      <description>
+        <p>🐛 Bug Fixes:</p>
+        <p>*(deps)* Update gomod</p>
+        <p>💼 Other:</p>
+        <p>Move renovate and Link Check to tekton</p>
+        <p>Remove obsolete Renovate status badge</p>
+      </description>
+    </release>
+    <release type="stable" version="v0.9.12" date="2026-06-01T00:00:00Z">
+      <description>
+        <p>🐛 Bug Fixes:</p>
+        <p>*(deps)* Update gomod</p>
+      </description>
+    </release>
+    <release type="stable" version="v0.9.11" date="2026-05-10T00:00:00Z">
+      <description>
+        <p>🐛 Bug Fixes:</p>
+        <p>*(deps)* Update module github.com/heathcliff26/godialog to v0.1.12</p>
+      </description>
+    </release>
+    <release type="stable" version="v0.9.10" date="2026-05-01T00:00:00Z">
+      <description>
+        <p>🐛 Bug Fixes:</p>
+        <p>*(deps)* Update gomod</p>
+        <p>💼 Other:</p>
+        <p>*(deps)* Bump golang.org/x/image from 0.24.0 to 0.38.0</p>
+      </description>
+    </release>
+    <release type="stable" version="v0.9.9" date="2026-02-28T00:00:00Z">
+      <description>
+        <p>🐛 Bug Fixes:</p>
+        <p>*(deps)* Update gomod</p>
+      </description>
+    </release>
+    <release type="stable" version="v0.9.8" date="2026-02-12T00:00:00Z">
+      <description>
+        <p>💼 Other:</p>
+        <p>Added NewGameSolvableWithIterations</p>
+        <p>Add more debug output for autosolve cleanup</p>
+      </description>
+    </release>
+    <release type="stable" version="v0.9.7" date="2026-02-01T00:00:00Z">
+      <description>
+        <p>🐛 Bug Fixes:</p>
+        <p>*(deps)* Update gomod</p>
+        <p>💼 Other:</p>
+        <p>Small fixes</p>
+        <p>Use go.yaml.in/yaml/v3 for YAML parsing</p>
+        <p>Remove unneeded prepare step in renovate workflow</p>
+      </description>
+    </release>
+    <release type="stable" version="v0.9.6" date="2026-01-01T00:00:00Z">
+      <description>
+        <p>🐛 Bug Fixes:</p>
+        <p>*(deps)* Update module github.com/heathcliff26/godialog to v0.1.8</p>
+      </description>
+    </release>
+    <release type="stable" version="v0.9.5" date="2025-12-01T00:00:00Z">
+      <description>
+        <p>🐛 Bug Fixes:</p>
+        <p>*(deps)* Update gomod</p>
+        <p>💼 Other:</p>
+        <p>Enable signing artifacts in release workflow</p>
+        <p>Consolidate targets after F41 moved to go1.24</p>
+      </description>
+    </release>
+    <release type="stable" version="v0.9.4" date="2025-11-01T00:00:00Z">
+      <description>
+        <p>🐛 Bug Fixes:</p>
+        <p>*(deps)* Update gomod</p>
+        <p>💼 Other:</p>
+        <p>Add Fedora 43 and Rawhide targets</p>
+        <p>Fix panic when running solver without game</p>
+      </description>
+    </release>
+    <release type="stable" version="v0.9.3" date="2025-09-30T00:00:00Z">
+      <description>
+        <p>🐛 Bug Fixes:</p>
+        <p>*(deps)* Update gomod</p>
+        <p>💼 Other:</p>
+        <p>Add commit when archiving git</p>
+      </description>
+    </release>
+    <release type="stable" version="v0.9.2" date="2025-08-01T00:00:00Z">
+      <description>
+        <p>🐛 Bug Fixes:</p>
+        <p>*(deps)* Update module sigs.k8s.io/yaml to v1.5.0</p>
+        <p>*(deps)* Update gomod</p>
+        <p>💼 Other:</p>
+        <p>Additionally force-reload icons</p>
+        <p>Validate metainfo with appstream instead of via flatpak</p>
+        <p>Change license to Apache-2.0</p>
+        <p>Fully install app on system</p>
+        <p>Don't build for rawhide</p>
+      </description>
+    </release>
+    <release type="stable" version="v0.9.1" date="2025-06-01T00:00:00Z">
+      <description>
+        <p>🐛 Bug Fixes:</p>
+        <p>*(deps)* Update module github.com/heathcliff26/godialog to v0.1.1</p>
+        <p>💼 Other:</p>
+        <p>Change file filters to array to enable deterministic orders</p>
+        <p>Use godialog for the save load/save dialogs</p>
+        <p>Increase timeout to 7min</p>
+        <p>Increase timeout for waiting on test conditions</p>
+        <p>Speed up unit test by not testing all difficulties with NewGameSolvable</p>
+      </description>
+    </release>
+    <release type="stable" version="v0.9.0" date="2025-05-08T00:00:00Z">
+      <description>
+        <p>🧪 Testing:</p>
+        <p>Improve flaky timer tests</p>
+        <p>💼 Other:</p>
+        <p>Fix potential error when saving a game</p>
+        <p>Remove empty file generated by fyne save file dialog</p>
+        <p>Implement os native file dialog for linux using dbus</p>
+        <p>Implement windows native file dialogs</p>
+      </description>
+    </release>
+    <release type="stable" version="v0.8.1" date="2025-05-04T00:00:00Z">
+      <description>
+        <p>🧪 Testing:</p>
+        <p>Replace assert with require for better error handling in tests</p>
+        <p>Add more performance testcases</p>
+        <p>💼 Other:</p>
+        <p>Add help function</p>
+        <p>Add gosec to improve code quality</p>
+        <p>Move target description to above them</p>
+        <p>Speedup total CI time by running builds sooner</p>
+        <p>Add missing permission to release job</p>
+        <p>Move solver into separate struct</p>
+        <p>Move game state check and solver update into helper functions</p>
+        <p>Fix autosolve not stopping when reseting game</p>
+      </description>
+    </release>
+    <release type="stable" version="v0.8.0" date="2025-04-13T00:00:00Z">
+      <description>
+        <p>💼 Other:</p>
+        <p>Update to fyne v2.6</p>
+      </description>
+    </release>
+    <release type="stable" version="v0.7.2" date="2025-04-01T00:00:00Z">
+      <description>
+        <p>🐛 Bug Fixes:</p>
+        <p>*(deps)* Update module fyne.io/fyne/v2 to v2.5.5</p>
+      </description>
+    </release>
+    <release type="stable" version="v0.7.1" date="2025-02-26T00:00:00Z">
+      <description>
+        <p>💼 Other:</p>
+        <p>Fix broken image link</p>
+        <p>Fix tile not updating when theme variant changes</p>
+        <p>Raise required go version to 1.24</p>
+        <p>Replace abandoned yaml package with kubernetes version</p>
+      </description>
+    </release>
+    <release type="stable" version="v0.7.0" date="2025-02-15T00:00:00Z">
+      <description>
+        <p>💼 Other:</p>
+        <p>Make default color dependent on theme</p>
+        <p>Update screenshots to add light theme</p>
+      </description>
+    </release>
+    <release type="stable" version="v0.6.1" date="2025-02-01T00:00:00Z">
+      <description>
+        <p>🐛 Bug Fixes:</p>
+        <p>*(deps)* Update module fyne.io/fyne/v2 to v2.5.3</p>
+        <p>*(deps)* Update module fyne.io/fyne/v2 to v2.5.4</p>
+        <p>💼 Other:</p>
+        <p>Add fmt and validate commands</p>
+        <p>Add validate step to ci job</p>
+        <p>Upload coverprofile to coveralls</p>
+        <p>Add coverpkg flag</p>
+        <p>Fix missing changes for coveralls</p>
+        <p>Fix missing explicit permissions for workflow runs</p>
+      </description>
+    </release>
+    <release type="stable" version="v0.6.0" date="2024-12-15T00:00:00Z">
+      <description>
+        <p>⚙️ Miscellaneous Tasks:</p>
+        <p>Run unit-tests on windows and linux</p>
+        <p>💼 Other:</p>
+        <p>Add clean command</p>
+        <p>Replace icon completely with new design</p>
+        <p>Fix flathub quality checks</p>
+        <p>Add static folders for save files</p>
+        <p>Add automatic saving of selected options between sessions</p>
+        <p>Change default options</p>
+        <p>Fix wrong settings path</p>
+        <p>Update dependencies</p>
+      </description>
+    </release>
+    <release type="stable" version="v0.5.6" date="2024-12-12T00:00:00Z">
+      <description>
+        <p>🐛 Bug Fixes:</p>
+        <p>*(deps)* Update module github.com/stretchr/testify to v1.10.0</p>
+        <p>💼 Other:</p>
+        <p>Add screenshots</p>
+        <p>Delete cover.out after generating page</p>
+      </description>
+    </release>
+    <release type="stable" version="v0.5.5" date="2024-11-01T00:00:00Z">
+      <description>
+        <p>🐛 Bug Fixes:</p>
+        <p>*(deps)* Update module fyne.io/fyne/v2 to v2.5.1</p>
+        <p>*(deps)* Update module fyne.io/fyne/v2 to v2.5.2</p>
+      </description>
+    </release>
+    <release type="stable" version="v0.5.4" date="2024-08-01T00:00:00Z">
+      <description>
+        <p>🐛 Bug Fixes:</p>
+        <p>*(deps)* Update module fyne.io/fyne/v2 to v2.5.0</p>
+        <p>💼 Other:</p>
+        <p>Move all workflows to CI repository</p>
+      </description>
+    </release>
+    <release type="stable" version="v0.5.3" date="2024-07-14T00:00:00Z">
+      <description>
+        <p>🐛 Bug Fixes:</p>
+        <p>*(github-action)* Update actions/create-github-app-token action to v1.10.2</p>
+        <p>*(github-action)* Update actions/create-github-app-token action to v1.10.3</p>
+        <p>*(github-action)* Update actions/download-artifact action to v4.1.8</p>
+        <p>*(github-action)* Update actions/upload-artifact action to v4.3.4</p>
+        <p>*(github-action)* Update actions/setup-go action to v5.0.2</p>
+        <p>💼 Other:</p>
+        <p>Run Renovate less frequently</p>
+      </description>
+    </release>
+    <release type="stable" version="v0.5.2" date="2024-06-23T00:00:00Z">
+      <description>
+        <p>💼 Other:</p>
+        <p>Fix mines flagged on finished game</p>
+        <p>Change default game creation algorithm</p>
+        <p>Display tiles flagged via assisted mode with separate colored flags</p>
+        <p>Do not allow flags set via assisted mode to be manually removed</p>
+      </description>
+    </release>
+    <release type="stable" version="v0.5.1" date="2024-06-15T00:00:00Z">
+      <description>
+        <p>💼 Other:</p>
+        <p>Fix mines not being flagged when no safe positions found</p>
+      </description>
+    </release>
+    <release type="stable" version="v0.5.0" date="2024-06-14T00:00:00Z">
+      <description>
+        <p>🐛 Bug Fixes:</p>
+        <p>*(github-action)* Update actions/create-github-app-token action to v1.10.1</p>
+        <p>*(github-action)* Update actions/checkout action to v4.1.7</p>
+        <p>💼 Other:</p>
+        <p>Abort operation immediately if game stops during autosolve</p>
+        <p>Fix frozen grid after running autosolve on unstarted game</p>
+        <p>Do not show dialogue on successfull autosolve</p>
+        <p>Flag mines while checking fields</p>
+      </description>
+    </release>
+    <release type="stable" version="v0.4.2" date="2024-06-04T00:00:00Z">
+      <description>
+        <p>💼 Other:</p>
+        <p>Fix delay when running multiple autosolve after another</p>
+      </description>
+    </release>
+    <release type="stable" version="v0.4.1" date="2024-05-30T00:00:00Z">
+      <description>
+        <p>💼 Other:</p>
+        <p>Use make in scripts instead of full command</p>
+        <p>Reduce timeout to 5min</p>
+        <p>Improve unit-test coverage</p>
+        <p>Fix panic when asking for hint on game loaded from a savegame</p>
+        <p>Set log level to error for unit-tests</p>
+        <p>Enable tests to run in parallel</p>
+        <p>Drop unnecessary line of code in TestUpdateFromStatus</p>
+        <p>Make update function private</p>
+        <p>Make grid concurrency safe</p>
+        <p>Make processing of user input parallel where possible</p>
+      </description>
+    </release>
+    <release type="stable" version="v0.4.0" date="2024-05-26T00:00:00Z">
+      <description>
+        <p>💼 Other:</p>
+        <p>Make status concurrency safe</p>
+        <p>Expand TestUpdateFromStatus to check that all fields are updated</p>
+        <p>Speed up grid update by processing chunks in parallel</p>
+        <p>Ensure a single timer is only running once</p>
+        <p>Open file dialogs in their own windows to enable scaling</p>
+        <p>Add flags for enabling more verbose output to log</p>
+        <p>Bump retention of artifacts to 14 days</p>
+        <p>Always run with timeout of 10min</p>
+        <p>Add option to autosolve the current game</p>
+        <p>Fix status persisting after call to Replay()</p>
+      </description>
+    </release>
+    <release type="stable" version="v0.3.1" date="2024-05-24T00:00:00Z">
+      <description>
+        <p>💼 Other:</p>
+        <p>Make gameOver and gameWon private</p>
+        <p>Add comments to functions</p>
+      </description>
+    </release>
+    <release type="stable" version="v0.3.0" date="2024-05-20T00:00:00Z">
+      <description>
+        <p>🐛 Bug Fixes:</p>
+        <p>*(github-action)* Update actions/checkout action to v4.1.5</p>
+        <p>*(github-action)* Update actions/checkout action to v4.1.6</p>
+        <p>💼 Other:</p>
+        <p>Change color for successfully flagged mines on game end</p>
+        <p>Add test for nil pointer on updateFromStatus</p>
+        <p>Only create new status when needed</p>
+        <p>Add more tests for status</p>
+        <p>Fix flake in TestDoubleTapped/Checked</p>
+        <p>Add option to choose game creation algorithm</p>
+        <p>Implement option to receive a hint for a single tile</p>
+      </description>
+    </release>
+    <release type="stable" version="v0.2.4" date="2024-05-05T00:00:00Z">
+      <description>
+        <p>This release adds the following features:</p>
+        <ul>
+          <li>*(github-action)* Update actions/create-github-app-token action to v1.10.0</li>
+          <li>🐛 Bug Fixes:</li>
+          <li>*(github-action)* Update actions/checkout action to v4.1.4</li>
+          <li>*(github-action)* Update actions/upload-artifact action to v4.3.3</li>
+          <li>*(github-action)* Update actions/download-artifact action to v4.1.7</li>
+          <li>*(github-action)* Update actions/setup-go action to v5.0.1</li>
+        </ul>
+      </description>
+    </release>
+    <release type="stable" version="v0.2.3" date="2024-04-20T00:00:00Z">
+      <description>
+        <p>This release adds the following features:</p>
+        <ul>
+          <li>*(github-action)* Update actions/create-github-app-token action to v1.9.0</li>
+          <li>🐛 Bug Fixes:</li>
+          <li>*(deps)* Update module fyne.io/fyne/v2 to v2.4.4</li>
+          <li>*(github-action)* Update actions/create-github-app-token action to v1.8.1</li>
+          <li>*(github-action)* Update actions/cache action to v4.0.1</li>
+          <li>*(github-action)* Update actions/download-artifact action to v4.1.3</li>
+          <li>*(deps)* Update module github.com/stretchr/testify to v1.9.0</li>
+          <li>*(github-action)* Update actions/create-github-app-token action to v1.8.2</li>
+          <li>*(github-action)* Update actions/download-artifact action to v4.1.4</li>
+          <li>*(github-action)* Update actions/cache action to v4.0.2</li>
+          <li>*(github-action)* Update actions/create-github-app-token action to v1.9.1</li>
+          <li>*(github-action)* Update actions/create-github-app-token action to v1.9.3</li>
+          <li>*(github-action)* Update stefanzweifel/git-auto-commit-action action to v5.0.1</li>
+          <li>*(github-action)* Update actions/upload-artifact action to v4.3.2</li>
+          <li>*(github-action)* Update actions/download-artifact action to v4.1.5</li>
+          <li>*(deps)* Update module fyne.io/fyne/v2 to v2.4.5</li>
+        </ul>
+      </description>
+    </release>
+    <release type="stable" version="v0.2.2" date="2024-02-09T00:00:00Z">
+      <description>
+        <p>This release adds the following features:</p>
+        <ul>
+          <li>*(github-action)* Update actions/create-github-app-token action to v1.8.0</li>
+          <li>*(github-action)* Update ncipollo/release-action action to v1.14.0</li>
+          <li>🐛 Bug Fixes:</li>
+          <li>*(github-action)* Update actions/download-artifact action to v4.1.2</li>
+          <li>*(github-action)* Update actions/upload-artifact action to v4.3.1</li>
+          <li>💼 Other:</li>
+          <li>Switch gh actions automerge type to pr</li>
+          <li>Mount cache into go-fyne-ci container to speed up operations</li>
+        </ul>
+      </description>
+    </release>
+    <release type="stable" version="v0.2.0" date="2024-02-04T00:00:00Z">
+      <description>
+        <p>💼 Other:</p>
+        <p>Add target for updating dependencies</p>
+      </description>
+    </release>
+    <release type="stable" version="v0.1.3" date="2024-02-02T00:00:00Z">
+      <description>
+        <p>💼 Other:</p>
+        <p>Do not use automergeBranch</p>
+      </description>
+    </release>
+    <release type="stable" version="v0.1.1" date="2024-01-28T00:00:00Z">
+      <description>
+        <p>This release adds the following features:</p>
+        <ul>
+          <li>*(github-action)* Update actions/upload-artifact action to v4.3.0</li>
+          <li>*(github-action)* Update actions/create-github-app-token action to v1.7.0</li>
+          <li>💼 Other:</li>
+          <li>Fix go coverprofile report workflow</li>
+          <li>Add test for game victory condition</li>
+          <li>Change automerge type to PR</li>
+          <li>Add tests for tile and grid, add missing scenarios for app and counter</li>
+        </ul>
+      </description>
+    </release>
+  </releases>
+  <content_rating type="oars-1.1"/>
 </component>
