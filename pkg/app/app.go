@@ -48,7 +48,8 @@ type App struct {
 	filedialog     godialog.FileDialog
 }
 
-func init() {
+// Need to run init when creating App, as normal init() is not called on android
+func initApp() {
 	err := lang.AddTranslationsFS(translationsFS, "translations")
 	if err != nil {
 		slog.Error("Failed to load translations", slog.Any("error", err))
@@ -64,6 +65,8 @@ func init() {
 
 // Create a new App
 func New() *App {
+	initApp()
+
 	app := newApp()
 	version := getVersion(app)
 	main := app.NewWindow(version.Name)
