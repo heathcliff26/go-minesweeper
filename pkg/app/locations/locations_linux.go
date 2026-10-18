@@ -21,14 +21,9 @@ func loadSaveFolderLocation() (string, error) {
 }
 
 func loadSettingsFileLocation() (string, error) {
-	xdgConfigHome := os.Getenv("XDG_CONFIG_HOME")
-	if xdgConfigHome != "" {
-		return filepath.Join(xdgConfigHome, settingsFilename), nil
-	}
-
-	home, err := os.UserHomeDir()
+	configDir, err := os.UserConfigDir()
 	if err != nil {
 		return "", err
 	}
-	return filepath.Join(home, ".config", appName, settingsFilename), nil
+	return filepath.Join(configDir, appName, settingsFilename), nil
 }

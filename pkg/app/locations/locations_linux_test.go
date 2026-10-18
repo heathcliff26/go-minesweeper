@@ -13,12 +13,12 @@ func TestLoadSaveFolderLocation(t *testing.T) {
 	assert := assert.New(t)
 
 	path, err := loadSaveFolderLocation()
-	assert.NoError(err)
+	assert.NoError(err, "Should return .config")
 	assert.Contains(path, filepath.Join(".config", appName, "saves"), "Variable should have home location ending")
 
 	t.Setenv("XDG_DATA_HOME", "test")
 	path, err = loadSaveFolderLocation()
-	assert.NoError(err)
+	assert.NoError(err, "Should read path from env variable")
 	assert.Equal("test/saves", path, "Should read data location from env variable")
 }
 
@@ -26,11 +26,12 @@ func TestLoadSettingsFileLocation(t *testing.T) {
 	assert := assert.New(t)
 
 	path, err := loadSettingsFileLocation()
-	assert.NoError(err)
+	assert.NoError(err, "Should return .config")
 	assert.Contains(path, filepath.Join(".config", appName, settingsFilename), "Variable should have home location ending")
 
-	t.Setenv("XDG_CONFIG_HOME", "test")
+	tmpDir := t.TempDir()
+	t.Setenv("XDG_CONFIG_HOME", tmpDir)
 	path, err = loadSettingsFileLocation()
-	assert.NoError(err)
-	assert.Equal("test/"+settingsFilename, path, "Should read settings.yaml location from env variable")
+	assert.NoError(err, "Should read path from env variable")
+	assert.Equal(filepath.Join(tmpDir, appName, settingsFilename), path, "Should read settings.yaml location from env variable")
 }
