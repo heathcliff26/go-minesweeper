@@ -8,17 +8,17 @@ import (
 )
 
 func loadSaveFolderLocation() (string, error) {
-	home, err := os.UserHomeDir()
+	configDir, err := os.UserConfigDir()
 	if err != nil {
 		return "", err
 	}
-	return filepath.Join(home, "AppData", "Roaming", appName, "saves"), nil
+	return filepath.Join(configDir, appName, "saves"), nil
 }
 
 func loadSettingsFileLocation() (string, error) {
-	home, err := os.UserHomeDir()
+	configDir, err := os.UserConfigDir()
 	if err != nil {
 		return "", err
 	}
-	return filepath.Join(home, "AppData", "Roaming", appName, settingsFilename), nil
+	return filepath.Join(configDir, appName, settingsFilename), nil
 }
