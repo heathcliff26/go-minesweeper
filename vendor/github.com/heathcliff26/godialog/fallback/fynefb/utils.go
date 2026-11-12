@@ -1,4 +1,4 @@
-package fyne
+package fynefb
 
 import (
 	"fmt"
