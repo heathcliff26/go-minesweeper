@@ -17,7 +17,7 @@ import (
 	"github.com/heathcliff26/go-minesweeper/pkg/app/locations"
 	"github.com/heathcliff26/go-minesweeper/pkg/minesweeper"
 	"github.com/heathcliff26/godialog"
-	fallbackfyne "github.com/heathcliff26/godialog/fallback/fyne"
+	"github.com/heathcliff26/godialog/fallback/fynefb"
 )
 
 const DEFAULT_DIFFICULTY = minesweeper.DifficultyBeginner
@@ -74,7 +74,7 @@ func New() *App {
 
 	fd := godialog.NewFileDialog()
 	fd.SetFilters(saveFileFilters)
-	fd.SetFallback(fallbackfyne.NewFyneFallbackDialog(app))
+	fd.SetFallback(fynefb.NewFyneFallbackDialog(app))
 
 	preferences, err := LoadPreferences()
 	if err != nil {
