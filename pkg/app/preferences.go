@@ -5,7 +5,7 @@ import (
 
 	"github.com/heathcliff26/go-minesweeper/pkg/app/locations"
 	"github.com/heathcliff26/go-minesweeper/pkg/minesweeper"
-	"go.yaml.in/yaml/v3"
+	"go.yaml.in/yaml/v4"
 )
 
 type Preferences struct {
