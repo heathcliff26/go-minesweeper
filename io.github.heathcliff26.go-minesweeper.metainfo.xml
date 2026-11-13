@@ -51,6 +51,21 @@
     <color type="primary" scheme_preference="dark">#03228a</color>
   </branding>
   <releases>
+    <release type="stable" version="v0.12.2" date="2026-11-13T00:00:00Z">
+      <description>
+        <p>🐛 Bug Fixes:</p>
+        <p>Add library dependencies to rpm</p>
+        <p>*(deps)* Update go.yaml.in/yaml to v4</p>
+        <p>*(deps)* Update gomod</p>
+        <p>🚜 Refactor:</p>
+        <p>[**breaking**] Use os.UserConfigDir function</p>
+        <p>⚙️ Miscellaneous Tasks:</p>
+        <p>Synced file(s) with heathcliff26/ci</p>
+        <p>Synced file(s) with heathcliff26/ci</p>
+        <p>*(ci)* Remove gemfury job</p>
+        <p>*(builder)* Update image go-fyne-ci to v202611121610</p>
+      </description>
+    </release>
     <release type="stable" version="v0.12.1" date="2026-10-15T00:00:00Z">
       <description>
         <p>🐛 Bug Fixes:</p>
@@ -58,6 +73,7 @@
         <p>⚙️ Miscellaneous Tasks:</p>
         <p>*(release)* Update changelog for v0.12.0</p>
         <p>Synced file(s) with heathcliff26/ci</p>
+        <p>*(release)* Update changelog for v0.12.1</p>
       </description>
     </release>
     <release type="stable" version="v0.12.0" date="2026-10-13T00:00:00Z">

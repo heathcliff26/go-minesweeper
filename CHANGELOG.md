@@ -1,5 +1,23 @@
 # Changelog
 
+Version v0.12.2
+--------------------
+Released: 2026-11-13
+
+🐛 Bug Fixes:
+- Add library dependencies to rpm
+- *(deps)* Update go.yaml.in/yaml to v4
+- *(deps)* Update gomod
+
+🚜 Refactor:
+- [**breaking**] Use os.UserConfigDir function
+
+⚙️ Miscellaneous Tasks:
+- Synced file(s) with heathcliff26/ci
+- Synced file(s) with heathcliff26/ci
+- *(ci)* Remove gemfury job
+- *(builder)* Update image go-fyne-ci to v202611121610
+
 Version v0.12.1
 --------------------
 Released: 2026-10-15
@@ -10,6 +28,7 @@ Released: 2026-10-15
 ⚙️ Miscellaneous Tasks:
 - *(release)* Update changelog for v0.12.0
 - Synced file(s) with heathcliff26/ci
+- *(release)* Update changelog for v0.12.1
 
 Version v0.12.0
 --------------------
