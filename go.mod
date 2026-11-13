@@ -7,6 +7,7 @@ require (
 	github.com/heathcliff26/godialog v0.2.0
 	github.com/stretchr/testify v1.12.1
 	go.yaml.in/yaml/v3 v3.0.5
+	go.yaml.in/yaml/v4 v4.0.0
 )
 
 require (
